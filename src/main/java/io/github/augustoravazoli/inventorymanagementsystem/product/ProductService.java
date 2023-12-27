@@ -42,4 +42,11 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    public void deleteProduct(long id) {
+        if (!productRepository.existsById(id)) {
+            throw new ProductNotFoundException();
+        }
+        productRepository.deleteById(id);
+    }
+
 }

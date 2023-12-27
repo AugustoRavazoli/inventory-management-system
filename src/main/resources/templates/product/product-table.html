@@ -5,7 +5,7 @@
 
 <body>
 
-  <main layout:fragment="content">
+  <main layout:fragment="content" x-data="{ currentForm: null }">
 
     <div class="navbar navbar-expand-lg py-4">
       <div class="container-fluid px-0">
@@ -42,6 +42,11 @@
             <td th:text="${product.price}" class="align-middle"></td>
             <td class="align-middle">
               <a th:href="@{/products/update/__${product.id}__}" class="btn"><i class="bi bi-pencil-fill text-primary"></i></a>
+              <button @click="currentForm = $el.dataset.link" th:data-link="|javascript: document.deleteForm${product.id}.submit()|" class="btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i
+                  class="bi bi-trash-fill text-danger"></i></button>
+              <form th:name="|deleteForm${product.id}|" th:action="@{/products/delete/__${product.id}__}" method="post" th:hidden="true">
+                <input type="submit" hidden>
+              </form>
             </td>
           </tr>
 
@@ -71,6 +76,24 @@
 
       </ul>
     </nav>
+
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content rounded-0">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirm</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to continue?
+          </div>
+          <div class="modal-footer">
+            <a :href="currentForm" class="btn btn-success px-4 me-3 rounded-0">Yes</a>
+            <button class="btn btn-danger px-4 rounded-0" data-bs-dismiss="modal">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </main>
 
