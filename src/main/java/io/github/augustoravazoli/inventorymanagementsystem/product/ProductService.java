@@ -20,8 +20,11 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public Page<Product> listProducts(Pageable page) {
-        return productRepository.findAll(page);
+    public Page<Product> listProducts(String name, Pageable page) {
+        if (name.isBlank()) {
+            return productRepository.findAll(page);
+        }
+        return productRepository.findAllByNameContainingIgnoreCase(name, page);
     }
 
     public Product findProduct(long id) {

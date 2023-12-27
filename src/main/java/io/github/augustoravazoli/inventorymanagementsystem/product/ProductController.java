@@ -37,8 +37,8 @@ public class ProductController {
     }
 
     @GetMapping("/list")
-    public String listProducts(Pageable pageable, Model model) {
-        var productPage = productService.listProducts(pageable);
+    public String listProducts(@RequestParam(name = "name", defaultValue = "") String name, Pageable pageable, Model model) {
+        var productPage = productService.listProducts(name, pageable);
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("currentPage", productPage.getNumber() + 1);
         model.addAttribute("totalPages", productPage.getTotalPages());

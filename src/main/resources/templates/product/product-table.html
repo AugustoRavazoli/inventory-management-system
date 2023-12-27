@@ -9,10 +9,22 @@
 
     <div class="navbar navbar-expand-lg py-4">
       <div class="container-fluid px-0">
+
         <h2 class="h4 mb-0 d-none d-sm-block">Products</h2>
+
         <div class="d-flex justify-content-between">
+
+          <form th:action="${#strings.isEmpty(param.name)} ? @{/products/list?name=} : @{/products/list}" method="get" class="w-100 me-4">
+            <div class="input-group w-100 bg-white">
+              <input class="form-control rounded-0" type="search" name="name" placeholder="Search product...">
+              <button class="btn btn-outline-secondary rounded-0"><i th:class="${#strings.isEmpty(param.name)} ? 'bi bi-search' : 'bi bi-x-lg'"></i></button>
+            </div>
+          </form>
+
           <a th:href="@{/products/create}" class="flex-shrink-0 btn btn-success px-4 rounded-0">Add product</a>
+
         </div>
+
       </div>
     </div>
 
@@ -31,7 +43,7 @@
         <tbody>
 
           <tr th:if="${products.size() == 0}">
-            <td colspan="3" class="align-middle py-2">
+            <td colspan="4" class="align-middle py-2">
               No products
             </td>
           </tr>
@@ -54,7 +66,7 @@
       </table>
     </div>
 
-    <nav th:if="${totalPages > 0}" class="py-2">
+    <nav th:if="${totalPages > 0 && #strings.isEmpty(param.name)}" class="py-2">
       <ul class="pagination">
 
         <li th:if="${currentPage > 1}" class="page-item">
