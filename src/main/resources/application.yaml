@@ -1,1 +1,6 @@
-
+spring:
+  data:
+    web:
+      pageable:
+        default-page-size: 8
+        one-indexed-parameters: true

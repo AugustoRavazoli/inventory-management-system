@@ -67,6 +67,64 @@
 
       <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
 
+        <div class="navbar navbar-expand-lg py-4">
+          <div class="container-fluid px-0">
+            <h2 class="h4 mb-0 d-none d-sm-block">Products</h2>
+          </div>
+        </div>
+
+        <div class="table-responsive small">
+          <table class="table table-borderless table-hover table-sm text-center" style="table-layout: fixed;">
+
+            <thead>
+              <tr>
+                <th class="bg-dark py-2 text-white" scope="col">Name</th>
+                <th class="bg-dark py-2 text-white" scope="col">Quantity</th>
+                <th class="bg-dark py-2 text-white" scope="col">Price</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <tr th:if="${products.size() == 0}">
+                <td colspan="3" class="align-middle py-2">
+                  No products
+                </td>
+              </tr>
+
+              <tr th:each="product : ${products}">
+                <td th:text="${product.name}" class="align-middle"></td>
+                <td th:text="${product.quantity}" class="align-middle"></td>
+                <td th:text="${product.price}" class="align-middle"></td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+        <nav th:if="${totalPages > 0}" class="py-2">
+          <ul class="pagination">
+
+            <li th:if="${currentPage > 1}" class="page-item">
+              <a th:href="@{'/products/list?page=__${currentPage - 1}__'}" class="page-link text-dark rounded-0">
+                <i class="bi bi-chevron-left"></i>
+              </a>
+            </li>
+
+            <li th:each="page : ${#numbers.sequence(1, totalPages)}" class="page-item">
+              <a th:href="@{'/products/list?page=__${page}__'}" th:text="${page}"
+                      th:class="${currentPage == page ? 'page-link bg-dark text-white' : 'page-link text-dark'}"></a>
+            </li>
+
+            <li th:if="${currentPage < totalPages}" class="page-item">
+              <a th:href="@{'/products/list?page=__${currentPage + 1}__'}" class="page-link text-dark rounded-0">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </li>
+
+          </ul>
+        </nav>
+
       </main>
 
     </div>
