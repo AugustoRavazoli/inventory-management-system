@@ -1,0 +1,27 @@
+app:
+  user:
+    username: admin
+    password: admin
+
+spring:
+  jpa:
+    hibernate.ddl-auto: create
+  thymeleaf:
+    cache: false
+    mode: HTML
+    encoding: UTF-8
+    prefix: file:src/main/resources/templates/
+  resources:
+    static-locations: file:src/main/resources/static/
+    cache:
+      period: 0
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE

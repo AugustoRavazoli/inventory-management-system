@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" th:href="@{/img/favicon.ico}" type="image/x-icon">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.min.css}">
+  <script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}" defer></script>
+  <script th:src="@{/webjars/alpinejs/dist/cdn.min.js}" defer></script>
+  <title>Inventory Management System</title>
+</head>
+
+<body style="background-color: #f7f7f7;">
+
+  <div class="container-fluid">
+    <main class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+
+      <div class="container-fluid mb-5 p-0 bg-white" style="max-width: 400px;">
+
+        <h2 class="h5 border bg-dark text-white text-center p-3 mb-3">Login</h2>
+
+        <form th:action="@{/login}" method="post" class="needs-validation px-4" novalidate x-data @submit="validateForm($el, $event)">
+
+          <div th:if="${param.error}" class="alert alert-danger">
+            Invalid username or password
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="username">Username</label>
+            <div class="input-group">
+              <span class="input-group-text rounded-0 bg-white"><i class="bi bi-person-fill"></i></span>
+              <input class="form-control shadow-none rounded-0" id="username" name="username" placeholder="Username" required>
+              <div class="invalid-feedback">Please enter username.</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
+              <input class="form-control rounded-0" type="password" x-ref="password" id="password" name="password"
+                     placeholder="Password" required>
+              <button @click="togglePassword($refs.password, $refs.icon)" type="button"
+                      class="input-group-text rounded-0 bg-white"><i x-ref="icon" class="bi bi-eye-slash-fill"></i></button>
+              <div class="invalid-feedback">Please enter password.</div>
+            </div>
+          </div>
+
+          <div class="my-4 py-2 d-flex justify-content-between align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="remember-me" name="remember-me">
+              <label class="form-check-label" for="remember-me">Remember me</label>
+            </div>
+            <button type="submit" class="btn btn-success px-5 py-1 rounded-0">Login</button>
+          </div>
+
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <script th:inline="javascript">
+    function validateForm(form, event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add("was-validated");
+    }
+
+    function togglePassword(input, icon) {
+      input.type = input.type === "password" ? "text" : "password";
+      icon.classList.toggle("bi-eye-slash-fill", input.type === "password");
+      icon.classList.toggle("bi-eye-fill", input.type === "text");
+    }
+  </script>
+</body>
