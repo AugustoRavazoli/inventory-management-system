@@ -24,6 +24,7 @@
             <th class="bg-dark py-2 text-white" scope="col">Name</th>
             <th class="bg-dark py-2 text-white" scope="col">Quantity</th>
             <th class="bg-dark py-2 text-white" scope="col">Price</th>
+            <th class="bg-dark py-2 text-white" style="width: 30%;" scope="col">Actions</th>
           </tr>
         </thead>
 
@@ -39,6 +40,9 @@
             <td th:text="${product.name}" class="align-middle"></td>
             <td th:text="${product.quantity}" class="align-middle"></td>
             <td th:text="${product.price}" class="align-middle"></td>
+            <td class="align-middle">
+              <a th:href="@{/products/update/__${product.id}__}" class="btn"><i class="bi bi-pencil-fill text-primary"></i></a>
+            </td>
           </tr>
 
         </tbody>

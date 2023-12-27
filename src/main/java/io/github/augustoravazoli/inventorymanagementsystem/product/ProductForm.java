@@ -21,6 +21,14 @@ public class ProductForm {
     @NotNull
     private BigDecimal price;
 
+    public ProductForm() {}
+
+    public ProductForm(String name, Integer quantity, BigDecimal price) {
+        this.name = name;
+        this.quantity = quantity;
+        this.price = price;
+    }
+
     public String getName() {
         return name;
     }

@@ -23,7 +23,7 @@
       <h2 class="h4 mb-3">Add product</h2>
       <hr class="hr">
 
-      <form th:action="@{/products/create}" method="post" th:object="${product}" class="needs-validation" novalidate x-data @submit="validateForm($el, $event)">
+      <form th:action="${mode == 'create'} ? @{/products/create} : @{/products/update/__${id}__}" method="post" th:object="${product}" class="needs-validation" novalidate x-data @submit="validateForm($el, $event)">
 
         <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
           Product name taken

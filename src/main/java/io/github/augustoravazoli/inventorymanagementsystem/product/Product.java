@@ -64,4 +64,8 @@ public class Product {
         this.price = price;
     }
 
+    public ProductForm toForm() {
+        return new ProductForm(name, quantity, price);
+    }
+
 }

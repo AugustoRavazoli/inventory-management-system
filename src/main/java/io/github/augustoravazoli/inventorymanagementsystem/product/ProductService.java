@@ -24,4 +24,22 @@ public class ProductService {
         return productRepository.findAll(page);
     }
 
+    public Product findProduct(long id) {
+        return productRepository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+    }
+
+    public void updateProduct(long id, Product updatedProduct) {
+        var product = productRepository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+        if (!product.getName().equals(updatedProduct.getName())
+            && productRepository.existsByName(updatedProduct.getName())) {
+            throw new ProductNameTakenException();
+        }
+        product.setName(updatedProduct.getName());
+        product.setQuantity(updatedProduct.getQuantity());
+        product.setPrice(updatedProduct.getPrice());
+        productRepository.save(product);
+    }
+
 }
