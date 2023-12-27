@@ -23,8 +23,12 @@
 
         <form th:action="@{/login}" method="post" class="needs-validation px-4" novalidate x-data @submit="validateForm($el, $event)">
 
-          <div th:if="${param.error}" class="alert alert-danger">
+          <div th:if="${param.error}" class="alert alert-danger rounded-0">
             Invalid username or password
+          </div>
+
+          <div th:if="${param.logout}" class="alert alert-success rounded-0">
+            Logged out successfully
           </div>
 
           <div class="mb-3">

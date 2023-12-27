@@ -36,6 +36,12 @@ public class SecurityConfiguration {
                         .defaultSuccessUrl("/dashboard", true)
                         .permitAll()
                 )
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
                 .rememberMe(Customizer.withDefaults())
                 .build();
     }
