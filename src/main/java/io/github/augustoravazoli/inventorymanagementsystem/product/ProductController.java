@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.product;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +14,24 @@ public class ProductController {
 
     public ProductController(ProductService productService) {
         this.productService = productService;
+    }
+
+    @GetMapping("/create")
+    public String retrieveCreateProductPage(Model model) {
+        model.addAttribute("product", new ProductForm());
+        return "product/product-form";
+    }
+
+    @PostMapping("/create")
+    public String createProduct(@Valid @ModelAttribute ProductForm product, Model model) {
+        try {
+            productService.createProduct(product.toEntity());
+        } catch (ProductNameTakenException e) {
+            model.addAttribute("duplicatedName", true);
+            model.addAttribute("product", product);
+            return "product/product-form";
+        }
+        return "redirect:/products/list";
     }
 
     @GetMapping("/list")

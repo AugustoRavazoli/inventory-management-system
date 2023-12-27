@@ -13,6 +13,13 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
+    public void createProduct(Product product) {
+        if (productRepository.existsByName(product.getName())) {
+            throw new ProductNameTakenException();
+        }
+        productRepository.save(product);
+    }
+
     public Page<Product> listProducts(Pageable page) {
         return productRepository.findAll(page);
     }
