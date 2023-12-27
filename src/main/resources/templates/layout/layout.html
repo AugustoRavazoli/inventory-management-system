@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" th:href="@{/img/favicon.ico}" type="image/x-icon">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.min.css}">
+  <script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}" defer></script>
+  <script th:src="@{/webjars/alpinejs/dist/cdn.min.js}" defer></script>
+  <title>Inventory Management System</title>
+  <style>
+    ul li:hover {
+      background-color: #2f353b;
+    }
+  </style>
+</head>
+
+<body style="background-color: #f7f7f7;">
+
+  <header class="navbar navbar-expand-lg bg-dark py-0">
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 py-2 px-3 fs-5 fw-bold text-center text-uppercase text-white bg-success"
+       href="#">Inventory</a>
+    <button class="navbar-toggler d-sm-block d-md-none" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#sidebarMenu">
+      <i class="bi bi-list text-white"></i>
+    </button>
+  </header>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <div class="sidebar col-md-3 col-lg-2 p-0 bg-dark">
+        <div class="offcanvas-md offcanvas-end bg-dark" tabindex="-1" id="sidebarMenu">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title fw-bold text-uppercase text-white" id="sidebarMenuLabel">Inventory</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                    data-bs-target="#sidebarMenu"></button>
+          </div>
+          <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
+            <ul class="nav flex-column" style="height: 100vh">
+              <li class="nav-item py-2">
+                <a th:href="@{/dashboard}" class="nav-link d-flex align-items-center gap-2 text-white">
+                  <i class="bi bi-bar-chart"></i>
+                  Dashboard
+                </a>
+              </li>
+              <li class="nav-item py-2">
+                <a th:href="@{/products/list}" class="nav-link d-flex align-items-center gap-2 text-white">
+                  <i class="bi bi-cart3"></i>
+                  Products
+                </a>
+              </li>
+              <li class="nav-item py-2">
+                <a href="javascript: document.logoutForm.submit()" class="nav-link d-flex align-items-center gap-2 text-white">
+                  <i class="bi bi-power"></i>
+                  Sign out
+                </a>
+                <form name="logoutForm" th:action="@{/logout}" method="post" th:hidden="true">
+                  <input type="submit" hidden>
+                </form>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <main layout:fragment="content" class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+
+      </main>
+
+    </div>
+  </div>
+
+</body>
+
+</html>
