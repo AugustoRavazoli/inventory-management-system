@@ -1,5 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem;
 
+import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
+import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,9 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -37,6 +42,16 @@ public class DatabaseInitializer implements CommandLineRunner {
                 new Product("R", 900, "950"),
                 new Product("S", 950, "1000"),
                 new Product("T", 1000, "1050")
+        ));
+        categoryRepository.saveAll(List.of(
+                new Category("A"),
+                new Category("B"),
+                new Category("C"),
+                new Category("D"),
+                new Category("E"),
+                new Category("F"),
+                new Category("G"),
+                new Category("H")
         ));
     }
 
