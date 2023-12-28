@@ -43,4 +43,11 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
+    public void deleteCategory(long id) {
+        if (!categoryRepository.existsById(id)) {
+            throw new CategoryNotFoundException();
+        }
+        categoryRepository.deleteById(id);
+    }
+
 }
