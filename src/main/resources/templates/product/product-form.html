@@ -3,18 +3,6 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="layout/layout">
 
-<head>
-  <script th:inline="javascript">
-    function validateForm(form, event) {
-      if (!form.checkValidity()) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      form.classList.add("was-validated");
-    }
-  </script>
-</head>
-
 <body>
 
   <main layout:fragment="content">
@@ -23,40 +11,46 @@
       <h2 th:text="${mode == 'create'} ? 'Add product' : 'Edit product'" class="h4 mb-3"></h2>
       <hr class="hr">
 
-      <form th:action="${mode == 'create'} ? @{/products/create} : @{/products/update/__${id}__}" method="post" th:object="${product}" class="needs-validation" novalidate x-data @submit="validateForm($el, $event)">
+      <form th:action="${mode == 'create'} ? @{/products/create} : @{/products/update/__${id}__}"
+            method="post"
+            th:object="${product}"
+            class="needs-validation"
+            novalidate x-data @submit="validateForm($el, $event)">
 
         <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
           Product name taken
         </div>
 
-        <div class="mb-3">
-          <label for="name" class="form-label">Name</label>
-          <div class="input-group">
-            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-card-text"></i></span>
-            <input th:field="*{name}" class="form-control rounded-0" id="name" placeholder="Name" required>
-            <div class="invalid-feedback">Please choose a name.</div>
-          </div>
-        </div>
+        <div th:replace="~{fragment/form :: text-field(
+          label='Name',
+          inputName='name',
+          icon='bi-card-text',
+          invalidMessage='Please choose a name',
+          placeholder='Name',
+          required=true
+        )}"></div>
 
-        <div class="mb-3">
-          <label for="quantity" class="form-label">Quantity</label>
-          <div class="input-group">
-            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-boxes"></i></span>
-            <input th:field="*{quantity}" type="number" class="form-control rounded-0" id="quantity" min="1" max="100" step="1"
-                   placeholder="0" required>
-            <div class="invalid-feedback">Please choose a quantity.</div>
-          </div>
-        </div>
+        <div th:replace="~{fragment/form :: number-field(
+          label='Quantity',
+          inputName='quantity',
+          icon='bi-boxes',
+          invalidMessage='Please choose a quantity',
+          placeholder='0',
+          required=true,
+          min=1,
+          max=100,
+          step=1
+        )}"></div>
 
-        <div class="mb-3">
-          <label for="price" class="form-label">Price</label>
-          <div class="input-group">
-            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-currency-dollar"></i></span>
-            <input th:field="*{price}" x-data x-mask:dynamic="$money($input)" class="form-control rounded-0" id="price"
-                   placeholder="0.00" required>
-            <div class="invalid-feedback">Please choose a price.</div>
-          </div>
-        </div>
+        <div th:replace="~{fragment/form :: number-field(
+          label='Price',
+          inputName='price',
+          icon='bi-currency-dollar',
+          invalidMessage='Please choose a price',
+          placeholder='0.00',
+          required=true,
+          dynamicMask='$money($input)'
+        )}"></div>
 
         <div class="mt-4">
           <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
@@ -64,6 +58,7 @@
         </div>
 
       </form>
+
     </div>
   </main>
 

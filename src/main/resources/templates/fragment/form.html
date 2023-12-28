@@ -1,0 +1,36 @@
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="text-field (label, inputName, icon)" class="mb-3">
+  <label th:text="${label}" th:for="${inputName}" class="form-label"></label>
+  <div class="input-group">
+    <span class="input-group-text rounded-0 bg-white"><i th:class="|bi ${icon}|"></i></span>
+    <input
+        th:field="*{__${inputName}__}"
+        class="form-control rounded-0"
+        th:id="${inputName}"
+        th:placeholder="${placeholder}"
+        th:required="${required} ? 'required' : null"
+        th:attr="x-mask+':'+dynamic=${dynamicMask}">
+    <div th:text="${invalidMessage?: 'Please enter this field'}" class="invalid-feedback"></div>
+  </div>
+</div>
+
+<div th:fragment="number-field (label, inputName, icon)" class="mb-3">
+  <label th:text="${label}" th:for="${inputName}" class="form-label"></label>
+  <div class="input-group">
+    <span class="input-group-text rounded-0 bg-white"><i th:class="|bi ${icon}|"></i></span>
+    <input
+        type="number"
+        th:min="${min}?: null"
+        th:max="${max}?: null"
+        th:step="${step}?: null"
+        th:field="*{__${inputName}__}"
+        class="form-control rounded-0"
+        th:id="${inputName}"
+        th:placeholder="${placeholder}"
+        th:required="${required} ? 'required' : null">
+    <div th:text="${invalidMessage?: 'Please enter this field'}" class="invalid-feedback"></div>
+  </div>
+</div>
+
+</html>

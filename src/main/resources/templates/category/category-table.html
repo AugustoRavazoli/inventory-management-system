@@ -5,103 +5,49 @@
 
 <body>
 
-<main layout:fragment="content" x-data="{ currentForm: null }">
+  <main layout:fragment="content" x-data="{ currentForm: null }">
 
-  <div class="navbar navbar-expand-lg py-4">
-    <div class="container-fluid px-0">
-
+    <div class="navbar navbar-expand-lg py-4">
+      <div class="container-fluid px-0">
         <h2 class="h4 mb-0 d-none d-sm-block">Categories</h2>
-
         <div class="d-flex justify-content-between">
-
           <form th:action="${#strings.isEmpty(param.name)} ? @{/categories/list?name=} : @{/categories/list}" method="get" class="w-100 me-4">
             <div class="input-group w-100 bg-white">
               <input class="form-control rounded-0" type="search" name="name" placeholder="Search category...">
               <button class="btn btn-outline-secondary rounded-0"><i th:class="${#strings.isEmpty(param.name)} ? 'bi bi-search' : 'bi bi-x-lg'"></i></button>
             </div>
           </form>
-
           <a th:href="@{/categories/create}" class="flex-shrink-0 btn btn-success px-4 rounded-0">Add category</a>
-
-        </div>
-
-      </div>
-    </div>
-
-    <div class="table-responsive small">
-      <table class="table table-borderless table-hover table-sm text-center" style="table-layout: fixed;">
-
-        <thead>
-          <tr>
-            <th class="bg-dark py-2 text-white" scope="col">Name</th>
-            <th class="bg-dark py-2 text-white" style="width: 30%;" scope="col">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-        <tr th:if="${categories.size() == 0}">
-          <td colspan="4" class="align-middle py-2">
-            No categories
-          </td>
-        </tr>
-
-        <tr th:each="category : ${categories}">
-          <td th:text="${category.name}" class="align-middle"></td>
-          <td class="align-middle">
-            <a th:href="@{/categories/update/__${category.id}__}" class="btn"><i class="bi bi-pencil-fill text-primary"></i></a>
-            <button @click="currentForm = $el.dataset.link" th:data-link="|javascript: document.deleteForm${category.id}.submit()|" class="btn" data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i
-                class="bi bi-trash-fill text-danger"></i></button>
-            <form th:name="|deleteForm${category.id}|" th:action="@{/categories/delete/__${category.id}__}" method="post" th:hidden="true">
-              <input type="submit" hidden>
-            </form>
-          </td>
-        </tr>
-
-        </tbody>
-      </table>
-    </div>
-
-    <nav th:if="${totalPages > 0 && #strings.isEmpty(param.name)}" class="py-2">
-      <ul class="pagination">
-
-        <li th:if="${currentPage > 1}" class="page-item">
-          <a th:href="@{'/categories/list?page=__${currentPage - 1}__'}" class="page-link text-dark rounded-0">
-            <i class="bi bi-chevron-left"></i>
-          </a>
-        </li>
-
-        <li th:each="page : ${#numbers.sequence(1, totalPages)}" class="page-item">
-          <a th:href="@{'/categories/list?page=__${page}__'}" th:text="${page}"
-             th:class="${currentPage == page ? 'page-link bg-dark text-white' : 'page-link text-dark'}"></a>
-        </li>
-
-        <li th:if="${currentPage < totalPages}" class="page-item">
-          <a th:href="@{'/categories/list?page=__${currentPage + 1}__'}" class="page-link text-dark rounded-0">
-            <i class="bi bi-chevron-right"></i>
-          </a>
-        </li>
-
-      </ul>
-    </nav>
-
-    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content rounded-0">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirm</h1>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            Are you sure you want to continue?
-          </div>
-          <div class="modal-footer">
-            <a :href="currentForm" class="btn btn-success px-4 me-3 rounded-0">Yes</a>
-            <button class="btn btn-danger px-4 rounded-0" data-bs-dismiss="modal">No</button>
-          </div>
         </div>
       </div>
     </div>
+
+    <div layout:replace="~{fragment/table :: table(
+      headings=${ {'Name', 'Actions'} }
+    )}">
+      <tbody layout:fragment="table-data">
+        <th:block th:if="${categories.size() == 0}">
+          <div th:replace="~{fragment/table :: row-empty(
+              colspan=2
+          )}"></div>
+        </th:block>
+        <th:block th:each="category : ${categories}">
+          <div th:replace="~{fragment/table :: row(
+            cells=${ {category.name} },
+            updateUrl='/categories/update/__${category.id}__',
+            deleteUrl='/categories/delete/__${category.id}__'
+          )}"></div>
+        </th:block>
+      </tbody>
+    </div>
+
+    <div th:replace="~{fragment/pagination(
+      url='/categories/list',
+      currentPage=${currentPage},
+      totalPages=${totalPages}
+    )}"></div>
+
+    <div th:replace="~{fragment/confirm-dialog}"></div>
 
   </main>
 

@@ -1,0 +1,36 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<div layout:fragment="table(headings)" class="table-responsive small">
+  <table class="table table-borderless table-hover table-sm text-center" style="table-layout: fixed;">
+    <thead>
+    <tr>
+      <th th:each="heading : ${headings}" th:text="${heading}" class="bg-dark py-2 text-white"
+          th:style="${heading == 'Actions'} ? 'width: 30%;'" scope="col"></th>
+    </tr>
+    </thead>
+    <tbody layout:fragment="table-data"></tbody>
+  </table>
+</div>
+
+<tr th:fragment="row(cells)">
+  <td th:each="cell : ${cells}" th:text="${cell}" class="align-middle"></td>
+  <td th:if="${!#strings.isEmpty(updateUrl) && !#strings.isEmpty(deleteUrl)}" class="align-middle">
+    <a th:href="@{__${updateUrl}__}" class="btn"><i class="bi bi-pencil-fill text-primary"></i></a>
+    <button @click="currentForm = $el.dataset.link"
+            th:data-link="|javascript: document.deleteForm${#ids.seq('someId')}.submit()|" class="btn"
+            data-bs-toggle="modal" data-bs-target="#staticBackdrop"><i
+        class="bi bi-trash-fill text-danger"></i></button>
+    <form th:name="|deleteForm${#ids.prev('someId')}|" th:action="@{__${deleteUrl}__}" method="post" th:hidden="true">
+      <input type="submit" hidden>
+    </form>
+  </td>
+</tr>
+
+<tr th:fragment="row-empty">
+  <td th:colspan="${colspan}?: 1" class="align-middle py-2">
+    No data
+  </td>
+</tr>
+
+</html>
