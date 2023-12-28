@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout/layout">
+
+<head>
+  <script th:inline="javascript">
+    function validateForm(form, event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add("was-validated");
+    }
+  </script>
+</head>
+
+<body>
+
+  <main layout:fragment="content">
+    <div class="py-4">
+
+      <h2 class="h4 mb-3">Add category</h2>
+      <hr class="hr">
+
+      <form th:action="@{/categories/create}" method="post" th:object="${category}" class="needs-validation" novalidate x-data @submit="validateForm($el, $event)">
+
+        <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
+          Category name taken
+        </div>
+
+        <div class="mb-3">
+          <label for="name" class="form-label">Name</label>
+          <div class="input-group">
+            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-card-text"></i></span>
+            <input th:field="*{name}" class="form-control rounded-0" id="name" placeholder="Name" required>
+            <div class="invalid-feedback">Please choose a name.</div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
+          <a th:href="@{/categories/list}" class="btn btn-danger px-4 rounded-0">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+</body>

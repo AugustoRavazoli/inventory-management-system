@@ -13,6 +13,13 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    public void createCategory(Category category) {
+        if (categoryRepository.existsByName(category.getName())) {
+            throw new CategoryNameTakenException();
+        }
+        categoryRepository.save(category);
+    }
+
     public Page<Category> listCategories(String name, Pageable page) {
         if (name.isEmpty()) {
             return categoryRepository.findAll(page);
