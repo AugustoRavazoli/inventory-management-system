@@ -19,6 +19,7 @@ public class CategoryController {
     @GetMapping("/create")
     public String retrieveCreateCategoryPage(Model model) {
         model.addAttribute("category", new CategoryForm());
+        model.addAttribute("mode", "create");
         return "category/category-form";
     }
 
@@ -29,11 +30,11 @@ public class CategoryController {
         } catch (CategoryNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("category", category);
+            model.addAttribute("mode", "create");
             return "category/category-form";
         }
         return "redirect:/categories/list";
     }
-
 
     @GetMapping("/list")
     public String listCategories(@RequestParam(name = "name", defaultValue = "") String name, Pageable pageable, Model model) {
@@ -42,6 +43,29 @@ public class CategoryController {
         model.addAttribute("currentPage", categoryPage.getNumber() + 1);
         model.addAttribute("totalPages", categoryPage.getTotalPages());
         return "category/category-table";
+    }
+
+    @GetMapping("/update/{id}")
+    public String retrieveUpdateCategoryPage(@PathVariable("id") long id, Model model) {
+        var category = categoryService.findCategory(id);
+        model.addAttribute("category", category.toForm());
+        model.addAttribute("id", category.getId());
+        model.addAttribute("mode", "update");
+        return "category/category-form";
+    }
+
+    @PostMapping("/update/{id}")
+    public String updateCategory(@PathVariable("id") long id, @Valid @ModelAttribute CategoryForm category, Model model) {
+        try {
+            categoryService.updateCategory(id, category.toEntity());
+        } catch (CategoryNameTakenException e) {
+            model.addAttribute("duplicatedName", true);
+            model.addAttribute("category", category);
+            model.addAttribute("id", id);
+            model.addAttribute("mode", "update");
+            return "category/category-form";
+        }
+        return "redirect:/categories/list";
     }
 
 }

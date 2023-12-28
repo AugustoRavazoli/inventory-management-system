@@ -20,10 +20,10 @@
   <main layout:fragment="content">
     <div class="py-4">
 
-      <h2 class="h4 mb-3">Add category</h2>
+      <h2 th:text="${mode == 'create'} ? 'Add category' : 'Edit category'" class="h4 mb-3"></h2>
       <hr class="hr">
 
-      <form th:action="@{/categories/create}" method="post" th:object="${category}" class="needs-validation" novalidate x-data @submit="validateForm($el, $event)">
+      <form th:action="${mode == 'create'} ? @{/categories/create} : @{/categories/update/__${id}__}" method="post" th:object="${category}" class="needs-validation" novalidate x-data @submit="validateForm($el, $event)">
 
         <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
           Category name taken

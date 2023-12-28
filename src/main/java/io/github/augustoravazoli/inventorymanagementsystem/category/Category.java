@@ -35,4 +35,8 @@ public class Category {
         this.name = name;
     }
 
+    public CategoryForm toForm() {
+        return new CategoryForm(name);
+    }
+
 }

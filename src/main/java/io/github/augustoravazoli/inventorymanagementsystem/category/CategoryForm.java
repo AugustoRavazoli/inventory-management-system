@@ -7,6 +7,12 @@ public class CategoryForm {
     @NotBlank
     private String name;
 
+    public CategoryForm() {}
+
+    public CategoryForm(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }

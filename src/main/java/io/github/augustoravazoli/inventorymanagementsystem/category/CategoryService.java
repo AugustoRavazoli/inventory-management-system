@@ -27,4 +27,20 @@ public class CategoryService {
         return categoryRepository.findAllByNameContainingIgnoreCase(name, page);
     }
 
+    public Category findCategory(long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(CategoryNotFoundException::new);
+    }
+
+    public void updateCategory(long id, Category updatedCategory) {
+        var category = categoryRepository.findById(id)
+                .orElseThrow(CategoryNotFoundException::new);
+        if (!category.getName().equals(updatedCategory.getName())
+            && categoryRepository.existsByName(updatedCategory.getName())) {
+            throw new CategoryNameTakenException();
+        }
+        category.setName(updatedCategory.getName());
+        categoryRepository.save(category);
+    }
+
 }
