@@ -13,6 +13,14 @@ public class CustomerForm {
     @NotBlank
     private String phone;
 
+    public CustomerForm() {}
+
+    public CustomerForm(String name, String address, String phone) {
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
+    }
+
     public String getName() {
         return name;
     }

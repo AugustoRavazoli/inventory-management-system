@@ -27,4 +27,22 @@ public class CustomerService {
         return customerRepository.findAllByNameContainingIgnoreCase(name, page);
     }
 
+    public Customer findCustomer(long id) {
+        return customerRepository.findById(id)
+                .orElseThrow(CustomerNotFoundException::new);
+    }
+
+    public void updateCustomer(long id, Customer updatedCustomer) {
+        var customer = customerRepository.findById(id)
+                .orElseThrow(CustomerNotFoundException::new);
+        if (!customer.getName().equals(updatedCustomer.getName())
+            && customerRepository.existsByName(updatedCustomer.getName())) {
+            throw new CustomerNameTakenException();
+        }
+        customer.setName(updatedCustomer.getName());
+        customer.setAddress(updatedCustomer.getAddress());
+        customer.setPhone(updatedCustomer.getPhone());
+        customerRepository.save(customer);
+    }
+
 }

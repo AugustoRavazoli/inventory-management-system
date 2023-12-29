@@ -19,6 +19,7 @@ public class CustomerController {
     @GetMapping("/create")
     public String retrieveCreateCustomerPage(Model model) {
         model.addAttribute("customer", new CustomerForm());
+        model.addAttribute("mode", "create");
         return "customer/customer-form";
     }
 
@@ -29,6 +30,7 @@ public class CustomerController {
         } catch (CustomerNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("customer", customer);
+            model.addAttribute("mode", "create");
             return "customer/customer-form";
         }
         return "redirect:/customers/list";
@@ -41,6 +43,29 @@ public class CustomerController {
         model.addAttribute("currentPage", customerPage.getNumber() + 1);
         model.addAttribute("totalPages", customerPage.getTotalPages());
         return "customer/customer-table";
+    }
+
+    @GetMapping("/update/{id}")
+    public String retrieveUpdateCustomerPage(@PathVariable("id") long id, Model model) {
+        var customer = customerService.findCustomer(id);
+        model.addAttribute("customer", customer.toForm());
+        model.addAttribute("id", customer.getId());
+        model.addAttribute("mode", "update");
+        return "customer/customer-form";
+    }
+
+    @PostMapping("/update/{id}")
+    public String updateCustomer(@PathVariable("id") long id, @Valid @ModelAttribute CustomerForm customer, Model model) {
+        try {
+            customerService.updateCustomer(id, customer.toEntity());
+        } catch (CustomerNameTakenException e) {
+            model.addAttribute("duplicatedName", true);
+            model.addAttribute("customer", customer);
+            model.addAttribute("id", id);
+            model.addAttribute("mode", "update");
+            return "customer/customer-form";
+        }
+        return "redirect:/customers/list";
     }
 
 }

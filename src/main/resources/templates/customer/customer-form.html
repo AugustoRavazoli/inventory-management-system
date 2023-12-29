@@ -8,10 +8,10 @@
   <main layout:fragment="content">
     <div class="py-4">
 
-      <h2 class="h4 mb-3">Add customer</h2>
+      <h2 th:text="${mode == 'create'} ? 'Add customer' : 'Edit customer'" class="h4 mb-3"></h2>
       <hr class="hr">
 
-      <form th:action="@{/customers/create}"
+      <form th:action="${mode == 'create'} ? @{/customers/create} : @{/customers/update/__${id}__}"
             method="post"
             th:object="${customer}"
             class="needs-validation"

@@ -63,4 +63,8 @@ public class Customer {
         this.phone = phone;
     }
 
+    public CustomerForm toForm() {
+        return new CustomerForm(name, address, phone);
+    }
+
 }
