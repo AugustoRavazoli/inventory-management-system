@@ -25,7 +25,7 @@
   </div>
 
   <div layout:replace="~{fragment/table :: table(
-      headings=${ {'Name', 'Quantity', 'Price', 'Actions'} }
+      headings=${ {'Name', 'Category', 'Quantity', 'Price', 'Actions'} }
     )}">
     <tbody layout:fragment="table-data">
     <th:block th:if="${products.size() == 0}">
@@ -35,7 +35,7 @@
     </th:block>
     <th:block th:each="product : ${products}">
       <div th:replace="~{fragment/table :: row(
-            cells=${ {product.name, product.quantity, product.price} },
+            cells=${ {product.name, product.category?.name ?: '-', product.quantity, product.price} },
             updateUrl='/products/update/__${product.id}__',
             deleteUrl='/products/delete/__${product.id}__'
           )}"></div>

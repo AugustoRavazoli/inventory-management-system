@@ -26,28 +26,6 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        productRepository.saveAll(List.of(
-                new Product("A", 50, "100"),
-                new Product("B", 100, "150"),
-                new Product("C", 150, "200"),
-                new Product("D", 200, "250"),
-                new Product("E", 250, "300"),
-                new Product("F", 300, "350"),
-                new Product("G", 350, "400"),
-                new Product("H", 400, "450"),
-                new Product("I", 450, "500"),
-                new Product("J", 500, "550"),
-                new Product("K", 550, "600"),
-                new Product("L", 600, "650"),
-                new Product("M", 650, "700"),
-                new Product("N", 700, "750"),
-                new Product("O", 750, "800"),
-                new Product("P", 800, "850"),
-                new Product("Q", 850, "900"),
-                new Product("R", 900, "950"),
-                new Product("S", 950, "1000"),
-                new Product("T", 1000, "1050")
-        ));
         categoryRepository.saveAll(List.of(
                 new Category("A"),
                 new Category("B"),
@@ -57,6 +35,28 @@ public class DatabaseInitializer implements CommandLineRunner {
                 new Category("F"),
                 new Category("G"),
                 new Category("H")
+        ));
+        productRepository.saveAll(List.of(
+                new Product("A", new Category(1L), 50, "100"),
+                new Product("B", new Category(2L),100, "150"),
+                new Product("C", new Category(3L),150, "200"),
+                new Product("D", new Category(4L),200, "250"),
+                new Product("E", new Category(5L),250, "300"),
+                new Product("F", new Category(6L),300, "350"),
+                new Product("G", new Category(7L),350, "400"),
+                new Product("H", new Category(8L),400, "450"),
+                new Product("I", new Category(1L),450, "500"),
+                new Product("J", new Category(2L),500, "550"),
+                new Product("K", new Category(3L),550, "600"),
+                new Product("L", new Category(4L),600, "650"),
+                new Product("M", new Category(5L),650, "700"),
+                new Product("N", new Category(6L),700, "750"),
+                new Product("O", new Category(7L),750, "800"),
+                new Product("P", new Category(8L),800, "850"),
+                new Product("Q", new Category(1L),850, "900"),
+                new Product("R", new Category(2L),900, "950"),
+                new Product("S", new Category(3L),950, "1000"),
+                new Product("T", new Category(4L),1000, "1050")
         ));
         customerRepository.saveAll(List.of(
                 new Customer("A", "A", "A"),

@@ -1,4 +1,5 @@
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 
 <div th:fragment="text-field (label, inputName, icon)" class="mb-3">
   <label th:text="${label}" th:for="${inputName}" class="form-label"></label>
@@ -29,6 +30,21 @@
         th:id="${inputName}"
         th:placeholder="${placeholder}"
         th:required="${required} ? 'required' : null">
+    <div th:text="${invalidMessage?: 'Please enter this field'}" class="invalid-feedback"></div>
+  </div>
+</div>
+
+<div layout:fragment="select-field (label, inputName, icon)" class="mb-3">
+  <label th:text="${label}" th:for="${inputName}" class="form-label"></label>
+  <div class="input-group">
+    <span class="input-group-text rounded-0 bg-white"><i th:class="|bi ${icon}|"></i></span>
+    <select
+        th:name="${inputName}"
+        class="form-select rounded-0"
+        th:id="${inputName}"
+        th:required="${required} ? 'required' : null">
+      <th:block layout:fragment="select-field-options"></th:block>
+    </select>
     <div th:text="${invalidMessage?: 'Please enter this field'}" class="invalid-feedback"></div>
   </div>
 </div>

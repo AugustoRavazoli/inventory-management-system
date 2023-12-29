@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.product;
 
+import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -8,14 +9,20 @@ import org.springframework.stereotype.Service;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     public void createProduct(Product product) {
         if (productRepository.existsByName(product.getName())) {
             throw new ProductNameTakenException();
+        }
+        if (product.getCategory() != null
+            && !categoryRepository.existsById(product.getCategory().getId())) {
+            throw new InvalidCategoryException();
         }
         productRepository.save(product);
     }
@@ -39,7 +46,12 @@ public class ProductService {
             && productRepository.existsByName(updatedProduct.getName())) {
             throw new ProductNameTakenException();
         }
+        if (updatedProduct.getCategory() != null
+            && !categoryRepository.existsById(updatedProduct.getCategory().getId())) {
+            throw new InvalidCategoryException();
+        }
         product.setName(updatedProduct.getName());
+        product.setCategory(updatedProduct.getCategory());
         product.setQuantity(updatedProduct.getQuantity());
         product.setPrice(updatedProduct.getPrice());
         productRepository.save(product);

@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.product;
 
+import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -11,14 +12,17 @@ import org.springframework.web.bind.annotation.*;
 public class ProductController {
 
     private final ProductService productService;
+    private final CategoryService categoryService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, CategoryService categoryService) {
         this.productService = productService;
+        this.categoryService = categoryService;
     }
 
     @GetMapping("/create")
     public String retrieveCreateProductPage(Model model) {
         model.addAttribute("product", new ProductForm());
+        model.addAttribute("categories", categoryService.listCategories());
         model.addAttribute("mode", "create");
         return "product/product-form";
     }
@@ -30,6 +34,7 @@ public class ProductController {
         } catch (ProductNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("product", product);
+            model.addAttribute("categories", categoryService.listCategories());
             model.addAttribute("mode", "create");
             return "product/product-form";
         }
@@ -49,6 +54,7 @@ public class ProductController {
     public String retrieveUpdateProductPage(@PathVariable("id") long id, Model model) {
         var product = productService.findProduct(id);
         model.addAttribute("product", product.toForm());
+        model.addAttribute("categories", categoryService.listCategories());
         model.addAttribute("id", product.getId());
         model.addAttribute("mode", "update");
         return "product/product-form";
@@ -61,6 +67,7 @@ public class ProductController {
         } catch (ProductNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("product", product);
+            model.addAttribute("categories", categoryService.listCategories());
             model.addAttribute("id", id);
             model.addAttribute("mode", "update");
             return "product/product-form";

@@ -30,6 +30,17 @@
           required=true
         )}"></div>
 
+        <div layout:replace="~{fragment/form :: select-field(
+          label='Category',
+          inputName='categoryId',
+          icon='bi-bookmark'
+        )}">
+          <th:block layout:fragment="select-field-options">
+            <option value="" th:selected="${product.categoryId == null}">-- Choose a category --</option>
+            <option th:selected="${product.categoryId == category.id}" th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option>
+          </th:block>
+        </div>
+
         <div th:replace="~{fragment/form :: number-field(
           label='Quantity',
           inputName='quantity',
@@ -42,7 +53,7 @@
           step=1
         )}"></div>
 
-        <div th:replace="~{fragment/form :: number-field(
+        <div th:replace="~{fragment/form :: text-field(
           label='Price',
           inputName='price',
           icon='bi-currency-dollar',

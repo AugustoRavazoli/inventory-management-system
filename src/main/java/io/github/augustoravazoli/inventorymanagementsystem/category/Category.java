@@ -19,6 +19,10 @@ public class Category {
         this.name = name;
     }
 
+    public Category(Long id) {
+        this(id, null);
+    }
+
     public Category(String name) {
         this(null, name);
     }

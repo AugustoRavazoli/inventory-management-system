@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.product;
 
+import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,8 @@ public class ProductForm {
     @NotBlank
     private String name;
 
+    private Long categoryId;
+
     @DecimalMin("0")
     @NotNull
     private Integer quantity;
@@ -23,8 +26,9 @@ public class ProductForm {
 
     public ProductForm() {}
 
-    public ProductForm(String name, Integer quantity, BigDecimal price) {
+    public ProductForm(String name, Long categoryId, Integer quantity, BigDecimal price) {
         this.name = name;
+        this.categoryId = categoryId;
         this.quantity = quantity;
         this.price = price;
     }
@@ -35,6 +39,14 @@ public class ProductForm {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
     }
 
     public Integer getQuantity() {
@@ -54,7 +66,8 @@ public class ProductForm {
     }
 
     public Product toEntity() {
-        return new Product(null, name, quantity, price);
+        var category = categoryId != null ? new Category(categoryId) : null;
+        return new Product(null, name, category, quantity, price);
     }
 
 }
