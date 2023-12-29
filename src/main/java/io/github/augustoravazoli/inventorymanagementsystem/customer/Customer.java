@@ -35,6 +35,10 @@ public class Customer {
         this(null, name, address, phone);
     }
 
+    public Customer(Long id) {
+        this.id = id;
+    }
+
     public Long getId() {
         return id;
     }

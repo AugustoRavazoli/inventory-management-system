@@ -2,6 +2,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.order;
 
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ public class Order {
     @ManyToOne(optional = false)
     private Customer customer;
 
+    @NotEmpty
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 

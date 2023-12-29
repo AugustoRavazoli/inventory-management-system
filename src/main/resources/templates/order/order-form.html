@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout/layout">
+
+<head>
+  <script th:src="@{/js/order.js}" th:defer></script>
+</head>
+
+<body>
+
+  <main layout:fragment="content" x-data="order">
+    <div class="py-4">
+
+      <h2 class="h4 mb-3">Add order</h2>
+      <hr class="hr">
+
+      <form th:action="@{/orders/create}"
+            method="post"
+            th:object="${order}"
+            class="needs-validation"
+            novalidate x-data @submit="validateForm($el, $event)">
+
+        <div th:if="${insufficientStock}" class="alert alert-danger rounded-0">
+          Order contain items with insufficient stock
+        </div>
+
+        <div layout:replace="~{fragment/form :: select-field(
+            label='Customer',
+            inputName='customerId',
+            icon='bi-person-fill',
+            invalidMessage='Please choose a customer',
+            required=true
+          )}">
+          <th:block layout:fragment="select-field-options">
+            <option value="" selected disabled>-- Choose a customer --</option>
+            <option th:each="customer : ${customers}" th:value="${customer.id}" th:text="${customer.name}"></option>
+          </th:block>
+        </div>
+
+        <template x-for="(item, index) in items" :key="index">
+          <div class="row">
+            <hr class="hr d-lg-none">
+
+            <div class="col col-lg-6" x-data="{ id: $id('product') }">
+              <label :for="id" class="form-label" :class="index > 0 && 'd-lg-none'">Product</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text rounded-0 bg-white"><i class="bi bi-box"></i></span>
+                <select :name="`items[${index}].productId`" x-model="item.product" x-on:change="editItem(index, $el.options[$el.value].dataset.price)"
+                        class="form-select rounded-0" :id="id" required>
+                  <option value="" selected disabled>-- Choose a product --</option>
+                  <option th:each="product : ${products}" th:value="${product.id}" th:data-price="${product.price}" th:text="${product.name}"></option>
+                </select>
+                <div class="invalid-feedback">Please choose a product.</div>
+              </div>
+            </div>
+
+            <div class="col-lg-2" x-data="{ id: $id('quantity') }">
+              <label :for="id" class="form-label" :class="index > 0 && 'd-lg-none'">Quantity</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text rounded-0 bg-white"><i class="bi bi-boxes"></i></span>
+                <input :name="`items[${index}].quantity`" x-model="item.quantity" type="number" min="1" max="100" step="1" placeholder="0"
+                       class="form-control rounded-0" :id="id" required>
+                <div class="invalid-feedback">Please choose a quantity.</div>
+              </div>
+            </div>
+
+            <div class="col-lg-2">
+              <label for="amount" class="form-label" :class="index > 0 && 'd-lg-none'">Amount</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text rounded-0 bg-white"><i class="bi bi-currency-dollar"></i></span>
+                <input x-model="item.amount" class="form-control rounded-0" id="amount" disabled>
+              </div>
+            </div>
+
+            <div class="col-lg-2">
+              <template x-if="index === 0">
+                <button type="button" class="btn btn-sm btn-primary rounded-0 py-1 px-4" @click="addItem()"><i
+                    class="bi bi-plus-lg d-flex"></i></button>
+              </template>
+              <template x-if="index > 0">
+                <div class="mb-3" style="height: 38px;">
+                  <button type="button" class="btn btn-sm btn-danger rounded-0 py-1 px-4"
+                          @click="removeItem(index)"><i class="bi bi-x-lg d-flex"></i></button>
+                </div>
+              </template>
+            </div>
+
+          </div>
+        </template>
+
+        <div class="mb-3 d-lg-none">
+          <button type="button" class="btn btn-primary rounded-0 w-100" @click="addItem()"><i
+              class="bi bi-plus-lg"></i>Add item</button>
+        </div>
+
+        <div class="row" style="max-width: 400px;">
+          <div class="col mb-3">
+            <label for="status" class="form-label">Status</label>
+            <div class="input-group mb-3">
+              <span class="input-group-text rounded-0"><i class="bi bi-check-circle"></i></span>
+              <select th:field="*{status}" class="form-select rounded-0" id="status">
+                <option value="UNPAID" selected>Unpaid</option>
+                <option value="PAID">Paid</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col mb-3">
+            <label for="total" class="form-label">Total</label>
+            <div class="input-group mb-3">
+              <span class="input-group-text rounded-0"><i class="bi bi-cart4"></i></span>
+              <input x-model="totalPrice" class="form-control rounded-0" id="total" disabled>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
+          <a th:href="@{/orders/list}" class="btn btn-danger px-4 rounded-0">Cancel</a>
+        </div>
+
+      </form>
+
+    </div>
+  </main>
+
+</body>

@@ -44,6 +44,10 @@ public class Product {
         this(null, name, category, quantity, new BigDecimal(price));
     }
 
+    public Product(Long id) {
+        this.id = id;
+    }
+
     public Long getId() {
         return id;
     }

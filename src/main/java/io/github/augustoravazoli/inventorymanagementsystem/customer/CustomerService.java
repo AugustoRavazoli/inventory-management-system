@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CustomerService {
 
@@ -25,6 +27,10 @@ public class CustomerService {
             return customerRepository.findAll(page);
         }
         return customerRepository.findAllByNameContainingIgnoreCase(name, page);
+    }
+
+    public List<Customer> listCustomers() {
+        return customerRepository.findAll();
     }
 
     public Customer findCustomer(long id) {

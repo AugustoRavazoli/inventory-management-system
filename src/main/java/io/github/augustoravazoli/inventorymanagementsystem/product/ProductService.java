@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ProductService {
 
@@ -32,6 +34,10 @@ public class ProductService {
             return productRepository.findAll(page);
         }
         return productRepository.findAllByNameContainingIgnoreCase(name, page);
+    }
+
+    public List<Product> listProducts() {
+        return productRepository.findAll();
     }
 
     public Product findProduct(long id) {
