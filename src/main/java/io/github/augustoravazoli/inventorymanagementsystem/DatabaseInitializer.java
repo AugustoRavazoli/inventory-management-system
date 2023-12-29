@@ -4,6 +4,9 @@ import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.order.Order;
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderItem;
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,9 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -67,6 +73,42 @@ public class DatabaseInitializer implements CommandLineRunner {
                 new Customer("F", "F", "F"),
                 new Customer("G", "G", "G"),
                 new Customer("H", "H", "H")
+        ));
+        orderRepository.saveAll(List.of(
+                new Order(
+                        Order.Status.UNPAID,
+                        new Customer(1L,"", "", ""),
+                        List.of(
+                                new OrderItem(1, new Product(1L, "", null, null, null)),
+                                new OrderItem(2, new Product(2L, "", null, null, null)),
+                                new OrderItem(3, new Product(3L, "", null, null, null))
+                        )
+                ),
+                new Order(
+                        Order.Status.UNPAID,
+                        new Customer(2L,"", "", ""),
+                        List.of(
+                                new OrderItem(4, new Product(1L, "", null, null, null)),
+                                new OrderItem(5, new Product(2L, "", null, null, null)),
+                                new OrderItem(6, new Product(3L, "", null, null, null))
+                        )
+                ),                new Order(
+                        Order.Status.UNPAID,
+                        new Customer(3L,"", "", ""),
+                        List.of(
+                                new OrderItem(7, new Product(1L, "", null, null, null)),
+                                new OrderItem(8, new Product(2L, "", null, null, null)),
+                                new OrderItem(9, new Product(3L, "", null, null, null))
+                        )
+                ),                new Order(
+                        Order.Status.UNPAID,
+                        new Customer(4L,"", "", ""),
+                        List.of(
+                                new OrderItem(10, new Product(1L, "", null, null, null)),
+                                new OrderItem(11, new Product(2L, "", null, null, null)),
+                                new OrderItem(12, new Product(3L, "", null, null, null))
+                        )
+                )
         ));
     }
 
