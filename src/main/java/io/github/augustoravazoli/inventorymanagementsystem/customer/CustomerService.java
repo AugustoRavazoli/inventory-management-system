@@ -45,4 +45,11 @@ public class CustomerService {
         customerRepository.save(customer);
     }
 
+    public void deleteCustomer(long id) {
+        if (!customerRepository.existsById(id)) {
+            throw new CustomerNotFoundException();
+        }
+        customerRepository.deleteById(id);
+    }
+
 }
