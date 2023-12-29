@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
+    boolean existsByName(String name);
+
     Page<Customer> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 
 }

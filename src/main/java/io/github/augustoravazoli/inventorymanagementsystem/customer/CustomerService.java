@@ -13,6 +13,13 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
+    public void createCustomer(Customer customer) {
+        if (customerRepository.existsByName(customer.getName())) {
+            throw new CustomerNameTakenException();
+        }
+        customerRepository.save(customer);
+    }
+
     public Page<Customer> listCustomers(String name, Pageable page) {
         if (name.isEmpty()) {
             return customerRepository.findAll(page);

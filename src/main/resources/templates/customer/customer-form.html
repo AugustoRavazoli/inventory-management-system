@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout/layout">
+
+<body>
+
+  <main layout:fragment="content">
+    <div class="py-4">
+
+      <h2 class="h4 mb-3">Add customer</h2>
+      <hr class="hr">
+
+      <form th:action="@{/customers/create}"
+            method="post"
+            th:object="${customer}"
+            class="needs-validation"
+            novalidate x-data @submit="validateForm($el, $event)">
+
+        <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
+          Customer name taken
+        </div>
+
+        <div th:replace="~{fragment/form :: text-field(
+            label='Name',
+            inputName='name',
+            icon='bi-card-text',
+            invalidMessage='Please choose a name',
+            placeholder='Name',
+            required=true
+          )}"></div>
+
+        <div th:replace="~{fragment/form :: text-field(
+            label='Address',
+            inputName='address',
+            icon='bi-geo-alt',
+            invalidMessage='Please choose an address',
+            placeholder='Address',
+            required=true
+          )}"></div>
+
+        <div th:replace="~{fragment/form :: text-field(
+            label='Phone',
+            inputName='phone',
+            icon='bi-telephone',
+            invalidMessage='Please choose a phone',
+            placeholder='Phone',
+            required=true
+          )}"></div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
+          <a th:href="@{/customers/list}" class="btn btn-danger px-4 rounded-0">Cancel</a>
+        </div>
+
+      </form>
+
+    </div>
+  </main>
+
+</body>
