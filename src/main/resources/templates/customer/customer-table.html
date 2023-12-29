@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout/layout">
+
+<body>
+
+  <main layout:fragment="content" x-data="{ currentForm: null }">
+
+    <div class="navbar navbar-expand-lg py-4">
+      <div class="container-fluid px-0">
+        <h2 class="h4 mb-0 d-none d-sm-block">Customers</h2>
+        <div class="d-flex justify-content-between">
+          <form th:action="${#strings.isEmpty(param.name)} ? @{/customers/list?name=} : @{/customers/list}" method="get" class="w-100 me-4">
+            <div class="input-group w-100 bg-white">
+              <input class="form-control rounded-0" type="search" name="name" placeholder="Search customer...">
+              <button class="btn btn-outline-secondary rounded-0"><i th:class="${#strings.isEmpty(param.name)} ? 'bi bi-search' : 'bi bi-x-lg'"></i></button>
+            </div>
+          </form>
+          <a th:href="@{/customers/create}" class="flex-shrink-0 btn btn-success px-4 rounded-0">Add customer</a>
+        </div>
+      </div>
+    </div>
+
+    <div layout:replace="~{fragment/table :: table(
+      headings=${ {'Name', 'Address', 'Phone', 'Actions'} }
+    )}">
+      <tbody layout:fragment="table-data">
+      <th:block th:if="${customers.size() == 0}">
+        <div th:replace="~{fragment/table :: row-empty(
+          colspan=4
+        )}"></div>
+      </th:block>
+      <th:block th:each="customer : ${customers}">
+        <div th:replace="~{fragment/table :: row(
+          cells=${ {customer.name, customer.address, customer.phone} },
+          updateUrl='/customers/update/__${customer.id}__',
+          deleteUrl='/customers/delete/__${customer.id}__'
+        )}"></div>
+      </th:block>
+      </tbody>
+    </div>
+
+    <div th:replace="~{fragment/pagination(
+      url='/customers/list',
+      currentPage=${currentPage},
+      totalPages=${totalPages}
+    )}"></div>
+
+    <div th:replace="~{fragment/confirm-dialog}"></div>
+
+  </main>
+
+</body>
+
+</html>
