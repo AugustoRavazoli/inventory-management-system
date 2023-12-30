@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" th:href="@{/img/favicon.ico}" type="image/x-icon">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/font/bootstrap-icons.min.css}">
+  <script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}" defer></script>
+  <script th:src="@{/webjars/alpinejs/dist/cdn.min.js}" defer></script>
+  <title>Inventory Management System</title>
+</head>
+
+<body style="background-color: #f7f7f7;">
+  <div class="container-fluid">
+    <main class="d-flex flex-column align-items-center justify-content-center vh-100 text-center">
+      <h1 th:text="${status}" class="display-1 fw-bold"></h1>
+      <p th:text=${error} class="fs-3"></p>
+      <p th:text="${message}"></p>
+      <a th:href="@{/dashboard}">Go back</a>
+    </main>
+  </div>
+</body>
+
+</html>
