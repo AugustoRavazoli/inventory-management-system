@@ -63,7 +63,16 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+    @Transactional
+    public void deleteOrder(long id) {
+        var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
+        order.getItems().forEach(item -> productRepository.findById(item.getProduct().getId())
+                .orElseThrow()
+                .increaseQuantity(item.getQuantity()));
+        orderRepository.delete(order);
+    }
+
+    private void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems) {
         items.forEach(item -> {
             var updatedItem = updatedItems.stream()
                     .filter(ui -> ui.getProduct().getId().equals(item.getProduct().getId()))
@@ -82,7 +91,7 @@ public class OrderService {
         });
     }
 
-    void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+    private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems) {
         checkDuplicates(updatedItems);
         checkProductAvailability(updatedItems);
         updatedItems.stream()
@@ -93,7 +102,7 @@ public class OrderService {
                         .decreaseQuantity(updatedItem.getQuantity()));
     }
 
-    void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+    private void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems) {
         items.stream()
                 .filter(item -> updatedItems.stream()
                         .noneMatch(updatedItem -> updatedItem.getProduct().getId().equals(item.getProduct().getId())))
