@@ -6,7 +6,49 @@
 <body>
 
   <main layout:fragment="content">
+    <div class="py-4">
+      <h2 class="h4 mb-3">Dashboard</h2>
+      <hr class="hr">
 
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4 card-columns">
+        <div class="col">
+          <div class="card rounded-0 bg-success" >
+            <div class="row card-body text-white">
+              <h5 class="card-title h5">Total Orders</h5>
+              <p th:text="${totalOrders}" class="card-text h3"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card rounded-0 bg-primary" >
+            <div class="row card-body text-white">
+              <h5 class="card-title h5">Total Products</h5>
+              <p th:text="${totalProducts}" class="card-text h3"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card rounded-0 bg-warning" >
+            <div class="row card-body text-white">
+              <h5 class="card-title h5">Total Categories</h5>
+              <p th:text="${totalCategories}" class="card-text h3"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card rounded-0 bg-danger" >
+            <div class="row card-body text-white">
+              <h5 class="card-title h5">Total Customers</h5>
+              <p th:text="${totalCustomers}" class="card-text h3"></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </main>
 
 </body>
