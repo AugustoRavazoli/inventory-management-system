@@ -5,6 +5,11 @@
 
 <head>
   <script th:src="@{/js/order.js}" th:defer></script>
+  <script th:inline="javascript" th:defer>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("order", () => order(/*[[${order.items}]]*/));
+    });
+  </script>
 </head>
 
 <body>
@@ -12,17 +17,21 @@
   <main layout:fragment="content" x-data="order">
     <div class="py-4">
 
-      <h2 class="h4 mb-3">Add order</h2>
+      <h2 th:text="${mode == 'create'} ? 'Add order' : 'Edit order'" class="h4 mb-3">Add order</h2>
       <hr class="hr">
 
-      <form th:action="@{/orders/create}"
+      <form th:action="${mode == 'create'} ? @{/orders/create} : @{/orders/update/__${id}__}"
             method="post"
             th:object="${order}"
             class="needs-validation"
             novalidate x-data @submit="validateForm($el, $event)">
 
         <div th:if="${insufficientStock}" class="alert alert-danger rounded-0">
-          Order contain items with insufficient stock
+          Order contains items with insufficient stock
+        </div>
+
+        <div th:if="${duplicatedItem}" class="alert alert-danger rounded-0">
+          Order contains duplicated items
         </div>
 
         <div layout:replace="~{fragment/form :: select-field(
@@ -33,8 +42,8 @@
             required=true
           )}">
           <th:block layout:fragment="select-field-options">
-            <option value="" selected disabled>-- Choose a customer --</option>
-            <option th:each="customer : ${customers}" th:value="${customer.id}" th:text="${customer.name}"></option>
+            <option value="" th:selected="${order.customerId == null}" disabled>-- Choose a customer --</option>
+            <option th:selected="${order.customerId == customer.id}" th:each="customer : ${customers}" th:value="${customer.id}" th:text="${customer.name}"></option>
           </th:block>
         </div>
 
@@ -49,7 +58,7 @@
                 <select :name="`items[${index}].productId`" x-model="item.product" x-on:change="editItem(index, $el.options[$el.value].dataset.price)"
                         class="form-select rounded-0" :id="id" required>
                   <option value="" selected disabled>-- Choose a product --</option>
-                  <option th:each="product : ${products}" th:value="${product.id}" th:data-price="${product.price}" th:text="${product.name}"></option>
+                  <option x-init="item.productId == $el.value && editItem(index, $el.dataset.price)" :selected="item.productId == $el.value" th:each="product : ${products}" th:value="${product.id}" th:data-price="${product.price}" th:text="${product.name}"></option>
                 </select>
                 <div class="invalid-feedback">Please choose a product.</div>
               </div>

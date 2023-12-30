@@ -1,17 +1,19 @@
-function order() {
-  function createItem() {
+function order(items) {
+
+  function createItem(item = { productId: "", quantity: "" }) {
     return {
-      product: "",
+      productId: item.productId,
       price: "",
-      quantity: "",
+      quantity: item.quantity,
       get amount() {
-        return this.price * this.quantity;
+        const amount = this.price * this.quantity;
+        return amount || "";
       }
     };
   }
 
   return {
-    items: [createItem()],
+    items: items ? items.map(item => createItem(item)) : [createItem()],
     addItem() {
       this.items.push(createItem());
     },

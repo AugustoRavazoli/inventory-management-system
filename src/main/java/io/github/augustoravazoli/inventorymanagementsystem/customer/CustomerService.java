@@ -2,6 +2,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class CustomerService {
     }
 
     public List<Customer> listCustomers() {
-        return customerRepository.findAll();
+        return customerRepository.findAll(Sort.by("name"));
     }
 
     public Customer findCustomer(long id) {

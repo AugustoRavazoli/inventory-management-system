@@ -3,6 +3,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public class ProductService {
     }
 
     public List<Product> listProducts() {
-        return productRepository.findAll();
+        return productRepository.findAll(Sort.by("name"));
     }
 
     public Product findProduct(long id) {

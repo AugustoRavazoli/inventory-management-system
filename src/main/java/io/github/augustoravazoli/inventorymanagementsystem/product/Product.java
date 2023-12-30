@@ -24,11 +24,11 @@ public class Product {
 
     @DecimalMin("0")
     @Column(nullable = false)
-    private Integer quantity;
+    private Integer quantity = 0;
 
     @DecimalMin("0.01")
     @Column(nullable = false)
-    private BigDecimal price;
+    private BigDecimal price = BigDecimal.ZERO;
 
     public Product() {}
 
@@ -82,6 +82,14 @@ public class Product {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public void increaseQuantity(int amount) {
+        this.quantity += amount;
+    }
+
+    public void decreaseQuantity(int amount) {
+        this.quantity -= amount;
     }
 
     public ProductForm toForm() {

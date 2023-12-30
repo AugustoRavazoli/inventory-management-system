@@ -2,6 +2,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.category;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class CategoryService {
     }
 
     public List<Category> listCategories() {
-        return categoryRepository.findAll();
+        return categoryRepository.findAll(Sort.by("name"));
     }
 
     public Category findCategory(long id) {

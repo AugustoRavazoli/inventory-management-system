@@ -13,6 +13,13 @@ public class OrderItemForm {
     @NotNull
     private Long productId;
 
+    public OrderItemForm() {}
+
+    public OrderItemForm(Integer quantity, Long productId) {
+        this.quantity = quantity;
+        this.productId = productId;
+    }
+
     public Integer getQuantity() {
         return quantity;
     }

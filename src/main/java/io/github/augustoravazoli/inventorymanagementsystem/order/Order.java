@@ -83,7 +83,8 @@ public class Order {
     }
 
     public void setItems(List<OrderItem> items) {
-        this.items = items;
+        this.items.clear();
+        this.items.addAll(items);
     }
 
     public int getQuantity() {
@@ -98,6 +99,14 @@ public class Order {
                 .map(OrderItem::getAmount)
                 .reduce(BigDecimal::add)
                 .orElse(BigDecimal.ZERO);
+    }
+
+    public OrderForm toForm() {
+        return new OrderForm(
+                OrderForm.StatusForm.valueOf(status.name()),
+                customer.getId(),
+                items.stream().map(item -> new OrderItemForm(item.getQuantity(), item.getProduct().getId())).toList()
+        );
     }
 
 }

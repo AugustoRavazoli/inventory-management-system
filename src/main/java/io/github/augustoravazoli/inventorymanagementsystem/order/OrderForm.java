@@ -23,6 +23,14 @@ public class OrderForm {
     @NotEmpty
     private List<OrderItemForm> items;
 
+    public OrderForm() {}
+
+    public OrderForm(StatusForm status, Long customerId, List<OrderItemForm> items) {
+        this.status = status;
+        this.customerId = customerId;
+        this.items = items;
+    }
+
     public StatusForm getStatus() {
         return status;
     }
