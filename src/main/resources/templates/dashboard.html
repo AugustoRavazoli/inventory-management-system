@@ -14,14 +14,32 @@
         <div class="col">
           <div class="card rounded-0 bg-success" >
             <div class="row card-body text-white">
-              <h5 class="card-title h5">Total Orders</h5>
-              <p th:text="${totalOrders}" class="card-text h3"></p>
+              <h5 class="card-title h5">Total Sales</h5>
+              <p th:text="${'$ ' + totalSales}" class="card-text h3"></p>
             </div>
           </div>
         </div>
 
         <div class="col">
           <div class="card rounded-0 bg-primary" >
+            <div class="row card-body text-white">
+              <h5 class="card-title h5">Paid Orders</h5>
+              <p th:text="${totalPaidOrders}" class="card-text h3"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card rounded-0 bg-secondary" >
+            <div class="row card-body text-white">
+              <h5 class="card-title h5">Unpaid Orders</h5>
+              <p th:text="${totalUnpaidOrders}" class="card-text h3"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card rounded-0 bg-danger" >
             <div class="row card-body text-white">
               <h5 class="card-title h5">Total Products</h5>
               <p th:text="${totalProducts}" class="card-text h3"></p>
@@ -39,7 +57,7 @@
         </div>
 
         <div class="col">
-          <div class="card rounded-0 bg-danger" >
+          <div class="card rounded-0 bg-info" >
             <div class="row card-body text-white">
               <h5 class="card-title h5">Total Customers</h5>
               <p th:text="${totalCustomers}" class="card-text h3"></p>
