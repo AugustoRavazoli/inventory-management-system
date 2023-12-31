@@ -9,17 +9,17 @@
 
   <div class="navbar navbar-expand-lg py-4">
     <div class="container-fluid px-0">
-      <h2 class="h4 mb-0 d-none d-sm-block">Orders</h2>
+      <h2 th:text="${#strings.toString(session.status) == 'UNPAID'} ? 'Orders' : 'Sales'" class="h4 mb-0 d-none d-sm-block"></h2>
       <div class="d-flex justify-content-between">
-        <form th:action="${#strings.isEmpty(param.name)} ? @{/orders/list?customer-name=} : @{/orders/list}" method="get"
-              class="w-100 me-4">
+        <form th:action="@{/orders/list?}" method="get" class="w-100">
           <div class="input-group w-100 bg-white">
-            <input class="form-control rounded-0" type="search" name="customer-name" placeholder="Search order...">
+            <input name="status" th:value="${session.status}" hidden>
+            <input class="form-control rounded-0" type="search" name="customer-name" th:placeholder="${#strings.toString(session.status) == 'UNPAID'} ? 'Search orders...' : 'Search sales...'">
             <button class="btn btn-outline-secondary rounded-0"><i
-                th:class="${#strings.isEmpty(param.name)} ? 'bi bi-search' : 'bi bi-x-lg'"></i></button>
+                th:class="${#strings.isEmpty(param.get('customer-name'))} ? 'bi bi-search' : 'bi bi-x-lg'"></i></button>
           </div>
         </form>
-        <a th:href="@{/orders/create}" class="flex-shrink-0 btn btn-success px-4 rounded-0">Add order</a>
+        <a th:unless="${#strings.toString(session.status) == 'PAID'}" th:href="@{/orders/create}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0">Add order</a>
       </div>
     </div>
   </div>
@@ -44,7 +44,7 @@
   </div>
 
   <div th:replace="~{fragment/pagination(
-      url='/orders/list',
+      url='/orders/list?status=__${session.status}__',
       currentPage=${currentPage},
       totalPages=${totalPages}
     )}"></div>

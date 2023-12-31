@@ -51,7 +51,7 @@
                 </a>
               </li>
               <li class="nav-item py-2">
-                <a th:href="@{/orders/list}" class="nav-link d-flex align-items-center gap-2 text-white">
+                <a th:href="@{/orders/list?status=UNPAID}" class="nav-link d-flex align-items-center gap-2 text-white">
                   <i class="bi bi-file-earmark"></i>
                   Orders
                 </a>
@@ -72,6 +72,12 @@
                 <a th:href="@{/customers/list}" class="nav-link d-flex align-items-center gap-2 text-white" href="#">
                   <i class="bi bi-people"></i>
                   Customers
+                </a>
+              </li>
+              <li class="nav-item py-2">
+                <a th:href="@{/orders/list?status=PAID}" class="nav-link d-flex align-items-center gap-2 text-white" href="#">
+                  <i class="bi bi-graph-up"></i>
+                  Sales
                 </a>
               </li>
               <li class="nav-item py-2">

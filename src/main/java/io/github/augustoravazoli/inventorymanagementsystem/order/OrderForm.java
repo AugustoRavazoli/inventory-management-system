@@ -10,7 +10,12 @@ import java.util.List;
 public class OrderForm {
 
     public enum StatusForm {
-        PAID, UNPAID
+        PAID, UNPAID;
+
+        public Order.Status toEntity() {
+            return Order.Status.valueOf(name());
+        }
+
     }
 
     @NotNull

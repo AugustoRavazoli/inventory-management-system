@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    Page<Order> findAllByCustomerNameContainingIgnoreCase(String customerName, Pageable pageable);
+    Page<Order> findAllByStatus(Order.Status status, Pageable pageable);
+
+    Page<Order> findAllByStatusAndCustomerNameContainingIgnoreCase(Order.Status status, String customerName, Pageable pageable);
 
 }

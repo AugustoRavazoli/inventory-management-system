@@ -2,11 +2,13 @@ package io.github.augustoravazoli.inventorymanagementsystem.order;
 
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerService;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/orders")
@@ -35,7 +37,7 @@ public class OrderController {
     public String createOrder(@Valid @ModelAttribute OrderForm order, Model model) {
         try {
             orderService.createOrder(order.toEntity());
-            return "redirect:/orders/list";
+            return "redirect:/orders/list?status=UNPAID";
         } catch (ProductWithInsufficientStockException e) {
             model.addAttribute("insufficientStock", true);
         } catch (DuplicatedOrderItemException e) {
@@ -49,11 +51,17 @@ public class OrderController {
     }
 
     @GetMapping("/list")
-    public String listOrders(@RequestParam(name = "customer-name", defaultValue = "") String customerName, Pageable pageable, Model model) {
-        var orderPage = orderService.listOrders(customerName, pageable);
+    public String listOrders(
+            @RequestParam(name = "status") OrderForm.StatusForm status,
+            @RequestParam(name = "customer-name", defaultValue = "") String customerName,
+            Pageable pageable,
+            Model model,
+            HttpSession session) {
+        var orderPage = orderService.listOrders(status.toEntity(), customerName, pageable);
         model.addAttribute("orders", orderPage.getContent());
         model.addAttribute("currentPage", orderPage.getNumber() + 1);
         model.addAttribute("totalPages", orderPage.getTotalPages());
+        session.setAttribute("status", status);
         return "order/order-table";
     }
 
@@ -69,9 +77,10 @@ public class OrderController {
     }
 
     @PostMapping("/update/{id}")
-    public String updateOrder(@PathVariable("id") long id, @Valid @ModelAttribute OrderForm order, Model model) {
+    public String updateOrder(@PathVariable("id") long id, @Valid @ModelAttribute OrderForm order, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
         try {
             orderService.updateOrder(id, order.toEntity());
+            redirectAttributes.addAttribute("status", session.getAttribute("status"));
             return "redirect:/orders/list";
         } catch (ProductWithInsufficientStockException e) {
             model.addAttribute("insufficientStock", true);
@@ -87,8 +96,9 @@ public class OrderController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteOrder(@PathVariable("id") long id) {
+    public String deleteOrder(@PathVariable("id") long id, RedirectAttributes redirectAttributes, HttpSession session) {
         orderService.deleteOrder(id);
+        redirectAttributes.addAttribute("status", session.getAttribute("status"));
         return "redirect:/orders/list";
     }
 

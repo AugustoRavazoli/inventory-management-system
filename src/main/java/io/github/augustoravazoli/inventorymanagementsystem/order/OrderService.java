@@ -36,11 +36,11 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public Page<Order> listOrders(String customerName, Pageable pageable) {
+    public Page<Order> listOrders(Order.Status status, String customerName, Pageable pageable) {
         if (customerName.isEmpty()) {
-            return orderRepository.findAll(pageable);
+            return orderRepository.findAllByStatus(status, pageable);
         }
-        return orderRepository.findAllByCustomerNameContainingIgnoreCase(customerName, pageable);
+        return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCase(status, customerName, pageable);
     }
 
     public Order findOrder(long id) {

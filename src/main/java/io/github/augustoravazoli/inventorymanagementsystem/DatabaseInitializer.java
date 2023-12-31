@@ -108,6 +108,22 @@ public class DatabaseInitializer implements CommandLineRunner {
                                 new OrderItem(11, new Product(2L)),
                                 new OrderItem(12, new Product(3L))
                         )
+                ), new Order(
+                        Order.Status.PAID,
+                        new Customer(5L),
+                        List.of(
+                                new OrderItem(10, new Product(1L)),
+                                new OrderItem(11, new Product(2L)),
+                                new OrderItem(12, new Product(3L))
+                        )
+                ), new Order(
+                        Order.Status.PAID,
+                        new Customer(6L),
+                        List.of(
+                                new OrderItem(10, new Product(1L)),
+                                new OrderItem(11, new Product(2L)),
+                                new OrderItem(12, new Product(3L))
+                        )
                 )
         );
         categoryRepository.saveAll(categories);
