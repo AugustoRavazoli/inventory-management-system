@@ -11,16 +11,16 @@
     <div class="container-fluid px-0">
       <h2 th:text="${#strings.toString(session.status) == 'UNPAID'} ? 'Orders' : 'Sales'" class="h4 mb-0 d-none d-sm-block"></h2>
       <div class="d-flex justify-content-between">
-        <form :action="search === '' ? '/orders/list' : '/orders/find'" method="get" class="w-100" x-data="{ search: '' }">
-          <div class="input-group w-100 bg-white">
-            <input name="status" th:value="${session.status}" hidden>
-            <input x-model="search" class="form-control rounded-0" type="search" name="customer-name" th:placeholder="${#strings.toString(session.status) == 'UNPAID'} ? 'Search orders...' : 'Search sales...'">
-            <button class="btn btn-outline-secondary rounded-0">
-              <i th:if="${#strings.isEmpty(param.get('customer-name'))}" class="bi bi-search"></i>
-              <i th:unless="${#strings.isEmpty(param.get('customer-name'))}" :class="search !== '' ? 'bi bi-search' : 'bi bi-x-lg'"></i>
-            </button>
-          </div>
-        </form>
+        <div layout:replace="~{fragment/search(
+          searchParam='customer-name',
+          searchUrl='/orders/find',
+          listUrl='/orders/list',
+          placeholder='Search orders...'
+        )}">
+          <th:block layout:fragment="extra-inputs">
+            <input name="status" type="hidden" th:value="${session.status}">
+          </th:block>
+        </div>
         <a th:unless="${#strings.toString(session.status) == 'PAID'}" th:href="@{/orders/create}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0">Add order</a>
       </div>
     </div>

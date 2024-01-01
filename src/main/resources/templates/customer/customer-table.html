@@ -12,14 +12,14 @@
         <h2 class="h4 mb-0 d-none d-sm-block">Customers</h2>
         <div class="d-flex justify-content-between">
           <form :action="search === '' ? '/customers/list' : '/customers/find'" method="get" class="w-100 me-4" x-data="{ search: '' }">
-            <div class="input-group w-100 bg-white">
-              <input x-model="search" class="form-control rounded-0" type="search" name="name" placeholder="Search customer...">
-              <button class="btn btn-outline-secondary rounded-0">
-                <i th:if="${#strings.isEmpty(param.name)}" class="bi bi-search"></i>
-                <i th:unless="${#strings.isEmpty(param.name)}" :class="search !== '' ? 'bi bi-search' : 'bi bi-x-lg'"></i>
-              </button>            </div>
+            <div th:replace="~{fragment/search(
+              searchParam='name',
+              searchUrl='/customers/find',
+              listUrl='/customers/list',
+              placeholder='Search customers...'
+            )}"></div>
           </form>
-          <a th:href="@{/customers/create}" class="flex-shrink-0 btn btn-success px-4 rounded-0">Add customer</a>
+          <a th:href="@{/customers/create}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0">Add customer</a>
         </div>
       </div>
     </div>

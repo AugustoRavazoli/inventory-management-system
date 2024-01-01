@@ -1,0 +1,16 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<form layout:fragment="search(searchParam, searchUrl, listUrl)"
+      th:attr="':'+action='search === \'\' ? \'__${listUrl}__\' : \'__${searchUrl}__\''" method="get" class="w-100" x-data="{ search: '' }">
+  <div class="input-group w-100 bg-white">
+    <th:block layout:fragment="extra-inputs"></th:block>
+    <input x-model="search" class="form-control rounded-0" type="search" th:name="${searchParam}" th:placeholder="${placeholder}">
+    <button class="btn btn-outline-secondary rounded-0">
+      <i th:if="${#strings.isEmpty(param.get(searchParam))}" class="bi bi-search"></i>
+      <i th:unless="${#strings.isEmpty(param.get(searchParam))}" :class="search !== '' ? 'bi bi-search' : 'bi bi-x-lg'"></i>
+    </button>
+  </div>
+</form>
+
+</html>
