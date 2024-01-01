@@ -1,7 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -23,15 +23,16 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
-    public Page<Category> listCategories(String name, Pageable page) {
-        if (name.isEmpty()) {
-            return categoryRepository.findAll(page);
-        }
-        return categoryRepository.findAllByNameContainingIgnoreCase(name, page);
+    public Page<Category> listCategories(int page) {
+        return categoryRepository.findAll(PageRequest.of(page - 1, 8, Sort.by("name")));
     }
 
     public List<Category> listCategories() {
         return categoryRepository.findAll(Sort.by("name"));
+    }
+
+    public List<Category> findCategories(String name) {
+        return categoryRepository.findAllByNameContainingIgnoreCase(name);
     }
 
     public Category findCategory(long id) {

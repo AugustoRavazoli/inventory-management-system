@@ -1,7 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -23,15 +23,16 @@ public class CustomerService {
         customerRepository.save(customer);
     }
 
-    public Page<Customer> listCustomers(String name, Pageable page) {
-        if (name.isEmpty()) {
-            return customerRepository.findAll(page);
-        }
-        return customerRepository.findAllByNameContainingIgnoreCase(name, page);
+    public Page<Customer> listCustomers(int page) {
+        return customerRepository.findAll(PageRequest.of(page - 1, 8, Sort.by("name")));
     }
 
     public List<Customer> listCustomers() {
         return customerRepository.findAll(Sort.by("name"));
+    }
+
+    public List<Customer> findCustomers(String name) {
+        return customerRepository.findAllByNameContainingIgnoreCase(name);
     }
 
     public Customer findCustomer(long id) {

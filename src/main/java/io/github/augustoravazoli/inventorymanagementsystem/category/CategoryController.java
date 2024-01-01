@@ -1,7 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,11 +36,18 @@ public class CategoryController {
     }
 
     @GetMapping("/list")
-    public String listCategories(@RequestParam(name = "name", defaultValue = "") String name, Pageable pageable, Model model) {
-        var categoryPage = categoryService.listCategories(name,pageable);
+    public String listCategories(@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
+        var categoryPage = categoryService.listCategories(page);
         model.addAttribute("categories", categoryPage.getContent());
         model.addAttribute("currentPage", categoryPage.getNumber() + 1);
         model.addAttribute("totalPages", categoryPage.getTotalPages());
+        return "category/category-table";
+    }
+
+    @GetMapping("/find")
+    public String findCategories(@RequestParam("name") String name, Model model) {
+        var categories = categoryService.findCategories(name);
+        model.addAttribute("categories", categories);
         return "category/category-table";
     }
 

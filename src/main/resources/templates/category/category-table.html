@@ -11,10 +11,13 @@
       <div class="container-fluid px-0">
         <h2 class="h4 mb-0 d-none d-sm-block">Categories</h2>
         <div class="d-flex justify-content-between">
-          <form th:action="${#strings.isEmpty(param.name)} ? @{/categories/list?name=} : @{/categories/list}" method="get" class="w-100 me-4">
+          <form :action="search === '' ? '/categories/list' : '/categories/find'" method="get" class="w-100 me-4" x-data="{ search: '' }">
             <div class="input-group w-100 bg-white">
-              <input class="form-control rounded-0" type="search" name="name" placeholder="Search category...">
-              <button class="btn btn-outline-secondary rounded-0"><i th:class="${#strings.isEmpty(param.name)} ? 'bi bi-search' : 'bi bi-x-lg'"></i></button>
+              <input x-model="search" class="form-control rounded-0" type="search" name="name" placeholder="Search category...">
+              <button class="btn btn-outline-secondary rounded-0">
+                <i th:if="${#strings.isEmpty(param.name)}" class="bi bi-search"></i>
+                <i th:unless="${#strings.isEmpty(param.name)}" :class="search !== '' ? 'bi bi-search' : 'bi bi-x-lg'"></i>
+              </button>
             </div>
           </form>
           <a th:href="@{/categories/create}" class="flex-shrink-0 btn btn-success px-4 rounded-0">Add category</a>

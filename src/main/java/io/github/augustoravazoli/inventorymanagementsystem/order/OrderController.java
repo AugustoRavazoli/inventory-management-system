@@ -4,7 +4,6 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerServ
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -52,16 +51,27 @@ public class OrderController {
 
     @GetMapping("/list")
     public String listOrders(
-            @RequestParam(name = "status") OrderForm.StatusForm status,
-            @RequestParam(name = "customer-name", defaultValue = "") String customerName,
-            Pageable pageable,
+            @RequestParam("status") OrderForm.StatusForm status,
+            @RequestParam(name = "page", defaultValue = "1") int page,
             Model model,
-            HttpSession session) {
-        var orderPage = orderService.listOrders(status.toEntity(), customerName, pageable);
+            HttpSession session
+    ) {
+        var orderPage = orderService.listOrders(status.toEntity(), page);
         model.addAttribute("orders", orderPage.getContent());
         model.addAttribute("currentPage", orderPage.getNumber() + 1);
         model.addAttribute("totalPages", orderPage.getTotalPages());
         session.setAttribute("status", status);
+        return "order/order-table";
+    }
+
+    @GetMapping("/find")
+    public String findOrders(
+            @RequestParam("status") OrderForm.StatusForm status,
+            @RequestParam("customer-name") String customerName,
+            Model model
+    ) {
+        var orders = orderService.findOrders(status.toEntity(), customerName);
+        model.addAttribute("orders", orders);
         return "order/order-table";
     }
 
@@ -77,7 +87,13 @@ public class OrderController {
     }
 
     @PostMapping("/update/{id}")
-    public String updateOrder(@PathVariable("id") long id, @Valid @ModelAttribute OrderForm order, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
+    public String updateOrder(
+            @PathVariable("id") long id,
+            @Valid @ModelAttribute OrderForm order,
+            Model model,
+            RedirectAttributes redirectAttributes,
+            HttpSession session
+    ) {
         try {
             orderService.updateOrder(id, order.toEntity());
             redirectAttributes.addAttribute("status", session.getAttribute("status"));

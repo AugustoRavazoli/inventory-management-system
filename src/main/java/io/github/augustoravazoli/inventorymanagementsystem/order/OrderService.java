@@ -3,7 +3,8 @@ package io.github.augustoravazoli.inventorymanagementsystem.order;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,11 +37,12 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public Page<Order> listOrders(Order.Status status, String customerName, Pageable pageable) {
-        if (customerName.isEmpty()) {
-            return orderRepository.findAllByStatus(status, pageable);
-        }
-        return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCase(status, customerName, pageable);
+    public Page<Order> listOrders(Order.Status status, int page) {
+        return orderRepository.findAllByStatus(status, PageRequest.of(page - 1, 8, Sort.by("date")));
+    }
+
+    public List<Order> findOrders(Order.Status status, String customerName) {
+        return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCase(status, customerName);
     }
 
     public Order findOrder(long id) {

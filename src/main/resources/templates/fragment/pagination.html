@@ -14,7 +14,7 @@
          th:class="${currentPage == page ? 'page-link bg-dark text-white rounded-0' : 'page-link text-dark rounded-0'}"></a>
     </li>
     <li th:if="${currentPage < totalPages}" class="page-item">
-      <a th:href="@{__${url}__(page=__${currentPage + 1}__}" class="page-link text-dark rounded-0">
+      <a th:href="@{__${url}__(page=__${currentPage + 1}__)}" class="page-link text-dark rounded-0">
         <i class="bi bi-chevron-right"></i>
       </a>
     </li>

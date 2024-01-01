@@ -1,7 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,11 +36,18 @@ public class CustomerController {
     }
 
     @GetMapping("/list")
-    public String listCustomers(@RequestParam(name = "name", defaultValue = "") String name, Pageable pageable, Model model) {
-        var customerPage = customerService.listCustomers(name, pageable);
+    public String listCustomers(@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
+        var customerPage = customerService.listCustomers(page);
         model.addAttribute("customers", customerPage.getContent());
         model.addAttribute("currentPage", customerPage.getNumber() + 1);
         model.addAttribute("totalPages", customerPage.getTotalPages());
+        return "customer/customer-table";
+    }
+
+    @GetMapping("/find")
+    public String findCustomers(@RequestParam("name") String name, Model model) {
+        var customers = customerService.findCustomers(name);
+        model.addAttribute("customers", customers);
         return "customer/customer-table";
     }
 

@@ -2,7 +2,6 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryService;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -42,11 +41,18 @@ public class ProductController {
     }
 
     @GetMapping("/list")
-    public String listProducts(@RequestParam(name = "name", defaultValue = "") String name, Pageable pageable, Model model) {
-        var productPage = productService.listProducts(name, pageable);
+    public String listProducts(@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
+        var productPage = productService.listProducts(page);
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("currentPage", productPage.getNumber() + 1);
         model.addAttribute("totalPages", productPage.getTotalPages());
+        return "product/product-table";
+    }
+
+    @GetMapping("/find")
+    public String findProducts(@RequestParam("name") String name, Model model) {
+        var products = productService.findProducts(name);
+        model.addAttribute("products", products);
         return "product/product-table";
     }
 

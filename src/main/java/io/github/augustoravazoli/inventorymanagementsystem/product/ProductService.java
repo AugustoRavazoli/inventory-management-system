@@ -2,7 +2,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -30,15 +30,16 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public Page<Product> listProducts(String name, Pageable page) {
-        if (name.isBlank()) {
-            return productRepository.findAll(page);
-        }
-        return productRepository.findAllByNameContainingIgnoreCase(name, page);
+    public Page<Product> listProducts(int page) {
+        return productRepository.findAll(PageRequest.of(page - 1, 8, Sort.by("name")));
     }
 
     public List<Product> listProducts() {
         return productRepository.findAll(Sort.by("name"));
+    }
+
+    public List<Product> findProducts(String name) {
+        return productRepository.findAllByNameContainingIgnoreCase(name);
     }
 
     public Product findProduct(long id) {
