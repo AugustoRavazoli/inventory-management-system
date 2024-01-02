@@ -1,0 +1,4 @@
+app:
+  user:
+    username: admin
+    password: admin
