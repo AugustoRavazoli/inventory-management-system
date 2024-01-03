@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -23,7 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CategoryController.class)
-@ActiveProfiles("test")
 @WithMockUser
 class CategoryControllerTest {
 
@@ -51,8 +49,6 @@ class CategoryControllerTest {
 
         @Test
         void createCategory() throws Exception {
-            // given
-            doNothing().when(categoryService).createCategory(any(Category.class));
             // when
             var result = client.perform(post("/categories/create")
                     .param("name", "A")
@@ -175,8 +171,6 @@ class CategoryControllerTest {
 
         @Test
         void updateCategory() throws Exception {
-            // given
-            doNothing().when(categoryService).updateCategory(anyLong(), any(Category.class));
             // when
             var result = client.perform(post("/categories/update/{id}", 1L)
                     .param("name", "A")
@@ -229,8 +223,6 @@ class CategoryControllerTest {
 
         @Test
         void deleteCategory() throws Exception {
-            // given
-            doNothing().when(categoryService).deleteCategory(anyLong());
             // when
             var result = client.perform(post("/categories/delete/{id}", 1L)
                     .with(csrf())

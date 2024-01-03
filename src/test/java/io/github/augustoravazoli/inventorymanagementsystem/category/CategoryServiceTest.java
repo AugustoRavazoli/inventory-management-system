@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 import java.util.Optional;
