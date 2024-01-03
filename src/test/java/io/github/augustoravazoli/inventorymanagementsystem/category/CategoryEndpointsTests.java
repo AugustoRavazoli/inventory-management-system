@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.shaded.org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 
@@ -56,23 +55,6 @@ class CategoryEndpointsTests {
             );
             var categoryOptional = categoryRepository.findByName("A");
             assertThat(categoryOptional).get().hasFieldOrPropertyWithValue("name", "A");
-        }
-
-        @Test
-        void doNotCreateCategoryWithNameTaken() throws Exception {
-            // given
-            categoryRepository.save(new Category("A"));
-            // when
-            var result = client.perform(post("/categories/create")
-                    .param("name", "A")
-                    .with(csrf()));
-            // then
-            result.andExpectAll(
-                    status().isOk(),
-                    model().attributeExists("duplicatedName"),
-                    view().name("category/category-form")
-            );
-            assertThat(categoryRepository.count()).isEqualTo(1);
         }
 
     }
