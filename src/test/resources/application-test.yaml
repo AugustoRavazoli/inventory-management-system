@@ -2,3 +2,17 @@ app:
   user:
     username: admin
     password: admin
+
+spring:
+  jpa:
+    hibernate.ddl-auto: create
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
