@@ -12,8 +12,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -68,6 +72,29 @@ class CategoryEndpointsTests {
                     view().name("category/category-form")
             );
             assertThat(categoryRepository.count()).isEqualTo(1);
+        }
+
+    }
+
+    @Nested
+    class ListCategoriesTests {
+
+        @Test
+        void listCategories() throws Exception {
+            // given
+            categoryRepository.saveAll(List.of(
+                    new Category("A"),
+                    new Category("B"),
+                    new Category("C")
+            ));
+            // when
+            var result = client.perform(get("/categories/list"));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("categories", hasSize(3)),
+                    view().name("category/category-table")
+            );
         }
 
     }

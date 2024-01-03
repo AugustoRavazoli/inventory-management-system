@@ -5,12 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
+import java.util.List;
+
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -91,6 +95,36 @@ class CategoryControllerTest {
             );
             // then
             result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
+    class ListCategoriesTests {
+
+        @Test
+        void listCategories() throws Exception {
+            // given
+            when(categoryService.listCategories(1)).thenReturn(new PageImpl<>(
+                    List.of(new Category("A"), new Category("B"), new Category("C")),
+                    PageRequest.of(0, 8, Sort.by("name")),
+                    3
+            ));
+            // when
+            var result = client.perform(get("/categories/list"));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("categories", contains(
+                            allOf(hasProperty("name", is("A"))),
+                            allOf(hasProperty("name", is("B"))),
+                            allOf(hasProperty("name", is("C")))
+                    )),
+                    model().attribute("currentPage", 1),
+                    model().attribute("totalPages", 1),
+                    view().name("category/category-table")
+            );
+            verify(categoryService, times(1)).listCategories(anyInt());
         }
 
     }

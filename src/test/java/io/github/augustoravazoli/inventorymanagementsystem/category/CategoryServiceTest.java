@@ -6,7 +6,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,6 +49,40 @@ class CategoryServiceTest {
             // then
             exception.isInstanceOf(CategoryNameTakenException.class);
             verify(categoryRepository, never()).save(any(Category.class));
+        }
+
+    }
+
+    @Nested
+    class ListCategoriesTests {
+
+        @Test
+        void listCategoriesPaginated() {
+            // given
+            var expectedCategoryPage = new PageImpl<>(
+                    List.of(new Category("A"), new Category("B"), new Category("C")),
+                    PageRequest.of(0, 8, Sort.by("name")),
+                    3
+            );
+            when(categoryRepository.findAll(PageRequest.of(0, 8, Sort.by("name"))))
+                    .thenReturn(expectedCategoryPage);
+            // when
+            var actualCategoryPage = categoryService.listCategories(1);
+            // then
+            assertThat(actualCategoryPage.getContent()).extracting("name").isSorted();
+            assertThat(actualCategoryPage).usingRecursiveComparison().isEqualTo(expectedCategoryPage);
+        }
+
+        @Test
+        void listCategories() {
+            // given
+            var expectedCategories = List.of(new Category("A"), new Category("B"), new Category("C"));
+            when(categoryRepository.findAll(Sort.by("name"))).thenReturn(expectedCategories);
+            // when
+            var actualCategories = categoryService.listCategories();
+            // then
+            assertThat(actualCategories).extracting("name").isSorted();
+            assertThat(actualCategories).usingRecursiveComparison().isEqualTo(expectedCategories);
         }
 
     }
