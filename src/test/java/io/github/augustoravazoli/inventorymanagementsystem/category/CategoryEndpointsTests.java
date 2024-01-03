@@ -101,6 +101,27 @@ class CategoryEndpointsTests {
     }
 
     @Nested
+    class FindCategoriesTests {
+
+        @Test
+        void findCategories() throws Exception {
+            // given
+            categoryRepository.saveAll(List.of(new Category("A"), new Category("Aa")));
+            // when
+            var result = client.perform(get("/categories/find")
+                    .param("name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("categories", hasSize(2)),
+                    view().name("category/category-table")
+            );
+        }
+
+    }
+
+    @Nested
     class UpdateCategoryTests {
 
         @Test

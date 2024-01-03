@@ -130,6 +130,31 @@ class CategoryControllerTest {
     }
 
     @Nested
+    class FindCategoriesTests {
+
+        @Test
+        void findCategories() throws Exception {
+            // given
+            var categories = List.of(new Category("A"), new Category("Aa"));
+            when(categoryService.findCategories("A")).thenReturn(categories);
+            // when
+            var result = client.perform(get("/categories/find")
+                    .param("name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("categories", contains(
+                            allOf(hasProperty("name", is("A"))),
+                            allOf(hasProperty("name", is("Aa")))
+                    ))
+            );
+            verify(categoryService, times(1)).findCategories(anyString());
+        }
+
+    }
+
+    @Nested
     class UpdateCategoryTests {
 
         @Test

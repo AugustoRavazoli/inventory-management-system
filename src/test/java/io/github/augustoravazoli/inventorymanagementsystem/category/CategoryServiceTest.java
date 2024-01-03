@@ -90,6 +90,23 @@ class CategoryServiceTest {
     }
 
     @Nested
+    class FindCategoriesTests {
+
+        @Test
+        void findCategories() {
+            // given
+            var expectedCategories = List.of(new Category("A"), new Category("Aa"));
+            when(categoryRepository.findAllByNameContainingIgnoreCase("A")).thenReturn(expectedCategories);
+            // when
+            var actualCategories = categoryService.findCategories("A");
+            // then
+            assertThat(actualCategories).extracting("name").isSorted();
+            assertThat(actualCategories).usingRecursiveComparison().isEqualTo(expectedCategories);
+        }
+
+    }
+
+    @Nested
     class FindCategoryTests {
 
         @Test
