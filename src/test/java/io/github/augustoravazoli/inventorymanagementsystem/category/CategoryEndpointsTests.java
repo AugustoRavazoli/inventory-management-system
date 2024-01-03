@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
 
@@ -118,6 +119,27 @@ class CategoryEndpointsTests {
             );
             var categoryOptional = categoryRepository.findById(id);
             assertThat(categoryOptional).get().hasFieldOrPropertyWithValue("name", "B");
+        }
+
+    }
+
+    @Nested
+    class DeleteCategoryTests {
+
+        @Test
+        void deleteCategory() throws Exception {
+            // given
+            var id = categoryRepository.save(new Category("A")).getId();
+            // when
+            var result = client.perform(post("/categories/delete/{id}", id)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/categories/list")
+            );
+            assertThat(categoryRepository.existsById(id)).isFalse();
         }
 
     }

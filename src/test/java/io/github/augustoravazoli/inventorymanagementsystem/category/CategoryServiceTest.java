@@ -157,4 +157,30 @@ class CategoryServiceTest {
 
     }
 
+    @Nested
+    class DeleteCategoryTests {
+
+        @Test
+        void deleteCategory() {
+            // given
+            when(categoryRepository.existsById(1L)).thenReturn(true);
+            // when
+            categoryService.deleteCategory(1L);
+            // then
+            verify(categoryRepository, times(1)).deleteById(1L);
+        }
+
+        @Test
+        void doNotDeleteCategoryThatDoesNotExists() {
+            // given
+            when(categoryRepository.existsById(1L)).thenReturn(false);
+            // when
+            var exception = assertThatThrownBy(() -> categoryService.deleteCategory(1L));
+            // then
+            exception.isInstanceOf(CategoryNotFoundException.class);
+            verify(categoryRepository, never()).deleteById(1L);
+        }
+
+    }
+
 }

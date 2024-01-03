@@ -199,4 +199,25 @@ class CategoryControllerTest {
 
     }
 
+    @Nested
+    class DeleteCategoryTests {
+
+        @Test
+        void deleteCategory() throws Exception {
+            // given
+            doNothing().when(categoryService).deleteCategory(anyLong());
+            // when
+            var result = client.perform(post("/categories/delete/{id}", 1L)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/categories/list")
+            );
+            verify(categoryService, times(1)).deleteCategory(anyLong());
+        }
+
+    }
+
 }
