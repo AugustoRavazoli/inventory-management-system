@@ -129,4 +129,74 @@ class CategoryControllerTest {
 
     }
 
+    @Nested
+    class UpdateCategoryTests {
+
+        @Test
+        void retrieveUpdateCategoryPage() throws Exception {
+            // given
+            when(categoryService.findCategory(1L)).thenReturn(new Category(1L, "A"));
+            // when
+            var result = client.perform(get("/categories/update/{id}", 1));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("category", hasProperty("name", is("A"))),
+                    model().attribute("id", 1L),
+                    model().attribute("mode", "update"),
+                    view().name("category/category-form")
+            );
+        }
+
+        @Test
+        void updateCategory() throws Exception {
+            // given
+            doNothing().when(categoryService).updateCategory(anyLong(), any(Category.class));
+            // when
+            var result = client.perform(post("/categories/update/{id}", 1L)
+                    .param("name", "A")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/categories/list")
+            );
+            verify(categoryService, times(1)).updateCategory(anyLong(), any(Category.class));
+        }
+
+        @Test
+        void doNotUpdateCategoryUsingNameTaken() throws Exception {
+            // given
+            doThrow(CategoryNameTakenException.class).when(categoryService).updateCategory(anyLong(), any(Category.class));
+            // when
+            var result = client.perform(post("/categories/update/{id}", 1L)
+                    .param("name", "A")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("duplicatedName", true),
+                    model().attribute("category", hasProperty("name", is("A"))),
+                    model().attribute("id", 1L),
+                    model().attribute("mode", "update"),
+                    view().name("category/category-form")
+            );
+            verify(categoryService, times(1)).updateCategory(anyLong(), any(Category.class));
+        }
+
+        @Test
+        void doNotUpdateCategoryUsingBlankName() throws Exception {
+            // when
+            var result = client.perform(post("/categories/update/{id}", 1L)
+                    .param("name", "")
+                    .with(csrf())
+            );
+            // then
+            result.andExpect(status().isBadRequest());
+        }
+
+    }
+
 }

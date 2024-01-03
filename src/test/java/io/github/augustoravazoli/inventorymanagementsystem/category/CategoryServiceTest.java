@@ -9,8 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.C;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -83,6 +85,74 @@ class CategoryServiceTest {
             // then
             assertThat(actualCategories).extracting("name").isSorted();
             assertThat(actualCategories).usingRecursiveComparison().isEqualTo(expectedCategories);
+        }
+
+    }
+
+    @Nested
+    class FindCategoryTests {
+
+        @Test
+        void findCategory() {
+            // given
+            var expectedCategory = new Category(1L, "A");
+            when(categoryRepository.findById(1L)).thenReturn(Optional.of(expectedCategory));
+            // when
+            var actualCategory = categoryService.findCategory(1L);
+            // then
+            assertThat(actualCategory).usingRecursiveComparison().isEqualTo(expectedCategory);
+        }
+
+        @Test
+        void doNotFindCategoryThatDoesNotExists() {
+            // given
+            when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> categoryService.findCategory(1L));
+            // then
+            exception.isInstanceOf(CategoryNotFoundException.class);
+        }
+
+    }
+
+    @Nested
+    class UpdateCategoryTests {
+
+        @Test
+        void updateCategory() {
+            // given
+            var category = new Category(1L, "A");
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
+            when(categoryRepository.existsByName(anyString())).thenReturn(false);
+            // when
+            categoryService.updateCategory(1L, new Category("B"));
+            // then
+            assertThat(category.getName()).isEqualTo("B");
+            verify(categoryRepository, times(1)).save(category);
+        }
+
+        @Test
+        void doNotUpdateCategoryThatDoesNotExists() {
+            // given
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, new Category("B")));
+            // then
+            exception.isInstanceOf(CategoryNotFoundException.class);
+            verify(categoryRepository, never()).save(any(Category.class));
+        }
+
+        @Test
+        void doNotUpdateCategoryUsingNameTaken() {
+            // given
+            var category = new Category(1L, "A");
+            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
+            when(categoryRepository.existsByName(anyString())).thenReturn(true);
+            // when
+            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, new Category("B")));
+            // then
+            exception.isInstanceOf(CategoryNameTakenException.class);
+            verify(categoryRepository, never()).save(any(Category.class));
         }
 
     }

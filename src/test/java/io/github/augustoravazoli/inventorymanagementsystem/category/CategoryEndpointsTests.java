@@ -99,4 +99,27 @@ class CategoryEndpointsTests {
 
     }
 
+    @Nested
+    class UpdateCategoryTests {
+
+        @Test
+        void updateCategory() throws Exception {
+            // given
+            var id = categoryRepository.save(new Category("A")).getId();
+            // when
+            var result = client.perform(post("/categories/update/{id}", id)
+                    .param("name", "B")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/categories/list")
+            );
+            var categoryOptional = categoryRepository.findById(id);
+            assertThat(categoryOptional).get().hasFieldOrPropertyWithValue("name", "B");
+        }
+
+    }
+
 }
