@@ -117,4 +117,25 @@ class CustomerEndpointsTests {
 
     }
 
+    @Nested
+    class DeleteCustomerTests {
+
+        @Test
+        void deleteCustomer() throws Exception {
+            // given
+            var id = customerRepository.save(new Customer("A", "A", "A")).getId();
+            // when
+            var result = client.perform(post("/customers/delete/{id}", id)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/customers/list")
+            );
+            assertThat(customerRepository.existsById(id)).isFalse();
+        }
+
+    }
+
 }

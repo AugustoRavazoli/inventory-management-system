@@ -219,6 +219,25 @@ class CustomerControllerTest {
 
     }
 
+    @Nested
+    class DeleteCustomerTests {
+
+        @Test
+        void deleteCustomer() throws Exception {
+            // when
+            var result = client.perform(post("/customers/delete/{id}", 1L)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/customers/list")
+            );
+            verify(customerService, times(1)).deleteCustomer(anyLong());
+        }
+
+    }
+
     private Matcher<Customer> customer(String name, String address, String phone) {
         return allOf(
                 hasProperty("name", is(name)),

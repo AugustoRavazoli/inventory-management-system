@@ -136,4 +136,30 @@ class CustomerServiceTest {
 
     }
 
+    @Nested
+    class DeleteCustomerTests {
+
+        @Test
+        void deleteCustomer() {
+            // given
+            when(customerRepository.existsById(1L)).thenReturn(true);
+            // when
+            customerService.deleteCustomer(1L);
+            // then
+            verify(customerRepository, times(1)).deleteById(1L);
+        }
+
+        @Test
+        void doNotDeleteCustomerThatDoesNotExists() {
+            // given
+            when(customerRepository.existsById(1L)).thenReturn(false);
+            // when
+            var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L));
+            // then
+            exception.isInstanceOf(CustomerNotFoundException.class);
+            verify(customerRepository, never()).deleteById(1L);
+        }
+
+    }
+
 }
