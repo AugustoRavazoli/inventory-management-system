@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -129,10 +132,53 @@ class ProductControllerTest {
 
     }
 
+    @Nested
+    class ListProductsTests {
+
+        @Test
+        void listProducts() throws Exception {
+            // given
+            when(productService.listProducts(1)).thenReturn(new PageImpl<>(
+                    List.of(
+                            new Product("A", new Category("A"), 1, "1.00"),
+                            new Product("B", new Category("B"), 2, "2.00"),
+                            new Product("C", new Category("C"), 3, "3.00")
+                    ),
+                    PageRequest.of(0, 8, Sort.by("name")),
+                    3
+            ));
+            // when
+            var result = client.perform(get("/products/list"));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("products", contains(
+                            product("A", "A", 1, "1.00"),
+                            product("B", "B", 2, "2.00"),
+                            product("C", "C", 3, "3.00")
+                    )),
+                    model().attribute("currentPage", 1),
+                    model().attribute("totalPages", 1),
+                    view().name("product/product-table")
+            );
+            verify(productService, times(1)).listProducts(anyInt());
+        }
+
+    }
+
     private Matcher<Category> category(long id, String name) {
         return allOf(
                 hasProperty("id", is(id)),
                 hasProperty("name", is(name))
+        );
+    }
+
+    private Matcher<Product> product(String name, String category, Integer quantity, String price) {
+        return allOf(
+                hasProperty("name", is(name)),
+                hasProperty("category", hasProperty("name", is(category))),
+                hasProperty("quantity", is(quantity)),
+                hasProperty("price", is(new BigDecimal(price)))
         );
     }
 
@@ -146,7 +192,7 @@ class ProductControllerTest {
     }
 
     private Matcher<Product> product() {
-        return product(null, null, null, null);
+        return product(null, (Long) null, null, null);
     }
 
 }

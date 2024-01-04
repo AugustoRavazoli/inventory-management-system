@@ -18,10 +18,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @Import(TestApplication.class)
@@ -73,6 +74,32 @@ class ProductEndpointsTests {
                     .hasFieldOrPropertyWithValue("category.name", "A")
                     .hasFieldOrPropertyWithValue("quantity", 1)
                     .hasFieldOrPropertyWithValue("price", new BigDecimal("1.00"));
+        }
+
+    }
+
+    @Nested
+    class ListProductsTests {
+
+        @Test
+        void listProducts() throws Exception {
+            // given
+            var categoryA = categoryRepository.save(new Category("A"));
+            var categoryB = categoryRepository.save(new Category("B"));
+            var categoryC = categoryRepository.save(new Category("C"));
+            productRepository.saveAll(List.of(
+                    new Product("A", categoryA, 1, "1.00"),
+                    new Product("B", categoryB, 2, "2.00"),
+                    new Product("C", categoryC, 3, "3.00")
+            ));
+            // when
+            var result = client.perform(get("/products/list"));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("products", hasSize(3)),
+                    view().name("product/product-table")
+            );
         }
 
     }
