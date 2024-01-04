@@ -42,10 +42,17 @@ class ProductEndpointsTests {
 
     private List<Category> categories;
 
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
+
     @BeforeEach
     void setup() {
         productRepository.deleteAll();
         categoryRepository.deleteAll();
+        categoryA = categoryRepository.save(new Category("A"));
+        categoryB = categoryRepository.save(new Category("B"));
+        categoryC = categoryRepository.save(new Category("C"));
     }
 
     @Nested
@@ -53,12 +60,10 @@ class ProductEndpointsTests {
 
         @Test
         void createProduct() throws Exception {
-            // given
-            var categoryId = categoryRepository.save(new Category("A")).getId();
             // when
             var result = client.perform(post("/products/create")
                     .param("name", "A")
-                    .param("categoryId", categoryId.toString())
+                    .param("categoryId", categoryA.getId().toString())
                     .param("quantity", "1")
                     .param("price", "1.00")
                     .with(csrf())
@@ -84,9 +89,6 @@ class ProductEndpointsTests {
         @Test
         void listProducts() throws Exception {
             // given
-            var categoryA = categoryRepository.save(new Category("A"));
-            var categoryB = categoryRepository.save(new Category("B"));
-            var categoryC = categoryRepository.save(new Category("C"));
             productRepository.saveAll(List.of(
                     new Product("A", categoryA, 1, "1.00"),
                     new Product("B", categoryB, 2, "2.00"),
@@ -100,6 +102,35 @@ class ProductEndpointsTests {
                     model().attribute("products", hasSize(3)),
                     view().name("product/product-table")
             );
+        }
+
+    }
+
+    @Nested
+    class UpdateProductTests {
+
+        @Test
+        void updateProduct() throws Exception {
+            // given
+            var id = productRepository.save(new Product("A", categoryA, 1, "1.00")).getId();
+            // when
+            var result = client.perform(post("/products/update/{id}", id)
+                    .param("name", "B")
+                    .param("categoryId", categoryB.getId().toString())
+                    .param("quantity", "2")
+                    .param("price", "2.00")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/products/list")
+            );
+            var optionalProduct = productRepository.findById(id);
+            assertThat(optionalProduct).get()
+                    .extracting("name", "category", "quantity", "price")
+                    .usingRecursiveFieldByFieldElementComparatorOnFields("category")
+                    .containsExactly("B", categoryB, 1, new BigDecimal("2.00"));
         }
 
     }

@@ -12,7 +12,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -104,6 +106,93 @@ class ProductServiceTest {
             // then
             assertThat(actualProducts).extracting("name").isSorted();
             assertThat(actualProducts).usingRecursiveComparison().isEqualTo(expectedProducts);
+        }
+
+    }
+
+    @Nested
+    class FindProductTests {
+
+        @Test
+        void findProduct() {
+            // given
+            var expectedProduct = new Product(1L, "A", new Category("A"), 1, new BigDecimal("1.00"));
+            when(productRepository.findById(1L)).thenReturn(Optional.of(expectedProduct));
+            // when
+            var actualProduct = productService.findProduct(1L);
+            // then
+            assertThat(actualProduct).usingRecursiveComparison().isEqualTo(expectedProduct);
+        }
+
+        @Test
+        void doNotFindProductThatDoesNotExists() {
+            // given
+            when(productRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> productService.findProduct(1L));
+            // then
+            exception.isInstanceOf(ProductNotFoundException.class);
+        }
+
+    }
+
+    @Nested
+    class UpdateProductTests {
+
+        @Test
+        void updateProduct() {
+            // given
+            var product = new Product("A", new Category("A"), 1,"1.00");
+            var updatedProduct = new Product("B", new Category(2L, "B"), 2, "2.00");
+            when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+            when(productRepository.existsByName("B")).thenReturn(false);
+            when(categoryRepository.existsById(2L)).thenReturn(true);
+            // when
+            productService.updateProduct(1L, updatedProduct);
+            // then
+            assertThat(product).usingRecursiveComparison().isEqualTo(updatedProduct);
+            verify(productRepository, times(1)).save(product);
+        }
+
+        @Test
+        void doNotUpdateProductThatDoesNotExists() {
+            // given
+            var updatedProduct = new Product("B", new Category(2L, "B"), 2, "2.00");
+            when(productRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> productService.updateProduct(1L, updatedProduct));
+            // then
+            exception.isInstanceOf(ProductNotFoundException.class);
+            verify(productRepository, never()).save(any(Product.class));
+        }
+
+        @Test
+        void doNotUpdateProductUsingNameTaken() {
+            // given
+            var product = new Product("A", new Category("A"), 1,"1.00");
+            var updatedProduct = new Product("B", new Category(2L, "B"), 2, "2.00");
+            when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+            when(productRepository.existsByName("B")).thenReturn(true);
+            // when
+            var exception = assertThatThrownBy(() -> productService.updateProduct(1L, updatedProduct));
+            // then
+            exception.isInstanceOf(ProductNameTakenException.class);
+            verify(productRepository, never()).save(any(Product.class));
+        }
+
+        @Test
+        void doNotUpdateProductUsingNonexistentCategory() {
+            // given
+            var product = new Product("A", new Category("A"), 1,"1.00");
+            var updatedProduct = new Product("B", new Category(2L, "B"), 2, "2.00");
+            when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+            when(productRepository.existsByName("B")).thenReturn(false);
+            when(categoryRepository.existsById(2L)).thenReturn(false);
+            // when
+            var exception = assertThatThrownBy(() -> productService.updateProduct(1L, updatedProduct));
+            // then
+            exception.isInstanceOf(InvalidCategoryException.class);
+            verify(productRepository, never()).save(any(Product.class));
         }
 
     }

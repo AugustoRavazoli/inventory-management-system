@@ -38,14 +38,14 @@ class ProductControllerTest {
     @Autowired
     private MockMvc client;
 
+    private final List<Category> categories = List.of(
+            new Category(1L, "A"),
+            new Category(2L, "B"),
+            new Category(3L, "C")
+    );
+
     @Nested
     class CreateProductTests {
-
-        private final List<Category> categories = List.of(
-                new Category(1L, "A"),
-                new Category(2L, "B"),
-                new Category(3L, "C")
-        );
 
         @Test
         void retrieveCreateProductPage() throws Exception {
@@ -162,6 +162,100 @@ class ProductControllerTest {
                     view().name("product/product-table")
             );
             verify(productService, times(1)).listProducts(anyInt());
+        }
+
+    }
+
+    @Nested
+    class UpdateProductTests {
+
+        @Test
+        void retrieveUpdateProductPage() throws Exception {
+            // given
+            var product = new Product(1L, "A", new Category(1L, "A"), 1, BigDecimal.ONE);
+            when(productService.findProduct(anyLong())).thenReturn(product);
+            when(categoryService.listCategories()).thenReturn(categories);
+            // when
+            var result = client.perform(get("/products/update/{id}", 1));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("product", is(
+                            product("A", 1L, 1, BigDecimal.ONE)
+                    )),
+                    model().attribute("id", 1L),
+                    model().attribute("categories", contains(
+                            category(1, "A"),
+                            category(2, "B"),
+                            category(3, "C")
+                    )),
+                    model().attribute("mode", "update"),
+                    view().name("product/product-form")
+            );
+        }
+
+        @Test
+        void updateProduct() throws Exception {
+            // when
+            var result = client.perform(post("/products/update/{id}", 1)
+                    .param("name", "B")
+                    .param("categoryId", "2")
+                    .param("quantity", "2")
+                    .param("price", "2.00")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/products/list")
+            );
+            verify(productService, times(1)).updateProduct(anyLong(), any(Product.class));
+        }
+
+        @Test
+        void doNotUpdateProductUsingNameTaken() throws Exception {
+            // given
+            doThrow(ProductNameTakenException.class).when(productService).updateProduct(anyLong(), any(Product.class));
+            when(categoryService.listCategories()).thenReturn(categories);
+            // when
+            var result = client.perform(post("/products/update/{id}", 1)
+                    .param("name", "B")
+                    .param("categoryId", "2")
+                    .param("quantity", "2")
+                    .param("price", "2.00")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("duplicatedName", true),
+                    model().attribute("product", is(
+                            product("B", 2L, 2, new BigDecimal("2.00"))
+                    )),
+                    model().attribute("id", 1L),
+                    model().attribute("categories", contains(
+                            category(1, "A"),
+                            category(2, "B"),
+                            category(3, "C")
+                    )),
+                    model().attribute("mode", "update"),
+                    view().name("product/product-form")
+            );
+            verify(productService, times(1)).updateProduct(anyLong(), any(Product.class));
+        }
+
+        @Test
+        void doNotUpdateProductUsingBlankFields() throws Exception {
+            // when
+            var result = client.perform(post("/products/update/{id}", 1)
+                    .param("name", "")
+                    .param("categoryId", "")
+                    .param("quantity", "")
+                    .param("price", "")
+                    .with(csrf())
+            );
+            // then
+            result.andExpect(status().isBadRequest());
         }
 
     }
