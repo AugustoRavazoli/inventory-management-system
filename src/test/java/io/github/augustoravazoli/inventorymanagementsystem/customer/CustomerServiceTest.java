@@ -92,6 +92,32 @@ class CustomerServiceTest {
     }
 
     @Nested
+    class FindCustomerTests {
+
+        @Test
+        void findCustomer() {
+            // given
+            var expectedCustomer = new Customer(1L, "A", "A", "A");
+            when(customerRepository.findById(1L)).thenReturn(Optional.of(expectedCustomer));
+            // when
+            var actualCustomer = customerService.findCustomer(1L);
+            // then
+            assertThat(actualCustomer).usingRecursiveComparison().isEqualTo(expectedCustomer);
+        }
+
+        @Test
+        void doNotFindCustomerThatDoesNotExists() {
+            // given
+            when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> customerService.findCustomer(1L));
+            // then
+            exception.isInstanceOf(CustomerNotFoundException.class);
+        }
+
+    }
+
+    @Nested
     class UpdateCustomersTests {
 
         @Test
