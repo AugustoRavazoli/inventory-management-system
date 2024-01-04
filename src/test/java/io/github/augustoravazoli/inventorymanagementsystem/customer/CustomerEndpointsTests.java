@@ -59,9 +59,8 @@ class CustomerEndpointsTests {
             );
             var customerOptional = customerRepository.findByName("A");
             assertThat(customerOptional).get()
-                    .hasFieldOrPropertyWithValue("name", "A")
-                    .hasFieldOrPropertyWithValue("address", "A")
-                    .hasFieldOrPropertyWithValue("phone", "A");
+                    .extracting("name", "address", "phone")
+                    .containsExactly("A", "A", "A");
         }
 
     }
@@ -134,9 +133,8 @@ class CustomerEndpointsTests {
             );
             var customerOptional = customerRepository.findById(id);
             assertThat(customerOptional).get()
-                    .hasFieldOrPropertyWithValue("name", "B")
-                    .hasFieldOrPropertyWithValue("address", "B")
-                    .hasFieldOrPropertyWithValue("phone", "B");
+                    .extracting("name", "address", "phone")
+                    .containsExactly("B", "B", "B");
         }
 
     }

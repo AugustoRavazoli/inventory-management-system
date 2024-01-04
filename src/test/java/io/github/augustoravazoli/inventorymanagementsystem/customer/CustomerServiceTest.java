@@ -49,7 +49,7 @@ class CustomerServiceTest {
             var exception = assertThatThrownBy(() -> customerService.createCustomer(customer));
             // then
             exception.isInstanceOf(CustomerNameTakenException.class);
-            verify(customerRepository, never()).save(customer);
+            verify(customerRepository, never()).save(any(Customer.class));
         }
 
     }
@@ -68,7 +68,6 @@ class CustomerServiceTest {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("name"));
             var expectedCustomerPage = new PageImpl<>(customers, pageable, 3);
-            // when
             when(customerRepository.findAll(pageable)).thenReturn(expectedCustomerPage);
             // when
             var actualCustomerPage = customerService.listCustomers(1);
@@ -138,7 +137,7 @@ class CustomerServiceTest {
     }
 
     @Nested
-    class UpdateCustomersTests {
+    class UpdateCustomerTests {
 
         @Test
         void updateCustomer() {
@@ -203,7 +202,7 @@ class CustomerServiceTest {
             var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L));
             // then
             exception.isInstanceOf(CustomerNotFoundException.class);
-            verify(customerRepository, never()).deleteById(1L);
+            verify(customerRepository, never()).deleteById(anyLong());
         }
 
     }

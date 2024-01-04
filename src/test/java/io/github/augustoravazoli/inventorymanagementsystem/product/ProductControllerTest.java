@@ -102,9 +102,7 @@ class ProductControllerTest {
             result.andExpectAll(
                     status().isOk(),
                     model().attribute("duplicatedName", true),
-                    model().attribute("product", is(
-                            product("A", 1L, 1, new BigDecimal("1.00"))
-                    )),
+                    model().attribute("product", is(product("A", 1L, 1,  "1.00"))),
                     model().attribute("categories", contains(
                             category(1, "A"),
                             category(2, "B"),
@@ -138,7 +136,7 @@ class ProductControllerTest {
         @Test
         void listProducts() throws Exception {
             // given
-            when(productService.listProducts(1)).thenReturn(new PageImpl<>(
+            when(productService.listProducts(anyInt())).thenReturn(new PageImpl<>(
                     List.of(
                             new Product("A", new Category("A"), 1, "1.00"),
                             new Product("B", new Category("B"), 2, "2.00"),
@@ -201,7 +199,7 @@ class ProductControllerTest {
         @Test
         void retrieveUpdateProductPage() throws Exception {
             // given
-            var product = new Product(1L, "A", new Category(1L, "A"), 1, BigDecimal.ONE);
+            var product = new Product(1L, "A", new Category(1L, "A"), 1, new BigDecimal("1.00"));
             when(productService.findProduct(anyLong())).thenReturn(product);
             when(categoryService.listCategories()).thenReturn(categories);
             // when
@@ -209,9 +207,7 @@ class ProductControllerTest {
             // then
             result.andExpectAll(
                     status().isOk(),
-                    model().attribute("product", is(
-                            product("A", 1L, 1, BigDecimal.ONE)
-                    )),
+                    model().attribute("product", is(product("A", 1L, 1, "1.00"))),
                     model().attribute("id", 1L),
                     model().attribute("categories", contains(
                             category(1, "A"),
@@ -258,9 +254,7 @@ class ProductControllerTest {
             result.andExpectAll(
                     status().isOk(),
                     model().attribute("duplicatedName", true),
-                    model().attribute("product", is(
-                            product("B", 2L, 2, new BigDecimal("2.00"))
-                    )),
+                    model().attribute("product", is(product("B", 2L, 2, "2.00"))),
                     model().attribute("id", 1L),
                     model().attribute("categories", contains(
                             category(1, "A"),
@@ -315,6 +309,10 @@ class ProductControllerTest {
         );
     }
 
+    private Matcher<Product> product() {
+        return product(null, (Long) null, null, null);
+    }
+
     private Matcher<Product> product(String name, String category, Integer quantity, String price) {
         return allOf(
                 hasProperty("name", is(name)),
@@ -324,17 +322,13 @@ class ProductControllerTest {
         );
     }
 
-    private Matcher<Product> product(String name, Long categoryId, Integer quantity, BigDecimal price) {
+    private Matcher<Product> product(String name, Long categoryId, Integer quantity, String price) {
         return allOf(
                 hasProperty("name", is(name)),
                 hasProperty("categoryId", is(categoryId)),
                 hasProperty("quantity", is(quantity)),
-                hasProperty("price", is(price))
+                hasProperty("price", is(price == null ? null : new BigDecimal(price)))
         );
-    }
-
-    private Matcher<Product> product() {
-        return product(null, (Long) null, null, null);
     }
 
 }

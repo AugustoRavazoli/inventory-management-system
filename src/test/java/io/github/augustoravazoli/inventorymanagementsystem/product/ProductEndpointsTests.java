@@ -75,10 +75,8 @@ class ProductEndpointsTests {
             );
             var productOptional = productRepository.findByName("A");
             assertThat(productOptional).get()
-                    .hasFieldOrPropertyWithValue("name", "A")
-                    .hasFieldOrPropertyWithValue("category.name", "A")
-                    .hasFieldOrPropertyWithValue("quantity", 1)
-                    .hasFieldOrPropertyWithValue("price", new BigDecimal("1.00"));
+                    .extracting("name", "category.name", "quantity", "price")
+                    .containsExactly("A", "A", 1, new BigDecimal("1.00"));
         }
 
     }

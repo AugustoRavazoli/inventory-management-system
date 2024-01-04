@@ -101,7 +101,7 @@ class CategoryControllerTest {
         @Test
         void listCategories() throws Exception {
             // given
-            when(categoryService.listCategories(1)).thenReturn(new PageImpl<>(
+            when(categoryService.listCategories(anyInt())).thenReturn(new PageImpl<>(
                     List.of(new Category("A"), new Category("B"), new Category("C")),
                     PageRequest.of(0, 8, Sort.by("name")),
                     3
@@ -132,7 +132,7 @@ class CategoryControllerTest {
         void findCategories() throws Exception {
             // given
             var categories = List.of(new Category("A"), new Category("Aa"));
-            when(categoryService.findCategories("A")).thenReturn(categories);
+            when(categoryService.findCategories(anyString())).thenReturn(categories);
             // when
             var result = client.perform(get("/categories/find")
                     .param("name", "A")
@@ -157,7 +157,7 @@ class CategoryControllerTest {
         @Test
         void retrieveUpdateCategoryPage() throws Exception {
             // given
-            when(categoryService.findCategory(1L)).thenReturn(new Category(1L, "A"));
+            when(categoryService.findCategory(anyLong())).thenReturn(new Category(1L, "A"));
             // when
             var result = client.perform(get("/categories/update/{id}", 1));
             // then

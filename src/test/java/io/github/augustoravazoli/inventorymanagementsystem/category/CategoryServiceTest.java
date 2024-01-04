@@ -16,7 +16,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,19 +33,21 @@ class CategoryServiceTest {
         @Test
         void createCategory() {
             // given
-            when(categoryRepository.existsByName(anyString())).thenReturn(false);
+            var category = new Category("A");
+            when(categoryRepository.existsByName("A")).thenReturn(false);
             // when
-            categoryService.createCategory(new Category("A"));
+            categoryService.createCategory(category);
             // then
-            verify(categoryRepository, times(1)).save(any(Category.class));
+            verify(categoryRepository, times(1)).save(category);
         }
 
         @Test
         void doNotCreateCategoryWithNameTaken() {
             // given
-            when(categoryRepository.existsByName(anyString())).thenReturn(true);
+            var category = new Category("A");
+            when(categoryRepository.existsByName("A")).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> categoryService.createCategory(new Category("A")));
+            var exception = assertThatThrownBy(() -> categoryService.createCategory(category));
             // then
             exception.isInstanceOf(CategoryNameTakenException.class);
             verify(categoryRepository, never()).save(any(Category.class));
@@ -57,16 +58,18 @@ class CategoryServiceTest {
     @Nested
     class ListCategoriesTests {
 
+        private final List<Category> categories = List.of(
+                new Category("A"),
+                new Category("B"),
+                new Category("C")
+        );
+
         @Test
         void listCategoriesPaginated() {
             // given
-            var expectedCategoryPage = new PageImpl<>(
-                    List.of(new Category("A"), new Category("B"), new Category("C")),
-                    PageRequest.of(0, 8, Sort.by("name")),
-                    3
-            );
-            when(categoryRepository.findAll(PageRequest.of(0, 8, Sort.by("name"))))
-                    .thenReturn(expectedCategoryPage);
+            var pageable = PageRequest.of(0, 8, Sort.by("name"));
+            var expectedCategoryPage = new PageImpl<>(categories, pageable, 3);
+            when(categoryRepository.findAll(pageable)).thenReturn(expectedCategoryPage);
             // when
             var actualCategoryPage = categoryService.listCategories(1);
             // then
@@ -77,7 +80,7 @@ class CategoryServiceTest {
         @Test
         void listCategories() {
             // given
-            var expectedCategories = List.of(new Category("A"), new Category("B"), new Category("C"));
+            var expectedCategories = categories;
             when(categoryRepository.findAll(Sort.by("name"))).thenReturn(expectedCategories);
             // when
             var actualCategories = categoryService.listCategories();
@@ -138,10 +141,11 @@ class CategoryServiceTest {
         void updateCategory() {
             // given
             var category = new Category(1L, "A");
-            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
-            when(categoryRepository.existsByName(anyString())).thenReturn(false);
+            var updatedCategory = new Category("B");
+            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(categoryRepository.existsByName("B")).thenReturn(false);
             // when
-            categoryService.updateCategory(1L, new Category("B"));
+            categoryService.updateCategory(1L, updatedCategory);
             // then
             assertThat(category.getName()).isEqualTo("B");
             verify(categoryRepository, times(1)).save(category);
@@ -150,9 +154,10 @@ class CategoryServiceTest {
         @Test
         void doNotUpdateCategoryThatDoesNotExists() {
             // given
-            when(categoryRepository.findById(anyLong())).thenReturn(Optional.empty());
+            var updatedCategory = new Category("B");
+            when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, new Category("B")));
+            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, updatedCategory));
             // then
             exception.isInstanceOf(CategoryNotFoundException.class);
             verify(categoryRepository, never()).save(any(Category.class));
@@ -161,11 +166,12 @@ class CategoryServiceTest {
         @Test
         void doNotUpdateCategoryUsingNameTaken() {
             // given
-            var category = new Category(1L, "A");
-            when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(category));
-            when(categoryRepository.existsByName(anyString())).thenReturn(true);
+            var category = new Category("A");
+            var updatedCategory = new Category("B");
+            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+            when(categoryRepository.existsByName("B")).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, new Category("B")));
+            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, updatedCategory));
             // then
             exception.isInstanceOf(CategoryNameTakenException.class);
             verify(categoryRepository, never()).save(any(Category.class));
@@ -194,7 +200,7 @@ class CategoryServiceTest {
             var exception = assertThatThrownBy(() -> categoryService.deleteCategory(1L));
             // then
             exception.isInstanceOf(CategoryNotFoundException.class);
-            verify(categoryRepository, never()).deleteById(1L);
+            verify(categoryRepository, never()).deleteById(anyLong());
         }
 
     }

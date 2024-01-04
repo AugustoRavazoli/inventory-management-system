@@ -56,7 +56,7 @@ class ProductServiceTest {
             var exception = assertThatThrownBy(() -> productService.createProduct(product));
             // then
             exception.isInstanceOf(ProductNameTakenException.class);
-            verify(productRepository, never()).save(product);
+            verify(productRepository, never()).save(any(Product.class));
         }
 
         @Test
@@ -69,7 +69,7 @@ class ProductServiceTest {
             var exception = assertThatThrownBy(() -> productService.createProduct(product));
             // then
             exception.isInstanceOf(InvalidCategoryException.class);
-            verify(productRepository, never()).save(product);
+            verify(productRepository, never()).save(any(Product.class));
         }
 
     }
@@ -238,7 +238,7 @@ class ProductServiceTest {
             var exception = assertThatThrownBy(() -> productService.deleteProduct(1L));
             // then
             exception.isInstanceOf(ProductNotFoundException.class);
-            verify(productRepository, never()).deleteById(1L);
+            verify(productRepository, never()).deleteById(anyLong());
         }
 
     }

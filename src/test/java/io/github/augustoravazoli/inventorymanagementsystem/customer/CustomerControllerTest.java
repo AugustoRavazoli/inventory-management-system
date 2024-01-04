@@ -42,11 +42,7 @@ class CustomerControllerTest {
             // then
             result.andExpectAll(
                     status().isOk(),
-                    model().attribute("customer", allOf(
-                            hasProperty("name"),
-                            hasProperty("address"),
-                            hasProperty("phone")
-                    )),
+                    model().attribute("customer", is(customer())),
                     model().attribute("mode", "create"),
                     view().name("customer/customer-form")
             );
@@ -84,11 +80,7 @@ class CustomerControllerTest {
             result.andExpectAll(
                     status().isOk(),
                     model().attribute("duplicatedName", true),
-                    model().attribute("customer", allOf(
-                            hasProperty("name", is("A")),
-                            hasProperty("address", is("A")),
-                            hasProperty("phone", is("A"))
-                    )),
+                    model().attribute("customer", is(customer("A", "A", "A"))),
                     model().attribute("mode", "create"),
                     view().name("customer/customer-form")
             );
@@ -116,7 +108,7 @@ class CustomerControllerTest {
         @Test
         void listCustomers() throws Exception {
             // given
-            when(customerService.listCustomers(1)).thenReturn(new PageImpl<>(
+            when(customerService.listCustomers(anyInt())).thenReturn(new PageImpl<>(
                     List.of(
                             new Customer("A", "A", "A"),
                             new Customer("B", "B", "B"),
@@ -154,7 +146,7 @@ class CustomerControllerTest {
                     new Customer("A", "A", "A"),
                     new Customer("Aa", "Aa", "Aa")
             );
-            when(customerService.findCustomers("A")).thenReturn(customers);
+            when(customerService.findCustomers(anyString())).thenReturn(customers);
             // when
             var result = client.perform(get("/customers/find")
                     .param("name", "A")
@@ -180,7 +172,7 @@ class CustomerControllerTest {
         void retrieveUpdateCustomerPage() throws Exception {
             // given
             var customer = new Customer(1L, "A", "A", "A");
-            when(customerService.findCustomer(1L)).thenReturn(customer);
+            when(customerService.findCustomer(anyLong())).thenReturn(customer);
             // when
             var result = client.perform(get("/customers/update/{id}", 1));
             // then
@@ -265,6 +257,10 @@ class CustomerControllerTest {
             verify(customerService, times(1)).deleteCustomer(anyLong());
         }
 
+    }
+
+    private Matcher<Customer> customer() {
+        return customer(null, null, null);
     }
 
     private Matcher<Customer> customer(String name, String address, String phone) {
