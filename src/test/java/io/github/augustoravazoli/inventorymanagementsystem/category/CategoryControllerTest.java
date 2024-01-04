@@ -143,7 +143,8 @@ class CategoryControllerTest {
                     model().attribute("categories", contains(
                             allOf(hasProperty("name", is("A"))),
                             allOf(hasProperty("name", is("Aa")))
-                    ))
+                    )),
+                    view().name("category/category-table")
             );
             verify(categoryService, times(1)).findCategories(anyString());
         }
