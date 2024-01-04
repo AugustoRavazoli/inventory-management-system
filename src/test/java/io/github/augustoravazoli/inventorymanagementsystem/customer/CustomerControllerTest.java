@@ -144,6 +144,81 @@ class CustomerControllerTest {
 
     }
 
+    @Nested
+    class UpdateCustomerTests {
+
+        @Test
+        void retrieveUpdateCustomerPage() throws Exception {
+            // given
+            var customer = new Customer(1L, "A", "A", "A");
+            when(customerService.findCustomer(1L)).thenReturn(customer);
+            // when
+            var result = client.perform(get("/customers/update/{id}", 1));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("customer", customer("A", "A", "A")),
+                    model().attribute("id", 1L),
+                    model().attribute("mode", "update"),
+                    view().name("customer/customer-form")
+            );
+        }
+
+        @Test
+        void updateCustomer() throws Exception {
+            // when
+            var result = client.perform(post("/customers/update/{id}", 1L)
+                    .param("name", "B")
+                    .param("address", "B")
+                    .param("phone", "B")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/customers/list")
+            );
+            verify(customerService, times(1)).updateCustomer(anyLong(), any(Customer.class));
+        }
+
+        @Test
+        void doNotUpdateCustomerUsingNameTaken() throws Exception {
+            // given
+            doThrow(CustomerNameTakenException.class).when(customerService).updateCustomer(anyLong(), any(Customer.class));
+            // when
+            var result = client.perform(post("/customers/update/{id}", 1L)
+                    .param("name", "B")
+                    .param("address", "B")
+                    .param("phone", "B")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("duplicatedName", true),
+                    model().attribute("customer", customer("B", "B", "B")),
+                    model().attribute("id", 1L),
+                    model().attribute("mode", "update"),
+                    view().name("customer/customer-form")
+            );
+            verify(customerService, times(1)).updateCustomer(anyLong(), any(Customer.class));
+        }
+
+        @Test
+        void doNotUpdateCustomerUsingBlankFields() throws Exception {
+            // when
+            var result = client.perform(post("/customers/update/{id}", 1L)
+                    .param("name", "")
+                    .param("address", "")
+                    .param("phone", "")
+                    .with(csrf())
+            );
+            // then
+            result.andExpect(status().isBadRequest());
+        }
+
+    }
+
     private Matcher<Customer> customer(String name, String address, String phone) {
         return allOf(
                 hasProperty("name", is(name)),

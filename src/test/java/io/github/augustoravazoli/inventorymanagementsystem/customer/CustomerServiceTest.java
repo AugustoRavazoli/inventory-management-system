@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -86,6 +87,51 @@ class CustomerServiceTest {
             // then
             assertThat(actualCustomers).extracting("name").isSorted();
             assertThat(actualCustomers).usingRecursiveComparison().isEqualTo(expectedCustomers);
+        }
+
+    }
+
+    @Nested
+    class UpdateCustomersTests {
+
+        @Test
+        void updateCustomer() {
+            // given
+            var customer = new Customer("A", "A", "A");
+            var updatedCustomer = new Customer("B", "B", "B");
+            when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+            when(customerRepository.existsByName("B")).thenReturn(false);
+            // when
+            customerService.updateCustomer(1L, updatedCustomer);
+            // then
+            assertThat(customer).usingRecursiveComparison().isEqualTo(updatedCustomer);
+            verify(customerRepository, times(1)).save(customer);
+        }
+
+        @Test
+        void doNotUpdateCustomerThatDoesNotExists() {
+            // given
+            var updatedCustomer = new Customer("B", "B", "B");
+            when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> customerService.updateCustomer(1L, updatedCustomer));
+            // then
+            exception.isInstanceOf(CustomerNotFoundException.class);
+            verify(customerRepository, never()).save(any(Customer.class));
+        }
+
+        @Test
+        void doNotUpdateCustomerUsingNameTaken() {
+            // given
+            var customer = new Customer("A", "A", "A");
+            var updatedCustomer = new Customer("B", "B", "B");
+            when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
+            when(customerRepository.existsByName("B")).thenReturn(true);
+            // when
+            var exception = assertThatThrownBy(() -> customerService.updateCustomer(1L, updatedCustomer));
+            // then
+            exception.isInstanceOf(CustomerNameTakenException.class);
+            verify(customerRepository, never()).save(any(Customer.class));
         }
 
     }

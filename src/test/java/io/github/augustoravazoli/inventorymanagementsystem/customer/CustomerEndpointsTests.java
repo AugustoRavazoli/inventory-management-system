@@ -89,4 +89,32 @@ class CustomerEndpointsTests {
 
     }
 
+    @Nested
+    class UpdateCustomerTests {
+
+        @Test
+        void updateCustomer() throws Exception {
+            // given
+            var id = customerRepository.save(new Customer("A", "A", "A")).getId();
+            // when
+            var result = client.perform(post("/customers/update/{id}", id)
+                    .param("name", "B")
+                    .param("address", "B")
+                    .param("phone", "B")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/customers/list")
+            );
+            var customerOptional = customerRepository.findById(id);
+            assertThat(customerOptional).get()
+                    .hasFieldOrPropertyWithValue("name", "B")
+                    .hasFieldOrPropertyWithValue("address", "B")
+                    .hasFieldOrPropertyWithValue("phone", "B");
+        }
+
+    }
+
 }
