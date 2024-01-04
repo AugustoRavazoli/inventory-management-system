@@ -260,6 +260,25 @@ class ProductControllerTest {
 
     }
 
+    @Nested
+    class DeleteProductTests {
+
+        @Test
+        void deleteProduct() throws Exception {
+            // when
+            var result = client.perform(post("/products/delete/{id}", 1L)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/products/list")
+            );
+            verify(productService, times(1)).deleteProduct(anyLong());
+        }
+
+    }
+
     private Matcher<Category> category(long id, String name) {
         return allOf(
                 hasProperty("id", is(id)),

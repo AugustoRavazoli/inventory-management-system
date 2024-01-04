@@ -135,4 +135,26 @@ class ProductEndpointsTests {
 
     }
 
+    @Nested
+    class DeleteProductTests {
+
+        @Test
+        void deleteProduct() throws Exception {
+            // given
+            var id = productRepository.save(new Product("A", categoryA, 1, "1.00")).getId();
+            // when
+            var result = client.perform(post("/products/delete/{id}", id)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/products/list")
+            );
+            assertThat(productRepository.existsById(id)).isFalse();
+            assertThat(categoryRepository.existsById(categoryA.getId())).isTrue();
+        }
+
+    }
+
 }

@@ -197,4 +197,30 @@ class ProductServiceTest {
 
     }
 
+    @Nested
+    class DeleteProductTests {
+
+        @Test
+        void deleteProduct() {
+            // given
+            when(productRepository.existsById(1L)).thenReturn(true);
+            // when
+            productService.deleteProduct(1L);
+            // then
+            verify(productRepository, times(1)).deleteById(1L);
+        }
+
+        @Test
+        void doNotDeleteProductThatDoesNotExists() {
+            // given
+            when(productRepository.existsById(1L)).thenReturn(false);
+            // when
+            var exception = assertThatThrownBy(() -> productService.deleteProduct(1L));
+            // then
+            exception.isInstanceOf(ProductNotFoundException.class);
+            verify(productRepository, never()).deleteById(1L);
+        }
+
+    }
+
 }
