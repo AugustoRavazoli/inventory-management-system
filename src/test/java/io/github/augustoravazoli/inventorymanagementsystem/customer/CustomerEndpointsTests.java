@@ -12,11 +12,15 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @SpringBootTest
 @Import(TestApplication.class)
@@ -58,6 +62,29 @@ class CustomerEndpointsTests {
                     .hasFieldOrPropertyWithValue("name", "A")
                     .hasFieldOrPropertyWithValue("address", "A")
                     .hasFieldOrPropertyWithValue("phone", "A");
+        }
+
+    }
+
+    @Nested
+    class ListCustomersTests {
+
+        @Test
+        void listCustomers() throws Exception {
+            // given
+            customerRepository.saveAll(List.of(
+                    new Customer("A", "A", "A"),
+                    new Customer("B", "B", "B"),
+                    new Customer("C", "C", "C")
+            ));
+            // when
+            var result = client.perform(get("/customers/list"));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("customers", hasSize(3)),
+                    view().name("customer/customer-table")
+            );
         }
 
     }

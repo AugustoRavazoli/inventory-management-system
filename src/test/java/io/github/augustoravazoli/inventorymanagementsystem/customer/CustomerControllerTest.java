@@ -1,12 +1,18 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
+import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,6 +108,48 @@ class CustomerControllerTest {
             result.andExpect(status().isBadRequest());
         }
 
+    }
+
+    @Nested
+    class ListCustomersTests {
+
+        @Test
+        void listCustomers() throws Exception {
+            // given
+            when(customerService.listCustomers(1)).thenReturn(new PageImpl<>(
+                    List.of(
+                            new Customer("A", "A", "A"),
+                            new Customer("B", "B", "B"),
+                            new Customer("C", "C", "C")
+                    ),
+                    PageRequest.of(0, 8, Sort.by("name")),
+                    3
+            ));
+            // when
+            var result = client.perform(get("/customers/list"));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("customers", contains(
+                            customer("A", "A", "A"),
+                            customer("B", "B", "B"),
+                            customer("C", "C", "C")
+                    )),
+                    model().attribute("currentPage", 1),
+                    model().attribute("totalPages", 1),
+                    view().name("customer/customer-table")
+            );
+            verify(customerService, times(1)).listCustomers(anyInt());
+        }
+
+    }
+
+    private Matcher<Customer> customer(String name, String address, String phone) {
+        return allOf(
+                hasProperty("name", is(name)),
+                hasProperty("address", is(address)),
+                hasProperty("phone", is(phone))
+        );
     }
 
 }
