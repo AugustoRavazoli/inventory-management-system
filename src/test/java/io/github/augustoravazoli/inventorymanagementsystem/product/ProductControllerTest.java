@@ -167,6 +167,35 @@ class ProductControllerTest {
     }
 
     @Nested
+    class FindProductsTests {
+
+        @Test
+        void findProducts() throws Exception {
+            // given
+            var products = List.of(
+                    new Product("A", new Category("A"), 1, "1.00"),
+                    new Product("Aa", new Category("Aa"), 2, "2.00")
+            );
+            when(productService.findProducts(anyString())).thenReturn(products);
+            // when
+            var result = client.perform(get("/products/find")
+                    .param("name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("products", contains(
+                            product("A", "A", 1, "1.00"),
+                            product("Aa", "Aa", 2, "2.00")
+                    )),
+                    view().name("product/product-table")
+            );
+            verify(productService, times(1)).findProducts(anyString());
+        }
+
+    }
+
+    @Nested
     class UpdateProductTests {
 
         @Test

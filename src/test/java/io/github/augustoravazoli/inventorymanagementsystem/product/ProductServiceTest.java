@@ -111,6 +111,26 @@ class ProductServiceTest {
     }
 
     @Nested
+    class FindProductsTests {
+
+        @Test
+        void findProducts() {
+            // given
+            var expectedProducts = List.of(
+                    new Product("A", new Category("A"), 1, "1.00"),
+                    new Product("Aa", new Category("Aa"), 2, "2.00")
+            );
+            when(productRepository.findAllByNameContainingIgnoreCase("A")).thenReturn(expectedProducts);
+            // when
+            var actualProducts = productService.findProducts("A");
+            // then
+            assertThat(actualProducts).extracting("name").isSorted();
+            assertThat(actualProducts).usingRecursiveComparison().isEqualTo(expectedProducts);
+        }
+
+    }
+
+    @Nested
     class FindProductTests {
 
         @Test

@@ -107,6 +107,30 @@ class ProductEndpointsTests {
     }
 
     @Nested
+    class FindProductsTests {
+
+        @Test
+        void findProducts() throws Exception {
+            // given
+            productRepository.saveAll(List.of(
+                    new Product("A", categoryA, 1, "1.00"),
+                    new Product("Aa", categoryRepository.save(new Category("Aa")), 2, "2.00")
+            ));
+            // when
+            var result = client.perform(get("/products/find")
+                    .param("name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("products", hasSize(2)),
+                    view().name("product/product-table")
+            );
+        }
+
+    }
+
+    @Nested
     class UpdateProductTests {
 
         @Test
