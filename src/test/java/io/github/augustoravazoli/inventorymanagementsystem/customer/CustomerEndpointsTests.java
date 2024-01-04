@@ -90,6 +90,30 @@ class CustomerEndpointsTests {
     }
 
     @Nested
+    class FindCustomersTests {
+
+        @Test
+        void findCustomers() throws Exception {
+            // given
+            customerRepository.saveAll(List.of(
+                    new Customer("A", "A", "A"),
+                    new Customer("Aa", "Aa", "Aa"))
+            );
+            // when
+            var result = client.perform(get("/customers/find")
+                    .param("name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("customers", hasSize(2)),
+                    view().name("customer/customer-table")
+            );
+        }
+
+    }
+
+    @Nested
     class UpdateCustomerTests {
 
         @Test

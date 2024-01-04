@@ -145,6 +145,35 @@ class CustomerControllerTest {
     }
 
     @Nested
+    class FindCustomersTests {
+
+        @Test
+        void findCustomers() throws Exception {
+            // given
+            var customers = List.of(
+                    new Customer("A", "A", "A"),
+                    new Customer("Aa", "Aa", "Aa")
+            );
+            when(customerService.findCustomers("A")).thenReturn(customers);
+            // when
+            var result = client.perform(get("/customers/find")
+                    .param("name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("customers", contains(
+                            customer("A", "A", "A"),
+                            customer("Aa", "Aa", "Aa")
+                    )),
+                    view().name("customer/customer-table")
+            );
+            verify(customerService, times(1)).findCustomers(anyString());
+        }
+
+    }
+
+    @Nested
     class UpdateCustomerTests {
 
         @Test

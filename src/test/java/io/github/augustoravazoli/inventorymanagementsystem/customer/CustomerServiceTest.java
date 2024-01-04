@@ -92,6 +92,26 @@ class CustomerServiceTest {
     }
 
     @Nested
+    class FindCustomersTests {
+
+        @Test
+        void findCustomers() {
+            // given
+            var expectedCustomers = List.of(
+                    new Customer("A", "A", "A"),
+                    new Customer("Aa", "Aa", "Aa")
+            );
+            when(customerRepository.findAllByNameContainingIgnoreCase("A")).thenReturn(expectedCustomers);
+            // when
+            var actualCustomers = customerService.findCustomers("A");
+            // then
+            assertThat(actualCustomers).extracting("name").isSorted();
+            assertThat(actualCustomers).usingRecursiveComparison().isEqualTo(expectedCustomers);
+        }
+
+    }
+
+    @Nested
     class FindCustomerTests {
 
         @Test
