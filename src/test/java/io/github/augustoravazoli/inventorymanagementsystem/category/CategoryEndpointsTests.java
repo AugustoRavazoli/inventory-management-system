@@ -1,7 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
 import io.github.augustoravazoli.inventorymanagementsystem.TestApplication;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +34,8 @@ class CategoryEndpointsTests {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    @BeforeEach
-    void setup() {
+    @AfterEach
+    void tearDown() {
         categoryRepository.deleteAll();
     }
 

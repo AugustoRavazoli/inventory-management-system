@@ -39,15 +39,16 @@ public class Order {
 
     public Order() {}
 
-    public Order(Long id, Status status, Customer customer, List<OrderItem> items) {
+    public Order(Long id, Status status, LocalDate date, Customer customer, List<OrderItem> items) {
         this.id = id;
         this.status = status;
+        this.date = date;
         this.customer = customer;
         this.items = items;
     }
 
     public Order(Status status, Customer customer, List<OrderItem> items) {
-        this(null, status, customer, items);
+        this(null, status, null, customer, items);
     }
 
     public Long getId() {

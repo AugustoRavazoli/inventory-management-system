@@ -3,6 +3,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 import io.github.augustoravazoli.inventorymanagementsystem.TestApplication;
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,11 +49,15 @@ class ProductEndpointsTests {
 
     @BeforeEach
     void setup() {
-        productRepository.deleteAll();
-        categoryRepository.deleteAll();
         categoryA = categoryRepository.save(new Category("A"));
         categoryB = categoryRepository.save(new Category("B"));
         categoryC = categoryRepository.save(new Category("C"));
+    }
+
+    @AfterEach
+    void tearDown() {
+        productRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
     @Nested
