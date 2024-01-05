@@ -14,11 +14,15 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -175,6 +179,60 @@ class OrderControllerTest {
 
     }
 
+    @Nested
+    class ListOrdersTests {
+
+        private final List<Order> orders = List.of(
+                new OrderBuilder()
+                        .status(Order.Status.UNPAID)
+                        .date(LocalDate.now())
+                        .customer(customerA)
+                        .item(5, productA)
+                        .item(10, productB)
+                        .build(),
+                new OrderBuilder()
+                        .status(Order.Status.UNPAID)
+                        .date(LocalDate.now())
+                        .customer(customerA)
+                        .item(5, productA)
+                        .item(10, productB)
+                        .build(),
+                new OrderBuilder()
+                        .status(Order.Status.UNPAID)
+                        .date(LocalDate.now())
+                        .customer(customerA)
+                        .item(5, productA)
+                        .item(10, productB)
+                        .build()
+        );
+
+        @Test
+        void listOrders() throws Exception {
+            // given
+            var pageable = PageRequest.of(0, 8, Sort.by("date"));
+            var orderPage = new PageImpl<>(orders, pageable, 3);
+            when(orderService.listOrders(any(Order.Status.class), anyInt())).thenReturn(orderPage);
+            // when
+            var result = client.perform(get("/orders/list")
+                    .param("status", "UNPAID")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("orders", contains(
+                            order("A", LocalDate.now(), 15, "25.00"),
+                            order("A", LocalDate.now(), 15, "25.00"),
+                            order("A", LocalDate.now(), 15, "25.00")
+                    )),
+                    model().attribute("currentPage", 1),
+                    model().attribute("totalPages", 1),
+                    view().name("order/order-table")
+            );
+            verify(orderService, times(1)).listOrders(any(Order.Status.class), anyInt());
+        }
+
+    }
+
     private Matcher<OrderForm> order() {
         return allOf(
                 hasProperty("status", nullValue()),
@@ -188,6 +246,15 @@ class OrderControllerTest {
                 hasProperty("status", is(OrderForm.StatusForm.valueOf(status))),
                 hasProperty("customerId", is(customerId)),
                 hasProperty("items", itemsMatcher)
+        );
+    }
+
+    private Matcher<OrderForm> order(String customer, LocalDate date, Integer quantity, String price) {
+        return allOf(
+                hasProperty("customer", hasProperty("name", is(customer))),
+                hasProperty("date", is(date)),
+                hasProperty("quantity", is(quantity)),
+                hasProperty("amount", is(new BigDecimal(price)))
         );
     }
 

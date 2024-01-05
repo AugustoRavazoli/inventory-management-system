@@ -12,8 +12,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -136,6 +140,48 @@ class OrderServiceTest {
             // then
             exception.isInstanceOf(ProductWithInsufficientStockException.class);
             verify(orderRepository, never()).save(any(Order.class));
+        }
+
+    }
+
+    @Nested
+    class ListOrdersTests {
+
+        private final List<Order> orders = List.of(
+                new OrderBuilder()
+                        .status(Order.Status.UNPAID)
+                        .date(LocalDate.now())
+                        .customer(customer)
+                        .item(5, productA)
+                        .item(10, productB)
+                        .build(),
+                new OrderBuilder()
+                        .status(Order.Status.UNPAID)
+                        .date(LocalDate.now())
+                        .customer(customer)
+                        .item(5, productA)
+                        .item(10, productB)
+                        .build(),
+                new OrderBuilder()
+                        .status(Order.Status.UNPAID)
+                        .date(LocalDate.now())
+                        .customer(customer)
+                        .item(5, productA)
+                        .item(10, productB)
+                        .build()
+        );
+
+        @Test
+        void listOrdersPaginated() {
+            // given
+            var pageable = PageRequest.of(0, 8, Sort.by("date"));
+            var expectedOrderPage = new PageImpl<>(orders, pageable, 3);
+            when(orderRepository.findAllByStatus(Order.Status.UNPAID, pageable)).thenReturn(expectedOrderPage);
+            // when
+            var actualOrderPage = orderService.listOrders(Order.Status.UNPAID, 1);
+            // then
+            assertThat(actualOrderPage.getContent()).extracting("date").isSorted();
+            assertThat(actualOrderPage).usingRecursiveComparison().isEqualTo(expectedOrderPage);
         }
 
     }

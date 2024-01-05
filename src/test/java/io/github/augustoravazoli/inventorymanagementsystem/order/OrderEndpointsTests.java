@@ -20,12 +20,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @SpringBootTest
 @Import(TestApplication.class)
@@ -102,6 +105,46 @@ class OrderEndpointsTests {
                     );
             assertThat(order.getItems()).extracting("product.quantity")
                     .containsExactly(5, 10);
+        }
+
+    }
+
+    @Nested
+    class ListOrdersTests {
+
+        @Test
+        void listOrders() throws Exception {
+            // given
+            orderRepository.saveAll(List.of(
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .customer(customer)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build(),
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .customer(customer)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build(),
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .customer(customer)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build()
+            ));
+            // when
+            var result = client.perform(get("/orders/list")
+                    .param("status", "UNPAID")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("orders", hasSize(3)),
+                    view().name("order/order-table")
+            );
         }
 
     }
