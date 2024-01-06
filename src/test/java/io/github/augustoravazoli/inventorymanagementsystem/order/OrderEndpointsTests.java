@@ -211,4 +211,43 @@ class OrderEndpointsTests {
 
     }
 
+    @Nested
+    class DeleteOrderTests {
+
+        @Test
+        void deleteOrder() throws Exception {
+            // given
+            productA.setQuantity(5);
+            productB.setQuantity(12);
+            productC.setQuantity(15);
+            productRepository.saveAll(List.of(productA, productB, productC));
+            var id = orderRepository.save(new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .customer(customerA)
+                            .item(5, productA)
+                            .item(8, productB)
+                            .item(15, productC)
+                            .build())
+                            .getId();
+            // when
+            var result = client.perform(post("/orders/delete/{id}", id)
+                    .sessionAttr("status", "UNPAID")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/orders/list?status=UNPAID")
+            );
+            assertThat(orderRepository.existsById(id)).isFalse();
+            assertThat(customerRepository.existsById(customerA.getId())).isTrue();
+            assertThat(productRepository.existsById(productA.getId())).isTrue();
+            assertThat(productRepository.existsById(productB.getId())).isTrue();
+            assertThat(productRepository.findAll(Sort.by("name")))
+                    .extracting("quantity")
+                    .containsExactly(10, 20, 30, 40);
+        }
+
+    }
+
 }

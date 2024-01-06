@@ -408,4 +408,63 @@ class OrderServiceTest {
 
     }
 
+    @Nested
+    class DeleteOrderTests {
+
+        private Order order;
+
+        @BeforeEach
+        void setup() {
+            productA.setQuantity(5);
+            productB.setQuantity(12);
+            order = new OrderBuilder()
+                    .status(Order.Status.UNPAID)
+                    .customer(customerA)
+                    .item(5, productA)
+                    .item(8, productB)
+                    .build();
+        }
+
+        @Test
+        void deleteUnpaidOrderResetProductStock() {
+            // given
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
+            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            // when
+            orderService.deleteOrder(1L);
+            // then
+            assertThat(productA.getQuantity()).isEqualTo(10);
+            assertThat(productB.getQuantity()).isEqualTo(20);
+            verify(orderRepository, times(1)).delete(order);
+        }
+
+        @Test
+        void deletePaidOrderDoesNotChangeProductStock() {
+            // given
+            order.setStatus(Order.Status.PAID);
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            // when
+            orderService.deleteOrder(1L);
+            // then
+            assertThat(productA.getQuantity()).isEqualTo(5);
+            assertThat(productB.getQuantity()).isEqualTo(12);
+            verify(productRepository, never()).deleteById(anyLong());
+            verify(orderRepository, times(1)).delete(order);
+        }
+
+        @Test
+        void doNotDeleteOrderThatDoesNotExists() {
+            // given
+            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> orderService.deleteOrder(1L));
+            // then
+            exception.isInstanceOf(OrderNotFoundException.class);
+            verify(productRepository, never()).findById(anyLong());
+            verify(orderRepository, never()).delete(any(Order.class));
+        }
+
+    }
+
 }

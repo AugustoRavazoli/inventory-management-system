@@ -316,6 +316,27 @@ class OrderControllerTest {
 
     }
 
+    @Nested
+    class DeleteOrderTests {
+
+        @ParameterizedTest
+        @ValueSource(strings = { "UNPAID", "PAID" })
+        void deleteOrder(String sessionStatus) throws Exception {
+            // when
+            var result = client.perform(post("/orders/delete/{id}", 1L)
+                    .sessionAttr("status", sessionStatus)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrlTemplate("/orders/list?status={status}", sessionStatus)
+            );
+            verify(orderService, times(1)).deleteOrder(anyLong());
+        }
+
+    }
+
     static class AttributeNameAndExceptionProvider implements ArgumentsProvider {
 
         @Override

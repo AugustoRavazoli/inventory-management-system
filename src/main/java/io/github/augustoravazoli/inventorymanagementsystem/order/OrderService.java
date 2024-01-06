@@ -70,9 +70,11 @@ public class OrderService {
     @Transactional
     public void deleteOrder(long id) {
         var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
-        order.getItems().forEach(item -> productRepository.findById(item.getProduct().getId())
-                .orElseThrow()
-                .increaseQuantity(item.getQuantity()));
+        if (order.getStatus() == Order.Status.UNPAID) {
+            order.getItems().forEach(item -> productRepository.findById(item.getProduct().getId())
+                    .orElseThrow()
+                    .increaseQuantity(item.getQuantity()));
+        }
         orderRepository.delete(order);
     }
 
