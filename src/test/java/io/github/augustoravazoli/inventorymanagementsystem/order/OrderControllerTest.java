@@ -9,10 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -184,19 +181,21 @@ class OrderControllerTest {
                         .build()
         );
 
-        @Test
-        void listOrders() throws Exception {
+        @ParameterizedTest
+        @EnumSource(OrderForm.StatusForm.class)
+        void listOrders(OrderForm.StatusForm status) throws Exception {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("date"));
             var orderPage = new PageImpl<>(orders, pageable, 3);
             when(orderService.listOrders(any(Order.Status.class), anyInt())).thenReturn(orderPage);
             // when
             var result = client.perform(get("/orders/list")
-                    .param("status", "UNPAID")
+                    .param("status", status.name())
             );
             // then
             result.andExpectAll(
                     status().isOk(),
+                    request().sessionAttribute("status", status),
                     model().attribute("orders", contains(
                             order("A", LocalDate.now(), 15, "25.00"),
                             order("A", LocalDate.now(), 15, "25.00"),
