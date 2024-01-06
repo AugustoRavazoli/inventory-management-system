@@ -209,6 +209,47 @@ class OrderControllerTest {
     }
 
     @Nested
+    class FindOrdersTests {
+
+        @Test
+        void findOrders() throws Exception {
+            var orders = List.of(
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .date(LocalDate.now())
+                            .customer(customerA)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build(),
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .date(LocalDate.now())
+                            .customer(customerA)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build()
+            );
+            when(orderService.findOrders(any(Order.Status.class), anyString())).thenReturn(orders);
+            // when
+            var result = client.perform(get("/orders/find")
+                    .param("status", "UNPAID")
+                    .param("customer-name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("orders", contains(
+                            order("A", LocalDate.now(), 15, "25.00"),
+                            order("A", LocalDate.now(), 15, "25.00")
+                    )),
+                    view().name("order/order-table")
+            );
+            verify(orderService, times(1)).findOrders(any(Order.Status.class), anyString());
+        }
+
+    }
+
+    @Nested
     class UpdateOrderTests {
 
         @Test

@@ -191,6 +191,39 @@ class OrderServiceTest {
     }
 
     @Nested
+    class FindOrdersTests {
+
+        @Test
+        void findOrders() {
+            // given
+            var expectedOrders = List.of(
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .date(LocalDate.now())
+                            .customer(customerA)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build(),
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .date(LocalDate.now())
+                            .customer(customerA)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build()
+            );
+            when(orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCase(Order.Status.UNPAID, "A"))
+                    .thenReturn(expectedOrders);
+            // when
+            var actualOrders = orderService.findOrders(Order.Status.UNPAID, "A");
+            // then
+            assertThat(actualOrders).extracting("customer.name").isSorted();
+            assertThat(actualOrders).usingRecursiveComparison().isEqualTo(expectedOrders);
+        }
+
+    }
+
+    @Nested
     class FindOrderTests {
 
         @Test

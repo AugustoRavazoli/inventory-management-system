@@ -157,6 +157,41 @@ class OrderEndpointsTests {
     }
 
     @Nested
+    class FindOrdersTests {
+
+        @Test
+        void findOrders() throws Exception {
+            // given
+            orderRepository.saveAll(List.of(
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .customer(customerA)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build(),
+                    new OrderBuilder()
+                            .status(Order.Status.UNPAID)
+                            .customer(customerA)
+                            .item(5, productA)
+                            .item(10, productB)
+                            .build()
+            ));
+            // when
+            var result = client.perform(get("/orders/find")
+                    .param("status", "UNPAID")
+                    .param("customer-name", "A")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("orders", hasSize(2)),
+                    view().name("order/order-table")
+            );
+        }
+
+    }
+
+    @Nested
     class UpdateOrderTests {
 
         @Test
