@@ -59,6 +59,14 @@ Start the application
 The application will start at `http://localhost:8080/`
 with user `admin` and password `admin` with prefilled data.
 
+### Tests
+
+Use the following command to run tests.
+
+```bash
+  ./gradlew test
+```
+
 ## License
 
 This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
