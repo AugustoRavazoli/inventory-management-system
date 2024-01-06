@@ -53,9 +53,11 @@ public class OrderService {
     @Transactional
     public void updateOrder(long id, Order updatedOrder) {
         var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
-        if (!customerRepository.existsById(order.getCustomer().getId())) {
+        if (!customerRepository.existsById(updatedOrder.getCustomer().getId())) {
             throw new InvalidCustomerException();
         }
+        checkDuplicates(updatedOrder.getItems());
+        checkProductAvailability(updatedOrder.getItems());
         updateProductQuantitiesForExistingItems(order.getItems(), updatedOrder.getItems());
         decreaseProductQuantitiesForNewItems(order.getItems(), updatedOrder.getItems());
         resetProductQuantitiesForRemovedItems(order.getItems(), updatedOrder.getItems());
@@ -94,8 +96,6 @@ public class OrderService {
     }
 
     private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems) {
-        checkDuplicates(updatedItems);
-        checkProductAvailability(updatedItems);
         updatedItems.stream()
                 .filter(updatedItem -> items.stream()
                         .noneMatch(item -> item.getProduct().getId().equals(updatedItem.getProduct().getId())))

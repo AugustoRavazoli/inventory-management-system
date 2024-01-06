@@ -41,15 +41,19 @@ class OrderServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
-    private Customer customer;
+    private Customer customerA;
+    private Customer customerB;
     private Product productA;
     private Product productB;
+    private Product productC;
 
     @BeforeEach
     void setup() {
-        customer = new Customer(1L, "A", "A", "A");
+        customerA = new Customer(1L, "A", "A", "A");
+        customerB = new Customer(2L, "B", "B", "B");
         productA = new Product(1L, "A", new Category("A"), 10, new BigDecimal("1.00"));
         productB = new Product(2L, "B", new Category("B"), 20, new BigDecimal("2.00"));
+        productC = new Product(3L, "C", new Category("C"), 30, new BigDecimal("3.00"));
     }
 
     @Nested
@@ -60,7 +64,7 @@ class OrderServiceTest {
             // given
             var order = new OrderBuilder()
                     .status(Order.Status.UNPAID)
-                    .customer(customer)
+                    .customer(customerA)
                     .item(5, productA)
                     .item(10, productB)
                     .build();
@@ -81,7 +85,7 @@ class OrderServiceTest {
             // given
             var order = new OrderBuilder()
                     .status(Order.Status.UNPAID)
-                    .customer(customer)
+                    .customer(customerA)
                     .build();
             when(customerRepository.existsById(1L)).thenReturn(false);
             // when
@@ -96,7 +100,7 @@ class OrderServiceTest {
             // given
             var order = new OrderBuilder()
                     .status(Order.Status.UNPAID)
-                    .customer(customer)
+                    .customer(customerA)
                     .item(5, productA)
                     .item(10, productA)
                     .build();
@@ -113,7 +117,7 @@ class OrderServiceTest {
             // given
             var order = new OrderBuilder()
                     .status(Order.Status.UNPAID)
-                    .customer(customer)
+                    .customer(customerA)
                     .item(5, productA)
                     .build();
             when(customerRepository.existsById(1L)).thenReturn(true);
@@ -130,7 +134,7 @@ class OrderServiceTest {
             // given
             var order = new OrderBuilder()
                     .status(Order.Status.UNPAID)
-                    .customer(customer)
+                    .customer(customerA)
                     .item(1000, productA)
                     .build();
             when(customerRepository.existsById(1L)).thenReturn(true);
@@ -151,21 +155,21 @@ class OrderServiceTest {
                 new OrderBuilder()
                         .status(Order.Status.UNPAID)
                         .date(LocalDate.now())
-                        .customer(customer)
+                        .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .build(),
                 new OrderBuilder()
                         .status(Order.Status.UNPAID)
                         .date(LocalDate.now())
-                        .customer(customer)
+                        .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .build(),
                 new OrderBuilder()
                         .status(Order.Status.UNPAID)
                         .date(LocalDate.now())
-                        .customer(customer)
+                        .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .build()
@@ -182,6 +186,224 @@ class OrderServiceTest {
             // then
             assertThat(actualOrderPage.getContent()).extracting("date").isSorted();
             assertThat(actualOrderPage).usingRecursiveComparison().isEqualTo(expectedOrderPage);
+        }
+
+    }
+
+    @Nested
+    class FindOrderTests {
+
+        @Test
+        void findOrder() {
+            // given
+            var expectedOrder =  new OrderBuilder()
+                    .status(Order.Status.UNPAID)
+                    .date(LocalDate.now())
+                    .customer(customerA)
+                    .item(5, productA)
+                    .item(10, productB)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(expectedOrder));
+            // when
+            var actualOrder = orderService.findOrder(1L);
+            // then
+            assertThat(actualOrder).usingRecursiveComparison().isEqualTo(expectedOrder);
+        }
+
+        @Test
+        void doNotFindOrderThatDoesNotExists() {
+            // given
+            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> orderService.findOrder(1L));
+            // then
+            exception.isInstanceOf(OrderNotFoundException.class);
+        }
+
+    }
+
+    @Nested
+    class UpdateOrderTests {
+
+        private Order order;
+
+        @BeforeEach
+        void setup() {
+            productA.setQuantity(5);
+            productB.setQuantity(12);
+            order = new OrderBuilder()
+                    .status(Order.Status.UNPAID)
+                    .customer(customerA)
+                    .item(5, productA)
+                    .item(8, productB)
+                    .build();
+        }
+
+        @Test
+        void updateOrderWithNewItemsDecreaseProductStock() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(5, productA)
+                    .item(8, productB)
+                    .item(15, productC)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(customerRepository.existsById(2L)).thenReturn(true);
+            when(productRepository.findAllById(List.of(1L, 2L, 3L))).thenReturn(List.of(productA, productB, productC));
+            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
+            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            when(productRepository.findById(3L)).thenReturn(Optional.of(productC));
+            // when
+            orderService.updateOrder(1L, updatedOrder);
+            // then
+            assertThat(order).usingRecursiveComparison().isEqualTo(updatedOrder);
+            assertThat(productA.getQuantity()).isEqualTo(5);
+            assertThat(productB.getQuantity()).isEqualTo(12);
+            assertThat(productC.getQuantity()).isEqualTo(15);
+            verify(orderRepository, times(1)).save(order);
+        }
+
+        @Test
+        void updateOrderWithDeletedItemsResetProductStock() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(5, productA)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(customerRepository.existsById(2L)).thenReturn(true);
+            when(productRepository.findAllById(List.of(1L))).thenReturn(List.of(productA));
+            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
+            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            // when
+            orderService.updateOrder(1L, updatedOrder);
+            // then
+            assertThat(order).usingRecursiveComparison().isEqualTo(updatedOrder);
+            assertThat(productA.getQuantity()).isEqualTo(5);
+            assertThat(productB.getQuantity()).isEqualTo(20);
+            verify(orderRepository, times(1)).save(order);
+        }
+
+        @Test
+        void updateOrderWithSameItemsButDifferentQuantitiesChangeStock() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(3, productA)
+                    .item(10, productB)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(customerRepository.existsById(2L)).thenReturn(true);
+            when(productRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(productA, productB, productC));
+            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
+            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            // when
+            orderService.updateOrder(1L, updatedOrder);
+            // then
+            assertThat(order).usingRecursiveComparison().isEqualTo(updatedOrder);
+            assertThat(productA.getQuantity()).isEqualTo(7);
+            assertThat(productB.getQuantity()).isEqualTo(10);
+            verify(orderRepository, times(1)).save(order);
+        }
+
+        @Test
+        void doNotUpdateOrderThatDoesNotExists() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(3, productA)
+                    .item(10, productB)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            // then
+            exception.isInstanceOf(OrderNotFoundException.class);
+            verify(productRepository, never()).findById(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+        }
+
+        @Test
+        void doNotUpdateOrderUsingNonexistentCustomer() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(3, productA)
+                    .item(10, productB)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(customerRepository.existsById(2L)).thenReturn(false);
+            // when
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            // then
+            exception.isInstanceOf(InvalidCustomerException.class);
+            verify(productRepository, never()).findById(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+        }
+
+        @Test
+        void doNotUpdateOrderUsingDuplicatedItems() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(3, productA)
+                    .item(3, productA)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(customerRepository.existsById(2L)).thenReturn(true);
+            // when
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            // then
+            exception.isInstanceOf(DuplicatedOrderItemException.class);
+            verify(productRepository, never()).findById(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+        }
+
+        @Test
+        void doNotUpdateOrderUsingNonexistentProducts() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(3, productA)
+                    .item(10, productB)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(customerRepository.existsById(2L)).thenReturn(true);
+            when(productRepository.findAllById(List.of(1L, 2L))).thenReturn(emptyList());
+            // when
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            // then
+            exception.isInstanceOf(InvalidProductException.class);
+            verify(productRepository, never()).findById(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+        }
+
+        @Test
+        void doNotUpdateOrderUsingProductsWithInsufficientStock() {
+            // given
+            var updatedOrder = new OrderBuilder()
+                    .status(Order.Status.PAID)
+                    .customer(customerB)
+                    .item(100, productA)
+                    .item(100, productB)
+                    .build();
+            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(customerRepository.existsById(2L)).thenReturn(true);
+            when(productRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(productA, productB));
+            // when
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            // then
+            exception.isInstanceOf(ProductWithInsufficientStockException.class);
+            verify(productRepository, never()).findById(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
         }
 
     }

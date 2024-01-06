@@ -8,9 +8,12 @@ import io.github.augustoravazoli.inventorymanagementsystem.product.ProductServic
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -102,15 +105,8 @@ class OrderControllerTest {
             verify(orderService, times(1)).createOrder(any(Order.class));
         }
 
-        private static Stream<Arguments> provideAttributeNameAndExceptionClass() {
-            return Stream.of(
-                    arguments("insufficientStock", ProductWithInsufficientStockException.class),
-                    arguments("duplicatedItem", DuplicatedOrderItemException.class)
-            );
-        }
-
         @ParameterizedTest
-        @MethodSource("provideAttributeNameAndExceptionClass")
+        @ArgumentsSource(AttributeNameAndExceptionProvider.class)
         void doNotCreateOrderWithInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
             // given
             when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
@@ -144,29 +140,8 @@ class OrderControllerTest {
             );
         }
 
-        private static Stream<Arguments> provideRequestParameters() {
-            return Stream.of(
-                    arguments(Map.of(
-                            "status", List.of(""),
-                            "customerId", List.of(""),
-                            "items[0].quantity", List.of(""),
-                            "item[0].productId", List.of("")
-                    )),
-                    arguments(Map.of(
-                            "status", List.of("UNPAID"),
-                            "customerId", List.of("1"),
-                            "items[0].quantity", List.of("0"),
-                            "item[0].productId", List.of("1")
-                    )),
-                    arguments(Map.of(
-                            "status", List.of("UNPAID"),
-                            "customerId", List.of("1")
-                    ))
-            );
-        }
-
         @ParameterizedTest
-        @MethodSource("provideRequestParameters")
+        @ArgumentsSource(RequestParametersProvider.class)
         void doNotCreateOrderWithInvalidFields(Map<String, List<String>> params) throws Exception {
             // when
             var result = client.perform(post("/orders/create")
@@ -229,6 +204,152 @@ class OrderControllerTest {
                     view().name("order/order-table")
             );
             verify(orderService, times(1)).listOrders(any(Order.Status.class), anyInt());
+        }
+
+    }
+
+    @Nested
+    class UpdateOrderTests {
+
+        @Test
+        void retrieveUpdateOrderPage() throws Exception {
+            // given
+            var order = new OrderBuilder()
+                    .id(1L)
+                    .status(Order.Status.UNPAID)
+                    .customer(customerA)
+                    .item(5, productA)
+                    .build();
+            when(orderService.findOrder(anyLong())).thenReturn(order);
+            when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
+            when(productService.listProducts()).thenReturn(List.of(productA, productB));
+            // when
+            var result = client.perform(get("/orders/update/{id}", 1L));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("order", is(
+                            order("UNPAID", 1L, contains(item(5, 1L)))
+                    )),
+                    model().attribute("id", 1L),
+                    model().attribute("customers", contains(
+                            customer(1L, "A", "A", "A"),
+                            customer(2L, "B", "B", "B")
+                    )),
+                    model().attribute("products", contains(
+                            product(1L, "A", "A", 10, "1.00"),
+                            product(2L, "B", "B", 20, "2.00")
+                    )),
+                    model().attribute("mode", "update"),
+                    view().name("order/order-form")
+            );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "UNPAID", "PAID" })
+        void updateOrder(String sessionStatus) throws Exception {
+            // when
+            var result = client.perform(post("/orders/update/{id}", 1L)
+                    .param("status", "PAID")
+                    .param("customerId", "2")
+                    .param("items[0].quantity", "10")
+                    .param("items[0].productId", "2")
+                    .sessionAttr("status", sessionStatus)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrlTemplate("/orders/list?status={status}", sessionStatus)
+            );
+            verify(orderService, times(1)).updateOrder(anyLong(), any(Order.class));
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(AttributeNameAndExceptionProvider.class)
+        void doNotUpdateOrderUsingInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
+            // given
+            when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
+            when(productService.listProducts()).thenReturn(List.of(productA, productB));
+            doThrow(exception).when(orderService).updateOrder(anyLong(), any(Order.class));
+            // when
+            var result = client.perform(post("/orders/update/{id}", 1L)
+                    .param("status", "PAID")
+                    .param("customerId", "2")
+                    .param("items[0].quantity", "10")
+                    .param("items[0].productId", "2")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute(attributeName, true),
+                    model().attribute("order", is(
+                            order("PAID", 2L, contains(item(10, 2L)))
+                    )),
+                    model().attribute("id", 1L),
+                    model().attribute("customers", contains(
+                            customer(1L, "A", "A", "A"),
+                            customer(2L, "B", "B", "B")
+                    )),
+                    model().attribute("products", contains(
+                            product(1L, "A", "A", 10, "1.00"),
+                            product(2L, "B", "B", 20, "2.00")
+                    )),
+                    model().attribute("mode", "update"),
+                    view().name("order/order-form")
+            );
+            verify(orderService, times(1)).updateOrder(anyLong(), any(Order.class));
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(RequestParametersProvider.class)
+        void doNotUpdateOrderUsingInvalidFields(Map<String, List<String>> params) throws Exception {
+            // when
+            var result = client.perform(post("/orders/update/{id}", 1L)
+                    .params(new LinkedMultiValueMap<>(params))
+                    .with(csrf())
+            );
+            // then
+            result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    static class AttributeNameAndExceptionProvider implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    arguments("insufficientStock", ProductWithInsufficientStockException.class),
+                    arguments("duplicatedItem", DuplicatedOrderItemException.class)
+            );
+        }
+
+    }
+
+    static class RequestParametersProvider implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+            return Stream.of(
+                    arguments(Map.of(
+                            "status", List.of(""),
+                            "customerId", List.of(""),
+                            "items[0].quantity", List.of(""),
+                            "item[0].productId", List.of("")
+                    )),
+                    arguments(Map.of(
+                            "status", List.of("UNPAID"),
+                            "customerId", List.of("1"),
+                            "items[0].quantity", List.of("0"),
+                            "item[0].productId", List.of("1")
+                    )),
+                    arguments(Map.of(
+                            "status", List.of("UNPAID"),
+                            "customerId", List.of("1")
+                    ))
+            );
         }
 
     }

@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,15 +53,21 @@ class OrderEndpointsTests {
     @Autowired
     private CustomerRepository customerRepository;
 
-    private Customer customer;
+    private Customer customerA;
+    private Customer customerB;
     private Product productA;
     private Product productB;
+    private Product productC;
+    private Product productD;
 
     @BeforeEach
     void setup() {
-        customer = customerRepository.save(new Customer("A", "A", "A"));
+        customerA = customerRepository.save(new Customer("A", "A", "A"));
+        customerB = customerRepository.save(new Customer("B", "B", "B"));
         productA = productRepository.save(new Product("A", categoryRepository.save(new Category("A")), 10, "1.00"));
         productB = productRepository.save(new Product("B", categoryRepository.save(new Category("B")), 20, "2.00"));
+        productC = productRepository.save(new Product("C", categoryRepository.save(new Category("C")), 30, "3.00"));
+        productD = productRepository.save(new Product("D", categoryRepository.save(new Category("D")), 40, "4.00"));
     }
 
     @AfterEach
@@ -79,7 +86,7 @@ class OrderEndpointsTests {
             // when
             var result = client.perform(post("/orders/create")
                     .param("status", "UNPAID")
-                    .param("customerId", customer.getId().toString())
+                    .param("customerId", customerA.getId().toString())
                     .param("items[0].quantity", "5")
                     .param("items[0].productId", productA.getId().toString())
                     .param("items[1].quantity", "10")
@@ -98,7 +105,7 @@ class OrderEndpointsTests {
                     .isEqualTo(new OrderBuilder()
                             .status(Order.Status.UNPAID)
                             .date(LocalDate.now())
-                            .customer(customer)
+                            .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build()
@@ -118,19 +125,19 @@ class OrderEndpointsTests {
             orderRepository.saveAll(List.of(
                     new OrderBuilder()
                             .status(Order.Status.UNPAID)
-                            .customer(customer)
+                            .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build(),
                     new OrderBuilder()
                             .status(Order.Status.UNPAID)
-                            .customer(customer)
+                            .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build(),
                     new OrderBuilder()
                             .status(Order.Status.UNPAID)
-                            .customer(customer)
+                            .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build()
@@ -145,6 +152,61 @@ class OrderEndpointsTests {
                     model().attribute("orders", hasSize(3)),
                     view().name("order/order-table")
             );
+        }
+
+    }
+
+    @Nested
+    class UpdateOrderTests {
+
+        @Test
+        void updateOrder() throws Exception {
+            // given
+            productA.setQuantity(5);
+            productB.setQuantity(12);
+            productC.setQuantity(15);
+            productRepository.saveAll(List.of(productA, productB, productC));
+            var id = orderRepository.save(new OrderBuilder()
+                    .status(Order.Status.UNPAID)
+                    .customer(customerA)
+                    .item(5, productA)
+                    .item(8, productB)
+                    .item(15, productC)
+                    .build())
+                    .getId();
+            // when
+            var result = client.perform(post("/orders/update/{id}", id)
+                    .param("status", "PAID")
+                    .param("customerId", customerB.getId().toString())
+                    .param("items[0].quantity", "3")
+                    .param("items[0].productId", productA.getId().toString())
+                    .param("items[1].quantity", "10")
+                    .param("items[1].productId", productB.getId().toString())
+                    .param("items[2].quantity", "20")
+                    .param("items[2].productId", productD.getId().toString())
+                    .sessionAttr("status", "UNPAID")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrlTemplate("/orders/list?status=UNPAID")
+            );
+            var order = orderRepository.findAllWithItems().getFirst();
+            assertThat(order)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id", "date", "items.id", "items.product.quantity")
+                    .isEqualTo(new OrderBuilder()
+                            .status(Order.Status.PAID)
+                            .customer(customerB)
+                            .item(3, productA)
+                            .item(10, productB)
+                            .item(20, productD)
+                            .build()
+                    );
+            assertThat(productRepository.findAll(Sort.by("name")))
+                    .extracting("quantity")
+                    .containsExactly(7, 10, 30, 20);
         }
 
     }
