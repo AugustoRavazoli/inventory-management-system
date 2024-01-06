@@ -137,15 +137,13 @@ class ProductControllerTest {
         @Test
         void listProducts() throws Exception {
             // given
-            when(productService.listProducts(anyInt())).thenReturn(new PageImpl<>(
-                    List.of(
-                            new Product("A", new Category("A"), 1, "1.00"),
-                            new Product("B", new Category("B"), 2, "2.00"),
-                            new Product("C", new Category("C"), 3, "3.00")
-                    ),
-                    PageRequest.of(0, 8, Sort.by("name")),
-                    3
-            ));
+            var products = List.of(
+                    new Product("A", new Category("A"), 1, "1.00"),
+                    new Product("B", new Category("B"), 2, "2.00"),
+                    new Product("C", new Category("C"), 3, "3.00")
+            );
+            var pageable = PageRequest.of(0, 8, Sort.by("name"));
+            when(productService.listProducts(anyInt())).thenReturn(new PageImpl<>(products, pageable, 3));
             // when
             var result = client.perform(get("/products/list"));
             // then

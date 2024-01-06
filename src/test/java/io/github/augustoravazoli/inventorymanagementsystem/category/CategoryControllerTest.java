@@ -102,11 +102,9 @@ class CategoryControllerTest {
         @Test
         void listCategories() throws Exception {
             // given
-            when(categoryService.listCategories(anyInt())).thenReturn(new PageImpl<>(
-                    List.of(new Category("A"), new Category("B"), new Category("C")),
-                    PageRequest.of(0, 8, Sort.by("name")),
-                    3
-            ));
+            var categories = List.of(new Category("A"), new Category("B"), new Category("C"));
+            var pageable = PageRequest.of(0, 8, Sort.by("name"));
+            when(categoryService.listCategories(anyInt())).thenReturn(new PageImpl<>(categories, pageable, 3));
             // when
             var result = client.perform(get("/categories/list"));
             // then

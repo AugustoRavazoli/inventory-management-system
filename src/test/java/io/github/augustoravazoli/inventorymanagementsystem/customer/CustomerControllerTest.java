@@ -108,15 +108,13 @@ class CustomerControllerTest {
         @Test
         void listCustomers() throws Exception {
             // given
-            when(customerService.listCustomers(anyInt())).thenReturn(new PageImpl<>(
-                    List.of(
-                            new Customer("A", "A", "A"),
-                            new Customer("B", "B", "B"),
-                            new Customer("C", "C", "C")
-                    ),
-                    PageRequest.of(0, 8, Sort.by("name")),
-                    3
-            ));
+            var customers = List.of(
+                    new Customer("A", "A", "A"),
+                    new Customer("B", "B", "B"),
+                    new Customer("C", "C", "C")
+            );
+            var pageable = PageRequest.of(0, 8, Sort.by("name"));
+            when(customerService.listCustomers(anyInt())).thenReturn(new PageImpl<>(customers, pageable, 3));
             // when
             var result = client.perform(get("/customers/list"));
             // then
