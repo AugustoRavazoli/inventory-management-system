@@ -1,6 +1,5 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerMatchers.customer;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -257,18 +257,6 @@ class CustomerControllerTest {
             verify(customerService, times(1)).deleteCustomer(anyLong());
         }
 
-    }
-
-    private Matcher<Customer> customer() {
-        return customer(null, null, null);
-    }
-
-    private Matcher<Customer> customer(String name, String address, String phone) {
-        return allOf(
-                hasProperty("name", is(name)),
-                hasProperty("address", is(address)),
-                hasProperty("phone", is(phone))
-        );
     }
 
 }

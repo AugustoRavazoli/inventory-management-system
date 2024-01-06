@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static io.github.augustoravazoli.inventorymanagementsystem.category.CategoryMatchers.category;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -41,7 +42,7 @@ class CategoryControllerTest {
             // then
             result.andExpectAll(
                     status().isOk(),
-                    model().attribute("category", hasProperty("name")),
+                    model().attribute("category", is(category())),
                     model().attribute("mode", "create"),
                     view().name("category/category-form")
             );
@@ -75,7 +76,7 @@ class CategoryControllerTest {
             result.andExpectAll(
                     status().isOk(),
                     model().attribute("duplicatedName", is(true)),
-                    model().attribute("category", hasProperty("name", is("A"))),
+                    model().attribute("category", is(category("A"))),
                     model().attribute("mode", "create"),
                     view().name("category/category-form")
             );
@@ -112,9 +113,9 @@ class CategoryControllerTest {
             result.andExpectAll(
                     status().isOk(),
                     model().attribute("categories", contains(
-                            allOf(hasProperty("name", is("A"))),
-                            allOf(hasProperty("name", is("B"))),
-                            allOf(hasProperty("name", is("C")))
+                            category("A"),
+                            category("B"),
+                            category("C")
                     )),
                     model().attribute("currentPage", 1),
                     model().attribute("totalPages", 1),
@@ -141,8 +142,8 @@ class CategoryControllerTest {
             result.andExpectAll(
                     status().isOk(),
                     model().attribute("categories", contains(
-                            allOf(hasProperty("name", is("A"))),
-                            allOf(hasProperty("name", is("Aa")))
+                            category("A"),
+                            category("Aa")
                     )),
                     view().name("category/category-table")
             );
@@ -163,7 +164,7 @@ class CategoryControllerTest {
             // then
             result.andExpectAll(
                     status().isOk(),
-                    model().attribute("category", hasProperty("name", is("A"))),
+                    model().attribute("category", is(category("A"))),
                     model().attribute("id", 1L),
                     model().attribute("mode", "update"),
                     view().name("category/category-form")
@@ -198,7 +199,7 @@ class CategoryControllerTest {
             result.andExpectAll(
                     status().isOk(),
                     model().attribute("duplicatedName", true),
-                    model().attribute("category", hasProperty("name", is("A"))),
+                    model().attribute("category", is(category("A"))),
                     model().attribute("id", 1L),
                     model().attribute("mode", "update"),
                     view().name("category/category-form")

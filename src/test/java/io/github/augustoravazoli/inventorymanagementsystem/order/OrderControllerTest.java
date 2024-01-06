@@ -5,7 +5,6 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerService;
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductService;
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -30,6 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerMatchers.customer;
+import static io.github.augustoravazoli.inventorymanagementsystem.order.OrderMatchers.item;
+import static io.github.augustoravazoli.inventorymanagementsystem.order.OrderMatchers.order;
+import static io.github.augustoravazoli.inventorymanagementsystem.product.ProductMatchers.product;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -414,57 +417,6 @@ class OrderControllerTest {
             );
         }
 
-    }
-
-    private Matcher<OrderForm> order() {
-        return allOf(
-                hasProperty("status", nullValue()),
-                hasProperty("customerId", nullValue()),
-                hasProperty("items", nullValue())
-        );
-    }
-
-    private Matcher<OrderForm> order(String status, Long customerId, Matcher<Iterable<? extends OrderItemForm>> itemsMatcher) {
-        return allOf(
-                hasProperty("status", is(OrderForm.StatusForm.valueOf(status))),
-                hasProperty("customerId", is(customerId)),
-                hasProperty("items", itemsMatcher)
-        );
-    }
-
-    private Matcher<OrderForm> order(String customer, LocalDate date, Integer quantity, String price) {
-        return allOf(
-                hasProperty("customer", hasProperty("name", is(customer))),
-                hasProperty("date", is(date)),
-                hasProperty("quantity", is(quantity)),
-                hasProperty("amount", is(new BigDecimal(price)))
-        );
-    }
-
-    private Matcher<OrderItemForm> item(Integer quantity, Long productId) {
-        return allOf(
-                hasProperty("quantity", is(quantity)),
-                hasProperty("productId", is(productId))
-        );
-    }
-
-    private Matcher<Customer> customer(Long id, String name, String address, String phone) {
-        return allOf(
-                hasProperty("id", is(id)),
-                hasProperty("name", is(name)),
-                hasProperty("address", is(address)),
-                hasProperty("phone", is(phone))
-        );
-    }
-
-    private Matcher<Product> product(Long id, String name, String category, Integer quantity, String price) {
-        return allOf(
-                hasProperty("id", is(id)),
-                hasProperty("name", is(name)),
-                hasProperty("category", hasProperty("name", is(category))),
-                hasProperty("quantity", is(quantity)),
-                hasProperty("price", is(new BigDecimal(price)))
-        );
     }
 
 }

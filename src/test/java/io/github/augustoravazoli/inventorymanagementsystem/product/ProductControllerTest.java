@@ -2,7 +2,6 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryService;
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static io.github.augustoravazoli.inventorymanagementsystem.category.CategoryMatchers.category;
+import static io.github.augustoravazoli.inventorymanagementsystem.product.ProductMatchers.product;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -58,9 +59,9 @@ class ProductControllerTest {
                     status().isOk(),
                     model().attribute("product", is(product())),
                     model().attribute("categories", contains(
-                            category(1, "A"),
-                            category(2, "B"),
-                            category(3, "C")
+                            category(1L, "A"),
+                            category(2L, "B"),
+                            category(3L, "C")
                     )),
                     model().attribute("mode", "create"),
                     view().name("product/product-form")
@@ -104,9 +105,9 @@ class ProductControllerTest {
                     model().attribute("duplicatedName", true),
                     model().attribute("product", is(product("A", 1L, 1,  "1.00"))),
                     model().attribute("categories", contains(
-                            category(1, "A"),
-                            category(2, "B"),
-                            category(3, "C")
+                            category(1L, "A"),
+                            category(2L, "B"),
+                            category(3L, "C")
                     )),
                     model().attribute("mode", "create"),
                     view().name("product/product-form")
@@ -210,9 +211,9 @@ class ProductControllerTest {
                     model().attribute("product", is(product("A", 1L, 1, "1.00"))),
                     model().attribute("id", 1L),
                     model().attribute("categories", contains(
-                            category(1, "A"),
-                            category(2, "B"),
-                            category(3, "C")
+                            category(1L, "A"),
+                            category(2L, "B"),
+                            category(3L, "C")
                     )),
                     model().attribute("mode", "update"),
                     view().name("product/product-form")
@@ -257,9 +258,9 @@ class ProductControllerTest {
                     model().attribute("product", is(product("B", 2L, 2, "2.00"))),
                     model().attribute("id", 1L),
                     model().attribute("categories", contains(
-                            category(1, "A"),
-                            category(2, "B"),
-                            category(3, "C")
+                            category(1L, "A"),
+                            category(2L, "B"),
+                            category(3L, "C")
                     )),
                     model().attribute("mode", "update"),
                     view().name("product/product-form")
@@ -300,35 +301,6 @@ class ProductControllerTest {
             verify(productService, times(1)).deleteProduct(anyLong());
         }
 
-    }
-
-    private Matcher<Category> category(long id, String name) {
-        return allOf(
-                hasProperty("id", is(id)),
-                hasProperty("name", is(name))
-        );
-    }
-
-    private Matcher<Product> product() {
-        return product(null, (Long) null, null, null);
-    }
-
-    private Matcher<Product> product(String name, String category, Integer quantity, String price) {
-        return allOf(
-                hasProperty("name", is(name)),
-                hasProperty("category", hasProperty("name", is(category))),
-                hasProperty("quantity", is(quantity)),
-                hasProperty("price", is(new BigDecimal(price)))
-        );
-    }
-
-    private Matcher<Product> product(String name, Long categoryId, Integer quantity, String price) {
-        return allOf(
-                hasProperty("name", is(name)),
-                hasProperty("categoryId", is(categoryId)),
-                hasProperty("quantity", is(quantity)),
-                hasProperty("price", is(price == null ? null : new BigDecimal(price)))
-        );
     }
 
 }
