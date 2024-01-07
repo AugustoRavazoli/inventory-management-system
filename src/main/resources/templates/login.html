@@ -1,54 +1,64 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragment/head}"></head>
+<head>
+  <th:block th:replace="~{fragment/head}"></th:block>
+  <script th:inline="javascript" defer>
+    function togglePassword(input, icon) {
+      input.type = input.type === "password" ? "text" : "password";
+      icon.classList.toggle("bi-eye-slash-fill", input.type === "password");
+      icon.classList.toggle("bi-eye-fill", input.type === "text");
+    }
+  </script>
+</head>
 
 <body style="background-color: #f7f7f7;">
 
   <div class="container-fluid">
     <main class="d-flex justify-content-center align-items-center" style="height: 100vh;">
 
+      <div class="position-absolute top-0 start-0 mt-3 ms-3 d-flex flex-column gap-2">
+        <button class="btn btn-sm btn-outline-secondary rounded-0" onclick="window.location.replace('login?lang=en_US')">🇺🇸</button>
+        <button class="btn btn-sm btn-outline-secondary rounded-0" onclick="window.location.replace('login?lang=pt_BR')">🇧🇷</button>
+      </div>
+
       <div class="container-fluid mb-5 p-0 bg-white" style="max-width: 400px;">
 
-        <h2 class="h5 border bg-dark text-white text-center p-3 mb-3">Login</h2>
+        <h2 th:text="#{login-form.title}" class="h5 border bg-dark text-white text-center p-3 mb-3"></h2>
 
         <form th:action="@{/login}" method="post" class="needs-validation px-4" novalidate x-data @submit="validateForm($el, $event)">
 
-          <div th:if="${param.error}" class="alert alert-danger rounded-0">
-            Invalid username or password
-          </div>
+          <div th:if="${param.error}" th:text="#{login-form.invalid-message}" class="alert alert-danger rounded-0"></div>
 
-          <div th:if="${param.logout}" class="alert alert-success rounded-0">
-            Logged out successfully
-          </div>
+          <div th:if="${param.logout}" th:text="#{login-form.logout-message}" class="alert alert-success rounded-0"></div>
 
           <div class="mb-3">
-            <label class="form-label" for="username">Username</label>
+            <label class="form-label" for="username" th:text="#{login-form.username-label}"></label>
             <div class="input-group">
               <span class="input-group-text rounded-0 bg-white"><i class="bi bi-person-fill"></i></span>
-              <input class="form-control shadow-none rounded-0" id="username" name="username" placeholder="Username" required>
-              <div class="invalid-feedback">Please enter username.</div>
+              <input class="form-control shadow-none rounded-0" id="username" name="username" th:placeholder="#{login-form.username-placeholder}" required>
+              <div th:text="#{login-form.username-invalid-message}" class="invalid-feedback"></div>
             </div>
           </div>
 
           <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
+            <label th:text="#{login-form.password-label}" for="password" class="form-label"></label>
             <div class="input-group">
               <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
               <input class="form-control rounded-0" type="password" x-ref="password" id="password" name="password"
-                     placeholder="Password" required>
+                     th:placeholder="#{login-form.password-placeholder}" required>
               <button @click="togglePassword($refs.password, $refs.icon)" type="button"
                       class="input-group-text rounded-0 bg-white"><i x-ref="icon" class="bi bi-eye-slash-fill"></i></button>
-              <div class="invalid-feedback">Please enter password.</div>
+              <div th:text="#{login-form.password-invalid-message}" class="invalid-feedback"></div>
             </div>
           </div>
 
           <div class="my-4 py-2 d-flex justify-content-between align-items-center">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="remember-me" name="remember-me">
-              <label class="form-check-label" for="remember-me">Remember me</label>
+              <label th:text="#{login-form.remember-me}" class="form-check-label" for="remember-me"></label>
             </div>
-            <button type="submit" class="btn btn-success px-5 py-1 rounded-0">Login</button>
+            <button type="submit" th:text="#{login-form.submit}" class="btn btn-success px-5 py-1 rounded-0"></button>
           </div>
 
         </form>
@@ -57,19 +67,4 @@
     </main>
   </div>
 
-  <script th:inline="javascript">
-    function validateForm(form, event) {
-      if (!form.checkValidity()) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      form.classList.add("was-validated");
-    }
-
-    function togglePassword(input, icon) {
-      input.type = input.type === "password" ? "text" : "password";
-      icon.classList.toggle("bi-eye-slash-fill", input.type === "password");
-      icon.classList.toggle("bi-eye-fill", input.type === "text");
-    }
-  </script>
 </body>

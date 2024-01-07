@@ -17,8 +17,8 @@
   <main layout:fragment="content" x-data="order">
     <div class="py-4">
 
-      <h2 th:if="${#strings.toString(session.status) == 'PAID'}">Edit sale</h2>
-      <h2 th:unless="${#strings.toString(session.status) == 'PAID'}" th:text="${mode == 'create'} ? 'Add order' : 'Edit order'" class="h4 mb-3"></h2>
+      <h2 th:if="${#strings.toString(session.status) == 'PAID'}" th:text="#{order-form.edit-sale}"></h2>
+      <h2 th:unless="${#strings.toString(session.status) == 'PAID'}" th:text="${mode == 'create'} ? #{order-form.add-title} : #{order-form.edit-title}" class="h4 mb-3"></h2>
       <hr class="hr">
 
       <form th:action="${mode == 'create'} ? @{/orders/create} : @{/orders/update/__${id}__}"
@@ -27,23 +27,19 @@
             class="needs-validation"
             novalidate x-data @submit="validateForm($el, $event)">
 
-        <div th:if="${insufficientStock}" class="alert alert-danger rounded-0">
-          Order contains items with insufficient stock
-        </div>
+        <div th:if="${insufficientStock}" th:text="#{order-form.insufficient-stock-message}" class="alert alert-danger rounded-0"></div>
 
-        <div th:if="${duplicatedItem}" class="alert alert-danger rounded-0">
-          Order contains duplicated items
-        </div>
+        <div th:if="${duplicatedItem}" th:text="#{order-form.duplicated-item-message}" class="alert alert-danger rounded-0"></div>
 
         <div layout:replace="~{fragment/form :: select-field(
-            label='Customer',
+            label=#{order-form.customer-label},
             inputName='customerId',
             icon='bi-person-fill',
-            invalidMessage='Please choose a customer',
+            invalidMessage=#{order-form.customer-invalid-message},
             required=true
           )}">
           <th:block layout:fragment="select-field-options">
-            <option value="" th:selected="${order.customerId == null}" disabled>-- Choose a customer --</option>
+            <option value="" th:text="#{order-form.customer-placeholder}" th:selected="${order.customerId == null}" disabled></option>
             <option th:selected="${order.customerId == customer.id}" th:each="customer : ${customers}" th:value="${customer.id}" th:text="${customer.name}"></option>
           </th:block>
         </div>
@@ -53,30 +49,30 @@
             <hr class="hr d-lg-none">
 
             <div class="col col-lg-6" x-data="{ id: $id('product') }">
-              <label :for="id" class="form-label" :class="index > 0 && 'd-lg-none'">Product</label>
+              <label th:text="#{order-form.product-label}" :for="id" class="form-label" :class="index > 0 && 'd-lg-none'"></label>
               <div class="input-group mb-3">
                 <span class="input-group-text rounded-0 bg-white"><i class="bi bi-box"></i></span>
                 <select :name="`items[${index}].productId`" x-model="item.product" x-on:change="editItem(index, $el.options[$el.value].dataset.price)"
                         class="form-select rounded-0" :id="id" required>
-                  <option value="" selected disabled>-- Choose a product --</option>
+                  <option value="" th:text="#{order-form.product-placeholder}" selected disabled></option>
                   <option x-init="item.productId == $el.value && editItem(index, $el.dataset.price)" :selected="item.productId == $el.value" th:each="product : ${products}" th:value="${product.id}" th:data-price="${product.price}" th:text="${product.name}"></option>
                 </select>
-                <div class="invalid-feedback">Please choose a product.</div>
+                <div th:text="#{order-form.product-invalid-message}" class="invalid-feedback"></div>
               </div>
             </div>
 
             <div class="col-lg-2" x-data="{ id: $id('quantity') }">
-              <label :for="id" class="form-label" :class="index > 0 && 'd-lg-none'">Quantity</label>
+              <label th:text="#{order-form.quantity-label}" :for="id" class="form-label" :class="index > 0 && 'd-lg-none'"></label>
               <div class="input-group mb-3">
                 <span class="input-group-text rounded-0 bg-white"><i class="bi bi-boxes"></i></span>
                 <input :name="`items[${index}].quantity`" x-model="item.quantity" type="number" min="1" max="100" step="1" placeholder="0"
                        class="form-control rounded-0" :id="id" required>
-                <div class="invalid-feedback">Please choose a quantity.</div>
+                <div th:text="#{order-form.quantity-invalid-message}" class="invalid-feedback"></div>
               </div>
             </div>
 
             <div class="col-lg-2">
-              <label for="amount" class="form-label" :class="index > 0 && 'd-lg-none'">Amount</label>
+              <label th:text="#{order-form.amount-label}" for="amount" class="form-label" :class="index > 0 && 'd-lg-none'"></label>
               <div class="input-group mb-3">
                 <span class="input-group-text rounded-0 bg-white"><i class="bi bi-currency-dollar"></i></span>
                 <input x-model="item.amount" class="form-control rounded-0" id="amount" disabled>
@@ -100,24 +96,26 @@
         </template>
 
         <div class="mb-3 d-lg-none">
-          <button type="button" class="btn btn-primary rounded-0 w-100" @click="addItem()"><i
-              class="bi bi-plus-lg"></i>Add item</button>
+          <button type="button" class="btn btn-primary rounded-0 w-100" @click="addItem()">
+            <i class="bi bi-plus-lg"></i>
+            <span th:text="#{order-form.add-item}"></span>
+          </button>
         </div>
 
         <div class="row" style="max-width: 400px;">
           <div class="col mb-3">
-            <label for="status" class="form-label">Status</label>
+            <label th:text="#{order-form.status-label}" for="status" class="form-label"></label>
             <div class="input-group mb-3">
               <span class="input-group-text rounded-0"><i class="bi bi-check-circle"></i></span>
               <select th:field="*{status}" class="form-select rounded-0" id="status">
-                <option value="UNPAID" selected>Unpaid</option>
-                <option value="PAID">Paid</option>
+                <option value="UNPAID" th:text="#{order-form.status-unpaid}" selected></option>
+                <option value="PAID" th:text="#{order-form.status-paid}"></option>
               </select>
             </div>
           </div>
 
           <div class="col mb-3">
-            <label for="total" class="form-label">Total</label>
+            <label th:text="#{order-form.total-label}" for="total" class="form-label"></label>
             <div class="input-group mb-3">
               <span class="input-group-text rounded-0"><i class="bi bi-cart4"></i></span>
               <input x-model="totalPrice" class="form-control rounded-0" id="total" disabled>
@@ -126,8 +124,8 @@
         </div>
 
         <div class="mt-4">
-          <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
-          <a th:href="@{/orders/list?status=__${session.status}__}" class="btn btn-danger px-4 rounded-0">Cancel</a>
+          <button type="submit" th:text="#{order-form.save}" class="btn btn-success px-4 rounded-0 me-3"></button>
+          <a th:href="@{/orders/list?status=__${session.status}__}" th:text="#{order-form.cancel}" class="btn btn-danger px-4 rounded-0"></a>
         </div>
 
       </form>

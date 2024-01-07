@@ -5,8 +5,8 @@
   <table class="table table-borderless table-hover table-sm text-center" style="table-layout: fixed;">
     <thead>
     <tr>
-      <th th:each="heading : ${headings}" th:text="${heading}" class="bg-dark py-2 text-white"
-          th:style="${heading == 'Actions'} ? 'width: 30%;'" scope="col"></th>
+      <th th:each="heading : ${headings}" th:text="#{${heading}}" class="bg-dark py-2 text-white"
+          th:style="${#strings.contains(heading, 'actions')} ? 'width: 30%;'" scope="col"></th>
     </tr>
     </thead>
     <tbody layout:fragment="table-data"></tbody>
@@ -28,9 +28,7 @@
 </tr>
 
 <tr th:fragment="row-empty">
-  <td th:colspan="${colspan}?: 1" class="align-middle py-2">
-    No data
-  </td>
+  <td th:colspan="${colspan}?: 1" th:text="#{table.empty-message}" class="align-middle py-2"></td>
 </tr>
 
 </html>

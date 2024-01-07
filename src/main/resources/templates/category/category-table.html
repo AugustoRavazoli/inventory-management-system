@@ -9,21 +9,21 @@
 
     <div class="navbar navbar-expand-lg py-4">
       <div class="container-fluid px-0">
-        <h2 class="h4 mb-0 d-none d-sm-block">Categories</h2>
+        <h2 th:text="#{category-table.title}" class="h4 mb-0 d-none d-sm-block"></h2>
         <div class="d-flex justify-content-between">
           <div th:replace="~{fragment/search(
             searchParam='name',
             searchUrl='/categories/find',
             listUrl='/categories/list',
-            placeholder='Search categories...'
+            placeholder=#{category-table.search-categories-placeholder}
           )}"></div>
-          <a th:href="@{/categories/create}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0">Add category</a>
+          <a th:href="@{/categories/create}" th:text="#{category-table.add-category}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0"></a>
         </div>
       </div>
     </div>
 
     <div layout:replace="~{fragment/table :: table(
-      headings=${ {'Name', 'Actions'} }
+      headings=${ { 'category-table.name-heading', 'category-table.actions-heading'} }
     )}">
       <tbody layout:fragment="table-data">
         <th:block th:if="${categories.size() == 0}">

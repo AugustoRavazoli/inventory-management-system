@@ -8,7 +8,7 @@
   <main layout:fragment="content">
     <div class="py-4">
 
-      <h2 th:text="${mode == 'create'} ? 'Add category' : 'Edit category'" class="h4 mb-3"></h2>
+      <h2 th:text="${mode == 'create'} ? #{category-form.add-title} : #{category-form.edit-title}" class="h4 mb-3"></h2>
       <hr class="hr">
 
       <form th:action="${mode == 'create'} ? @{/categories/create} : @{/categories/update/__${id}__}"
@@ -17,22 +17,20 @@
             class="needs-validation"
             novalidate x-data @submit="validateForm($el, $event)">
 
-        <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
-          Category name taken
-        </div>
+        <div th:if="${duplicatedName}" th:text="#{category-form.duplicated-name-message}" class="alert alert-danger rounded-0"></div>
 
         <div th:replace="~{fragment/form :: text-field(
-          label='Name',
+          label=#{category-form.name-label},
           inputName='name',
           icon='bi-card-text',
-          invalidMessage='Please choose a name',
-          placeholder='Name',
+          invalidMessage=#{category-form.name-invalid-message},
+          placeholder=#{category-form.name-placeholder},
           required=true
         )}"></div>
 
         <div class="mt-4">
-          <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
-          <a th:href="@{/categories/list}" class="btn btn-danger px-4 rounded-0">Cancel</a>
+          <button type="submit" th:text="#{category-form.save}" class="btn btn-success px-4 rounded-0 me-3"></button>
+          <a th:href="@{/categories/list}" th:text="#{category-form.cancel}" class="btn btn-danger px-4 rounded-0"></a>
         </div>
 
       </form>

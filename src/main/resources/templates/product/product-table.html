@@ -9,21 +9,27 @@
 
   <div class="navbar navbar-expand-lg py-4">
     <div class="container-fluid px-0">
-      <h2 class="h4 mb-0 d-none d-sm-block">Products</h2>
+      <h2 th:text="#{product-table.title}" class="h4 mb-0 d-none d-sm-block"></h2>
       <div class="d-flex justify-content-between">
         <div th:replace="~{fragment/search(
           searchParam='name',
           searchUrl='/products/find',
           listUrl='/products/list',
-          placeholder='Search products...'
+          placeholder=#{product-table.search-products-placeholder}
         )}"></div>
-        <a th:href="@{/products/create}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0">Add product</a>
+        <a th:href="@{/products/create}" th:text="#{product-table.add-product}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0"></a>
       </div>
     </div>
   </div>
 
   <div layout:replace="~{fragment/table :: table(
-      headings=${ {'Name', 'Category', 'Quantity', 'Price', 'Actions'} }
+      headings=${ {
+        'product-table.name-heading',
+        'product-table.category-heading',
+        'product-table.quantity-heading',
+        'product-table.price-heading',
+        'product-table.actions-heading'
+      } }
     )}">
     <tbody layout:fragment="table-data">
     <th:block th:if="${products.size() == 0}">
@@ -33,7 +39,7 @@
     </th:block>
     <th:block th:each="product : ${products}">
       <div th:replace="~{fragment/table :: row(
-            cells=${ {product.name, product.category?.name ?: '-', product.quantity, product.price} },
+            cells=${ {product.name, product.category?.name ?: '-', product.quantity, #numbers.formatCurrency(product.price)} },
             updateUrl='/products/update/__${product.id}__',
             deleteUrl='/products/delete/__${product.id}__'
           )}"></div>

@@ -8,7 +8,7 @@
   <main layout:fragment="content">
     <div class="py-4">
 
-      <h2 th:text="${mode == 'create'} ? 'Add customer' : 'Edit customer'" class="h4 mb-3"></h2>
+      <h2 th:text="${mode == 'create'} ? #{customer-form.add-title} : #{customer-form.edit-title}" class="h4 mb-3"></h2>
       <hr class="hr">
 
       <form th:action="${mode == 'create'} ? @{/customers/create} : @{/customers/update/__${id}__}"
@@ -17,40 +17,38 @@
             class="needs-validation"
             novalidate x-data @submit="validateForm($el, $event)">
 
-        <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
-          Customer name taken
-        </div>
+        <div th:if="${duplicatedName}" th:text="#{customer-form.duplicated-name-message}" class="alert alert-danger rounded-0"></div>
 
         <div th:replace="~{fragment/form :: text-field(
-            label='Name',
+            label=#{customer-form.name-label},
             inputName='name',
             icon='bi-card-text',
-            invalidMessage='Please choose a name',
-            placeholder='Name',
+            invalidMessage=#{customer-form.name-invalid-message},
+            placeholder=#{customer-form.name-placeholder},
             required=true
           )}"></div>
 
         <div th:replace="~{fragment/form :: text-field(
-            label='Address',
+            label=#{customer-form.address-label},
             inputName='address',
             icon='bi-geo-alt',
-            invalidMessage='Please choose an address',
-            placeholder='Address',
+            invalidMessage=#{customer-form.address-invalid-message},
+            placeholder=#{customer-form.address-placeholder},
             required=true
           )}"></div>
 
         <div th:replace="~{fragment/form :: text-field(
-            label='Phone',
+            label=#{customer-form.phone-label},
             inputName='phone',
             icon='bi-telephone',
-            invalidMessage='Please choose a phone',
-            placeholder='Phone',
+            invalidMessage=#{customer-form.phone-invalid-message},
+            placeholder=#{customer-form.phone-placeholder},
             required=true
           )}"></div>
 
         <div class="mt-4">
-          <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
-          <a th:href="@{/customers/list}" class="btn btn-danger px-4 rounded-0">Cancel</a>
+          <button type="submit" th:text="#{customer-form.save}" class="btn btn-success px-4 rounded-0 me-3"></button>
+          <a th:href="@{/customers/list}" th:text="#{customer-form.cancel}" class="btn btn-danger px-4 rounded-0"></a>
         </div>
 
       </form>

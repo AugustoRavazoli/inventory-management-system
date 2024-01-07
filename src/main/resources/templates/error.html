@@ -9,7 +9,7 @@
       <h1 th:text="${status}" class="display-1 fw-bold"></h1>
       <p th:text=${error} class="fs-3"></p>
       <p th:text="${message}"></p>
-      <a th:href="@{/dashboard}">Go back</a>
+      <a th:href="@{/dashboard}" th:text="#{error.go-home}"></a>
     </main>
   </div>
 </body>

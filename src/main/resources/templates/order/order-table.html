@@ -9,25 +9,36 @@
 
   <div class="navbar navbar-expand-lg py-4">
     <div class="container-fluid px-0">
-      <h2 th:text="${#strings.toString(session.status) == 'UNPAID'} ? 'Orders' : 'Sales'" class="h4 mb-0 d-none d-sm-block"></h2>
+      <h2 th:text="${#strings.toString(session.status) == 'UNPAID'} ? #{order-table.orders-title} : #{order-table.sales-title}"
+          class="h4 mb-0 d-none d-sm-block"></h2>
       <div class="d-flex justify-content-between">
         <div layout:replace="~{fragment/search(
           searchParam='customer-name',
           searchUrl='/orders/find',
           listUrl='/orders/list',
-          placeholder='Search orders...'
+          placeholder=#{order-table.search-orders-placeholder}
         )}">
           <th:block layout:fragment="extra-inputs">
             <input name="status" type="hidden" th:value="${session.status}">
           </th:block>
         </div>
-        <a th:unless="${#strings.toString(session.status) == 'PAID'}" th:href="@{/orders/create}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0">Add order</a>
+        <a th:unless="${#strings.toString(session.status) == 'PAID'}"
+           th:href="@{/orders/create}"
+           th:text="#{order-table.add-order}"
+           class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0"></a>
       </div>
     </div>
   </div>
 
   <div layout:replace="~{fragment/table :: table(
-      headings=${ {'Bill No.', 'Customer', 'Date', 'Quantity', 'Amount', 'Actions'} }
+      headings=${ {
+        'order-table.bill-no-heading',
+        'order-table.customer-heading',
+        'order-table.date-heading',
+        'order-table.quantity-heading',
+        'order-table.amount-heading',
+        'order-table.actions-heading'
+      } }
     )}">
     <tbody layout:fragment="table-data">
     <th:block th:if="${orders.size() == 0}">
@@ -37,7 +48,7 @@
     </th:block>
     <th:block th:each="order : ${orders}">
       <div th:replace="~{fragment/table :: row(
-            cells=${ { order.id, order.customer.name, order.date, order.quantity, '$ ' + order.amount} },
+            cells=${ { order.id, order.customer.name, #temporals.format(order.date, #messages.msg('date.format')), order.quantity, #numbers.formatCurrency(order.amount)} },
             updateUrl='/orders/update/__${order.id}__',
             deleteUrl='/orders/delete/__${order.id}__'
           )}"></div>

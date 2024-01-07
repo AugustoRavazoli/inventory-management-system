@@ -8,7 +8,7 @@
   <main layout:fragment="content">
     <div class="py-4">
 
-      <h2 th:text="${mode == 'create'} ? 'Add product' : 'Edit product'" class="h4 mb-3"></h2>
+      <h2 th:text="${mode == 'create'} ? #{product-form.add-title} : #{product-form.edit-title}" class="h4 mb-3"></h2>
       <hr class="hr">
 
       <form th:action="${mode == 'create'} ? @{/products/create} : @{/products/update/__${id}__}"
@@ -17,36 +17,34 @@
             class="needs-validation"
             novalidate x-data @submit="validateForm($el, $event)">
 
-        <div th:if="${duplicatedName}" class="alert alert-danger rounded-0">
-          Product name taken
-        </div>
+        <div th:if="${duplicatedName}" th:text="#{product-form.duplicated-name-message}" class="alert alert-danger rounded-0"></div>
 
         <div th:replace="~{fragment/form :: text-field(
-          label='Name',
+          label=#{product-form.name-label},
           inputName='name',
           icon='bi-card-text',
-          invalidMessage='Please choose a name',
-          placeholder='Name',
+          invalidMessage=#{product-form.name-invalid-message},
+          placeholder=#{product-form.name-placeholder},
           required=true
         )}"></div>
 
         <div layout:replace="~{fragment/form :: select-field(
-          label='Category',
+          label=#{product-form.category-label},
           inputName='categoryId',
           icon='bi-bookmark'
         )}">
           <th:block layout:fragment="select-field-options">
-            <option value="" th:selected="${product.categoryId == null}">-- Choose a category --</option>
+            <option value="" th:text="#{product-form.category-placeholder}" th:selected="${product.categoryId == null}">-- Choose a category --</option>
             <option th:selected="${product.categoryId == category.id}" th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option>
           </th:block>
         </div>
 
         <div th:replace="~{fragment/form :: number-field(
-          label='Quantity',
+          label=#{product-form.quantity-label},
           inputName='quantity',
           icon='bi-boxes',
-          invalidMessage='Please choose a quantity',
-          placeholder='0',
+          invalidMessage=#{product-form.quantity-invalid-message},
+          placeholder=#{product-form.quantity-placeholder},
           required=true,
           min=1,
           max=100,
@@ -54,18 +52,17 @@
         )}"></div>
 
         <div th:replace="~{fragment/form :: text-field(
-          label='Price',
+          label=#{product-form.price-label},
           inputName='price',
           icon='bi-currency-dollar',
-          invalidMessage='Please choose a price',
-          placeholder='0.00',
-          required=true,
-          dynamicMask='$money($input)'
+          invalidMessage=#{product-form.price-invalid-message},
+          placeholder=#{product-form.price-placeholder},
+          required=true
         )}"></div>
 
         <div class="mt-4">
-          <button type="submit" class="btn btn-success px-4 rounded-0 me-3">Save</button>
-          <a th:href="@{/products/list}" class="btn btn-danger px-4 rounded-0">Cancel</a>
+          <button type="submit" th:text="#{product-form.save}" class="btn btn-success px-4 rounded-0 me-3"></button>
+          <a th:href="@{/products/list}" th:text="#{product-form.cancel}" class="btn btn-danger px-4 rounded-0"></a>
         </div>
 
       </form>

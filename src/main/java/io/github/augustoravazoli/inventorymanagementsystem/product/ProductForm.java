@@ -19,7 +19,7 @@ public class ProductForm {
     @NotNull
     private Integer quantity;
 
-    @NumberFormat(style = NumberFormat.Style.CURRENCY, pattern = "#,###.00")
+    @NumberFormat(style = NumberFormat.Style.NUMBER)
     @DecimalMin("0.01")
     @NotNull
     private BigDecimal price;

@@ -9,23 +9,28 @@
 
     <div class="navbar navbar-expand-lg py-4">
       <div class="container-fluid px-0">
-        <h2 class="h4 mb-0 d-none d-sm-block">Customers</h2>
+        <h2 th:text="#{customer-table.title}" class="h4 mb-0 d-none d-sm-block"></h2>
         <div class="d-flex justify-content-between">
           <form :action="search === '' ? '/customers/list' : '/customers/find'" method="get" class="w-100 me-4" x-data="{ search: '' }">
             <div th:replace="~{fragment/search(
               searchParam='name',
               searchUrl='/customers/find',
               listUrl='/customers/list',
-              placeholder='Search customers...'
+              placeholder=#{customer-table.search-customers-placeholder}
             )}"></div>
           </form>
-          <a th:href="@{/customers/create}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0">Add customer</a>
+          <a th:href="@{/customers/create}" th:text="#{customer-table.add-customer}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0"></a>
         </div>
       </div>
     </div>
 
     <div layout:replace="~{fragment/table :: table(
-      headings=${ {'Name', 'Address', 'Phone', 'Actions'} }
+      headings=${ {
+        'customer-table.name-heading',
+        'customer-table.address-heading',
+        'customer-table.phone-heading',
+        'customer-table.actions-heading'
+      } }
     )}">
       <tbody layout:fragment="table-data">
       <th:block th:if="${customers.size() == 0}">

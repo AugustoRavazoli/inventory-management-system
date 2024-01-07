@@ -5,15 +5,13 @@
   <div class="modal-dialog">
     <div class="modal-content rounded-0">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="staticBackdropLabel">Confirm</h1>
+        <h1 th:text="#{confirm-dialog.title}" class="modal-title fs-5" id="staticBackdropLabel"></h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        Are you sure you want to continue?
-      </div>
+      <div th:text="#{confirm-dialog.description}" class="modal-body"></div>
       <div class="modal-footer">
-        <a :href="currentForm" class="btn btn-success px-4 me-3 rounded-0">Yes</a>
-        <button class="btn btn-danger px-4 rounded-0" data-bs-dismiss="modal">No</button>
+        <a :href="currentForm" th:text="#{confirm-dialog.yes}" class="btn btn-success px-4 me-3 rounded-0"></a>
+        <button th:text="#{confirm-dialog.no}" class="btn btn-danger px-4 rounded-0" data-bs-dismiss="modal"></button>
       </div>
     </div>
   </div>
