@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-class OrderBuilder {
+public class OrderBuilder {
 
     private Long id;
     private Order.Status status;
