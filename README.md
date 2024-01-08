@@ -6,7 +6,10 @@ Inventory Management System is a simple prototype application for inventory mana
 
 ## Demonstration
 
-Not available
+![](docs/images/login.png)
+![](docs/images/dashboard.png)
+![](docs/images/order-table.png)
+![](docs/images/order-form.png)
 
 ## Features
 
