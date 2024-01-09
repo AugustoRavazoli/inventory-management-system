@@ -11,6 +11,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     long countByStatus(Order.Status status);
 
+    boolean existsByCustomerId(long customerId);
+
     Page<Order> findAllByStatus(Order.Status status, Pageable pageable);
 
     List<Order> findAllByStatusAndCustomerNameContainingIgnoreCase(Order.Status status, String customerName);

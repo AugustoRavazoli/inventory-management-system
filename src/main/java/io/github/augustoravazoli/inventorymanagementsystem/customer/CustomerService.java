@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -11,9 +12,12 @@ import java.util.List;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
 
-    public CustomerService(CustomerRepository customerRepository) {
+    public CustomerService(CustomerRepository customerRepository,
+                           OrderRepository orderRepository) {
         this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
     }
 
     public void createCustomer(Customer customer) {
@@ -56,6 +60,9 @@ public class CustomerService {
     public void deleteCustomer(long id) {
         if (!customerRepository.existsById(id)) {
             throw new CustomerNotFoundException();
+        }
+        if (orderRepository.existsByCustomerId(id)) {
+            throw new CustomerDeletionNotAllowedException();
         }
         customerRepository.deleteById(id);
     }

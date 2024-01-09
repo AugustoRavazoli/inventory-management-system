@@ -255,6 +255,23 @@ class CustomerControllerTest {
             verify(customerService, times(1)).deleteCustomer(anyLong());
         }
 
+        @Test
+        void doNotDeleteCustomerAssociatedWithOrders() throws Exception {
+            // given
+            doThrow(CustomerDeletionNotAllowedException.class).when(customerService).deleteCustomer(anyLong());
+            // when
+            var result = client.perform(post("/customers/delete/{id}", 1L)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    flash().attribute("deleteNotAllowed", true),
+                    redirectedUrl("/customers/list")
+            );
+            verify(customerService, times(1)).deleteCustomer(anyLong());
+        }
+
     }
 
 }

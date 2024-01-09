@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,9 @@ class CustomerServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @Nested
     class CreateCustomerTests {
@@ -188,6 +192,7 @@ class CustomerServiceTest {
         void deleteCustomer() {
             // given
             when(customerRepository.existsById(1L)).thenReturn(true);
+            when(orderRepository.existsByCustomerId(1L)).thenReturn(false);
             // when
             customerService.deleteCustomer(1L);
             // then
@@ -202,6 +207,18 @@ class CustomerServiceTest {
             var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L));
             // then
             exception.isInstanceOf(CustomerNotFoundException.class);
+            verify(customerRepository, never()).deleteById(anyLong());
+        }
+
+        @Test
+        void doNotDeleteCustomerAssociatedWithOrders() {
+            // given
+            when(customerRepository.existsById(1L)).thenReturn(true);
+            when(orderRepository.existsByCustomerId(1L)).thenReturn(true);
+            // when
+            var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L));
+            // then
+            exception.isInstanceOf(CustomerDeletionNotAllowedException.class);
             verify(customerRepository, never()).deleteById(anyLong());
         }
 
