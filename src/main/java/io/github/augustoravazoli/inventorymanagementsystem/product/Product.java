@@ -3,6 +3,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -22,7 +23,7 @@ public class Product {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Category category;
 
-    @DecimalMin("0")
+    @Min(0)
     @Column(nullable = false)
     private Integer quantity = 0;
 
