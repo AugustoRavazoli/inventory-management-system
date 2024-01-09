@@ -2,6 +2,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,9 @@ class ProductServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @Nested
     class CreateProductTests {
@@ -224,6 +228,7 @@ class ProductServiceTest {
         void deleteProduct() {
             // given
             when(productRepository.existsById(1L)).thenReturn(true);
+            when(orderRepository.existsByItemsProductId(1L)).thenReturn(false);
             // when
             productService.deleteProduct(1L);
             // then
@@ -238,6 +243,18 @@ class ProductServiceTest {
             var exception = assertThatThrownBy(() -> productService.deleteProduct(1L));
             // then
             exception.isInstanceOf(ProductNotFoundException.class);
+            verify(productRepository, never()).deleteById(anyLong());
+        }
+
+        @Test
+        void doNotDeleteProductAssociatedWithOrders() {
+            // given
+            when(productRepository.existsById(1L)).thenReturn(true);
+            when(orderRepository.existsByItemsProductId(1L)).thenReturn(true);
+            // when
+            var exception = assertThatThrownBy(() -> productService.deleteProduct(1L));
+            // then
+            exception.isInstanceOf(ProductDeletionNotAllowedException.class);
             verify(productRepository, never()).deleteById(anyLong());
         }
 

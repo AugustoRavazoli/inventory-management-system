@@ -299,6 +299,23 @@ class ProductControllerTest {
             verify(productService, times(1)).deleteProduct(anyLong());
         }
 
+        @Test
+        void doNotDeleteProductAssociatedWithOrders() throws Exception {
+            // given
+            doThrow(ProductDeletionNotAllowedException.class).when(productService).deleteProduct(anyLong());
+            // when
+            var result = client.perform(post("/products/delete/{id}", 1L)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    flash().attribute("deleteNotAllowed", true),
+                    redirectedUrl("/products/list")
+            );
+            verify(productService, times(1)).deleteProduct(anyLong());
+        }
+
     }
 
 }

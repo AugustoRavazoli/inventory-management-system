@@ -1,6 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.product;
 
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -13,10 +14,13 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderRepository orderRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository,
+                          OrderRepository orderRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.orderRepository = orderRepository;
     }
 
     public void createProduct(Product product) {
@@ -68,6 +72,9 @@ public class ProductService {
     public void deleteProduct(long id) {
         if (!productRepository.existsById(id)) {
             throw new ProductNotFoundException();
+        }
+        if (orderRepository.existsByItemsProductId(id)) {
+            throw new ProductDeletionNotAllowedException();
         }
         productRepository.deleteById(id);
     }

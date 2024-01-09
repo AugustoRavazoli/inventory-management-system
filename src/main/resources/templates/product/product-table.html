@@ -3,6 +3,14 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="layout/layout">
 
+<head>
+  <script th:if="${deleteNotAllowed}" th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      new bootstrap.Modal(document.getElementById('alert')).show();
+    });
+  </script>
+</head>
+
 <body>
 
 <main layout:fragment="content" x-data="{ currentForm: null }">
@@ -54,6 +62,12 @@
     )}"></div>
 
   <div th:replace="~{fragment/confirm-dialog}"></div>
+
+  <div th:if="${deleteNotAllowed}" th:replace="~{fragment/alert-dialog(
+    title=#{product-alert-dialog.title},
+    description=#{product-alert-dialog.description},
+    dismiss=#{product-alert-dialog.ok}
+  )}"></div>
 
 </main>
 
