@@ -19,14 +19,12 @@
       <div class="container-fluid px-0">
         <h2 th:text="#{customer-table.title}" class="h4 mb-0 d-none d-sm-block"></h2>
         <div class="d-flex justify-content-between">
-          <form :action="search === '' ? '/customers/list' : '/customers/find'" method="get" class="w-100 me-4" x-data="{ search: '' }">
-            <div th:replace="~{fragment/search(
-              searchParam='name',
-              searchUrl='/customers/find',
-              listUrl='/customers/list',
-              placeholder=#{customer-table.search-customers-placeholder}
-            )}"></div>
-          </form>
+          <div th:replace="~{fragment/search(
+            searchParam='name',
+            searchUrl='/customers/find',
+            listUrl='/customers/list',
+            placeholder=#{customer-table.search-customers-placeholder}
+          )}"></div>
           <a th:href="@{/customers/create}" th:text="#{customer-table.add-customer}" class="ms-4 flex-shrink-0 btn btn-success px-4 rounded-0"></a>
         </div>
       </div>
