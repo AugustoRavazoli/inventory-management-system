@@ -5,7 +5,11 @@ app:
 
 spring:
   jpa:
-    hibernate.ddl-auto: create
+    hibernate.ddl-auto: none
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:database/schema.sql
 
 logging:
   level:

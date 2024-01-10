@@ -5,7 +5,12 @@ app:
 
 spring:
   jpa:
-    hibernate.ddl-auto: create
+    hibernate.ddl-auto: none
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:database/schema.sql
+      data-locations: classpath:database/data.sql
   thymeleaf:
     cache: false
     mode: HTML

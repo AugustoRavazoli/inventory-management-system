@@ -35,7 +35,7 @@ public class Order {
 
     @NotEmpty
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn
+    @JoinColumn(name = "order_id", nullable = false)
     private List<OrderItem> items = new ArrayList<>();
 
     public Order() {}
