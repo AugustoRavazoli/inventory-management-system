@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.order;
 
+import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import org.springframework.data.domain.Page;
@@ -26,14 +27,10 @@ public class OrderService {
 
     @Transactional
     public void createOrder(Order order) {
-        if (!customerRepository.existsById(order.getCustomer().getId())) {
-            throw new InvalidCustomerException();
-        }
+        checkCustomer(order.getCustomer());
         checkDuplicates(order.getItems());
         checkProductAvailability(order.getItems());
-        order.getItems().forEach(item -> productRepository.findById(item.getProduct().getId())
-                .orElseThrow()
-                .decreaseQuantity(item.getQuantity()));
+        updateProductQuantities(order.getItems(), "decrease");
         orderRepository.save(order);
     }
 
@@ -53,17 +50,13 @@ public class OrderService {
     @Transactional
     public void updateOrder(long id, Order updatedOrder) {
         var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
-        if (!customerRepository.existsById(updatedOrder.getCustomer().getId())) {
-            throw new InvalidCustomerException();
-        }
+        checkCustomer(updatedOrder.getCustomer());
         checkDuplicates(updatedOrder.getItems());
         checkProductAvailability(updatedOrder.getItems());
         updateProductQuantitiesForExistingItems(order.getItems(), updatedOrder.getItems());
         decreaseProductQuantitiesForNewItems(order.getItems(), updatedOrder.getItems());
         resetProductQuantitiesForRemovedItems(order.getItems(), updatedOrder.getItems());
-        order.setStatus(updatedOrder.getStatus());
-        order.setCustomer(updatedOrder.getCustomer());
-        order.setItems(updatedOrder.getItems());
+        updateOrderDetails(order, updatedOrder);
         orderRepository.save(order);
     }
 
@@ -71,48 +64,15 @@ public class OrderService {
     public void deleteOrder(long id) {
         var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
         if (order.getStatus() == Order.Status.UNPAID) {
-            order.getItems().forEach(item -> productRepository.findById(item.getProduct().getId())
-                    .orElseThrow()
-                    .increaseQuantity(item.getQuantity()));
+            updateProductQuantities(order.getItems(), "increase");
         }
         orderRepository.delete(order);
     }
 
-    private void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems) {
-        items.forEach(item -> {
-            var updatedItem = updatedItems.stream()
-                    .filter(ui -> ui.getProduct().getId().equals(item.getProduct().getId()))
-                    .findFirst()
-                    .orElse(null);
-            if (updatedItem == null) {
-                return;
-            }
-            var product = productRepository.findById(updatedItem.getProduct().getId()).orElseThrow();
-            var difference = Math.abs(updatedItem.getQuantity() - item.getQuantity());
-            if (updatedItem.getQuantity() > item.getQuantity()) {
-                product.decreaseQuantity(difference);
-            } else if (updatedItem.getQuantity() < item.getQuantity()) {
-                product.increaseQuantity(difference);
-            }
-        });
-    }
-
-    private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems) {
-        updatedItems.stream()
-                .filter(updatedItem -> items.stream()
-                        .noneMatch(item -> item.getProduct().getId().equals(updatedItem.getProduct().getId())))
-                .forEach(updatedItem -> productRepository.findById(updatedItem.getProduct().getId())
-                        .orElseThrow()
-                        .decreaseQuantity(updatedItem.getQuantity()));
-    }
-
-    private void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems) {
-        items.stream()
-                .filter(item -> updatedItems.stream()
-                        .noneMatch(updatedItem -> updatedItem.getProduct().getId().equals(item.getProduct().getId())))
-                .forEach(item -> productRepository.findById(item.getProduct().getId())
-                        .orElseThrow()
-                        .increaseQuantity(item.getQuantity()));
+    private void checkCustomer(Customer customer) {
+        if (!customerRepository.existsById(customer.getId())) {
+            throw new InvalidCustomerException();
+        }
     }
 
     private void checkDuplicates(List<OrderItem> items) {
@@ -123,17 +83,52 @@ public class OrderService {
     }
 
     private void checkProductAvailability(List<OrderItem> items) {
-        var productIds = items.stream().map(item -> item.getProduct().getId()).toList();
-        var products = productRepository.findAllById(productIds);
-        items.forEach(item -> {
-            var product = products.stream()
-                    .filter(p -> p.getId().equals(item.getProduct().getId()))
-                    .findFirst()
+        for (var item : items) {
+            var product = productRepository.findById(item.getProduct().getId())
                     .orElseThrow(InvalidProductException::new);
             if (item.getQuantity() > product.getQuantity()) {
                 throw new ProductWithInsufficientStockException();
             }
-        });
+        }
+    }
+
+    private void updateProductQuantities(List<OrderItem> items, String operation) {
+        for (var item : items) {
+            var product = productRepository.findById(item.getProduct().getId()).orElseThrow();
+            switch (operation) {
+                case "increase" -> product.increaseQuantity(item.getQuantity());
+                case "decrease" -> product.decreaseQuantity(item.getQuantity());
+                default -> throw new IllegalArgumentException("No case found for operation " + operation);
+            }
+        }
+    }
+
+    private void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+        var existingItems = updatedItems.stream().filter(item -> contains(item, items)).toList();
+        var oldItems = items.stream().filter(item -> contains(item, existingItems)).toList();
+        updateProductQuantities(oldItems, "increase");
+        updateProductQuantities(existingItems, "decrease");
+    }
+
+    private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+        var newItems = updatedItems.stream().filter(item -> !contains(item, items)).toList();
+        updateProductQuantities(newItems, "decrease");
+    }
+
+    private void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+        var removedItems = items.stream().filter(item -> !contains(item, updatedItems)).toList();
+        updateProductQuantities(removedItems, "increase");
+    }
+
+    private boolean contains(OrderItem item, List<OrderItem> items) {
+        return items.stream()
+                .anyMatch(i -> i.getProduct().getId().equals(item.getProduct().getId()));
+    }
+
+    private void updateOrderDetails(Order order, Order updatedOrder) {
+        order.setStatus(updatedOrder.getStatus());
+        order.setCustomer(updatedOrder.getCustomer());
+        order.setItems(updatedOrder.getItems());
     }
 
 }

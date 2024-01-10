@@ -21,7 +21,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -69,7 +68,6 @@ class OrderServiceTest {
                     .item(10, productB)
                     .build();
             when(customerRepository.existsById(1L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(productA, productB));
             when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
             when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
             // when
@@ -86,12 +84,16 @@ class OrderServiceTest {
             var order = new OrderBuilder()
                     .status(Order.Status.UNPAID)
                     .customer(customerA)
+                    .item(5, productA)
+                    .item(10, productB)
                     .build();
             when(customerRepository.existsById(1L)).thenReturn(false);
             // when
             var exception = assertThatThrownBy(() -> orderService.createOrder(order));
             // then
             exception.isInstanceOf(InvalidCustomerException.class);
+            assertThat(productA.getQuantity()).isEqualTo(10);
+            assertThat(productB.getQuantity()).isEqualTo(20);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
@@ -109,6 +111,7 @@ class OrderServiceTest {
             var exception = assertThatThrownBy(() -> orderService.createOrder(order));
             // then
             exception.isInstanceOf(DuplicatedOrderItemException.class);
+            assertThat(productA.getQuantity()).isEqualTo(10);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
@@ -121,7 +124,7 @@ class OrderServiceTest {
                     .item(5, productA)
                     .build();
             when(customerRepository.existsById(1L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L))).thenReturn(emptyList());
+            when(productRepository.findById(1L)).thenReturn(Optional.empty());
             // when
             var exception = assertThatThrownBy(() -> orderService.createOrder(order));
             // then
@@ -138,11 +141,12 @@ class OrderServiceTest {
                     .item(1000, productA)
                     .build();
             when(customerRepository.existsById(1L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L))).thenReturn(List.of(productA));
+            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
             // when
             var exception = assertThatThrownBy(() -> orderService.createOrder(order));
             // then
             exception.isInstanceOf(ProductWithInsufficientStockException.class);
+            assertThat(productA.getQuantity()).isEqualTo(10);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
@@ -284,7 +288,6 @@ class OrderServiceTest {
                     .build();
             when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
             when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L, 2L, 3L))).thenReturn(List.of(productA, productB, productC));
             when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
             when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
             when(productRepository.findById(3L)).thenReturn(Optional.of(productC));
@@ -308,7 +311,6 @@ class OrderServiceTest {
                     .build();
             when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
             when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L))).thenReturn(List.of(productA));
             when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
             when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
             // when
@@ -331,7 +333,6 @@ class OrderServiceTest {
                     .build();
             when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
             when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(productA, productB, productC));
             when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
             when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
             // when
@@ -357,7 +358,8 @@ class OrderServiceTest {
             var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
             // then
             exception.isInstanceOf(OrderNotFoundException.class);
-            verify(productRepository, never()).findById(anyLong());
+            assertThat(productA.getQuantity()).isEqualTo(5);
+            assertThat(productB.getQuantity()).isEqualTo(12);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
@@ -376,7 +378,8 @@ class OrderServiceTest {
             var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
             // then
             exception.isInstanceOf(InvalidCustomerException.class);
-            verify(productRepository, never()).findById(anyLong());
+            assertThat(productA.getQuantity()).isEqualTo(5);
+            assertThat(productB.getQuantity()).isEqualTo(12);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
@@ -395,7 +398,7 @@ class OrderServiceTest {
             var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
             // then
             exception.isInstanceOf(DuplicatedOrderItemException.class);
-            verify(productRepository, never()).findById(anyLong());
+            assertThat(productA.getQuantity()).isEqualTo(5);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
@@ -410,12 +413,11 @@ class OrderServiceTest {
                     .build();
             when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
             when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L, 2L))).thenReturn(emptyList());
+            when(productRepository.findById(1L)).thenReturn(Optional.empty());
             // when
             var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
             // then
             exception.isInstanceOf(InvalidProductException.class);
-            verify(productRepository, never()).findById(anyLong());
             verify(orderRepository, never()).save(any(Order.class));
         }
 
@@ -430,12 +432,12 @@ class OrderServiceTest {
                     .build();
             when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
             when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(productA, productB));
-            // when
+            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
             var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
             // then
             exception.isInstanceOf(ProductWithInsufficientStockException.class);
-            verify(productRepository, never()).findById(anyLong());
+            assertThat(productA.getQuantity()).isEqualTo(5);
+            assertThat(productB.getQuantity()).isEqualTo(12);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
