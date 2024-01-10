@@ -3,6 +3,8 @@ package io.github.augustoravazoli.inventorymanagementsystem.order;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -14,6 +16,8 @@ import java.util.List;
 
 @Service
 public class OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -32,17 +36,21 @@ public class OrderService {
         checkProductAvailability(order.getItems());
         updateProductQuantities(order.getItems(), "decrease");
         orderRepository.save(order);
+        logger.info("Order created for customer {}", order.getCustomer().getName());
     }
 
     public Page<Order> listOrders(Order.Status status, int page) {
+        logger.info("Listing {} orders paginated", status);
         return orderRepository.findAllByStatus(status, PageRequest.of(page - 1, 8, Sort.by("date")));
     }
 
     public List<Order> findOrders(Order.Status status, String customerName) {
+        logger.info("Finding {} orders containing name {}", status, customerName);
         return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCase(status, customerName);
     }
 
     public Order findOrder(long id) {
+        logger.info("Finding order with id {}", id);
         return orderRepository.findById(id)
                 .orElseThrow(OrderNotFoundException::new);
     }
@@ -58,19 +66,23 @@ public class OrderService {
         resetProductQuantitiesForRemovedItems(order.getItems(), updatedOrder.getItems());
         updateOrderDetails(order, updatedOrder);
         orderRepository.save(order);
+        logger.info("Order with id {} updated", order.getId());
     }
 
     @Transactional
     public void deleteOrder(long id) {
         var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
         if (order.getStatus() == Order.Status.UNPAID) {
+            logger.info("Order status is UNPAID, reset associated product quantities");
             updateProductQuantities(order.getItems(), "increase");
         }
         orderRepository.delete(order);
+        logger.info("Order with id {} deleted", id);
     }
 
     private void checkCustomer(Customer customer) {
         if (!customerRepository.existsById(customer.getId())) {
+            logger.info("Customer with id {} not found, throwing exception", customer.getId());
             throw new InvalidCustomerException();
         }
     }
@@ -78,6 +90,7 @@ public class OrderService {
     private void checkDuplicates(List<OrderItem> items) {
         var elements = new HashSet<Long>();
         if (items.stream().anyMatch(item -> !elements.add(item.getProduct().getId()))) {
+            logger.info("Order items contains duplicated items, throwing exception");
             throw new DuplicatedOrderItemException();
         }
     }
@@ -87,6 +100,7 @@ public class OrderService {
             var product = productRepository.findById(item.getProduct().getId())
                     .orElseThrow(InvalidProductException::new);
             if (item.getQuantity() > product.getQuantity()) {
+                logger.info("Order items contains products with insufficient stock, throwing exception");
                 throw new ProductWithInsufficientStockException();
             }
         }
@@ -100,6 +114,7 @@ public class OrderService {
                 case "decrease" -> product.decreaseQuantity(item.getQuantity());
                 default -> throw new IllegalArgumentException("No case found for operation " + operation);
             }
+            logger.info("Updating product {}, new quantity is {}", product.getName(), product.getQuantity());
         }
     }
 
