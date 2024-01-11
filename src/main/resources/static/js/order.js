@@ -17,9 +17,10 @@ function order(items) {
     addItem() {
       this.items.push(createItem());
     },
-    editItem(index, price) {
+    editItem(index, option) {
       const item = this.items[index];
-      item.price = price;
+      item.productId = option.value;
+      item.price = option.dataset.price;
       if (item.quantity === "") item.quantity = 1;
     },
     removeItem(index) {
