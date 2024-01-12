@@ -57,7 +57,8 @@
           icon='bi-currency-dollar',
           invalidMessage=#{product-form.price-invalid-message},
           placeholder=#{product-form.price-placeholder},
-          required=true
+          required=true,
+          dynamicMask=${#locale.language == 'pt'} ? '$money($input, \',\', \'.\')' : '$money($input)'
         )}"></div>
 
         <div class="mt-4">
