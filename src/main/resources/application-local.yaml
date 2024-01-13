@@ -1,8 +1,3 @@
-app:
-  user:
-    username: admin
-    password: admin
-
 spring:
   jpa:
     hibernate.ddl-auto: none
