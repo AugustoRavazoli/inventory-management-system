@@ -63,9 +63,9 @@ class CategoryServiceTest {
     class ListCategoriesTests {
 
         private final List<Category> categories = List.of(
-                new Category("A", user),
-                new Category("B", user),
-                new Category("C", user)
+                new Category("A"),
+                new Category("B"),
+                new Category("C")
         );
 
         @Test
@@ -101,7 +101,7 @@ class CategoryServiceTest {
         @Test
         void findCategories() {
             // given
-            var expectedCategories = List.of(new Category("A", user), new Category("Aa", user));
+            var expectedCategories = List.of(new Category("A"), new Category("Aa"));
             when(categoryRepository.findAllByNameContainingIgnoreCaseAndOwner("A", user)).thenReturn(expectedCategories);
             // when
             var actualCategories = categoryService.findCategories("A", user);
@@ -119,7 +119,6 @@ class CategoryServiceTest {
         void findCategory() {
             // given
             var expectedCategory = new Category(1L, "A");
-            expectedCategory.setOwner(user);
             when(categoryRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(expectedCategory));
             // when
             var actualCategory = categoryService.findCategory(1L, user);
@@ -174,7 +173,6 @@ class CategoryServiceTest {
         void doNotUpdateCategoryUsingNameTaken() {
             // given
             var category = new Category("A");
-            category.setOwner(user);
             var updatedCategory = new Category("B");
             when(categoryRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(category));
             when(categoryRepository.existsByNameAndOwner("B", user)).thenReturn(true);
