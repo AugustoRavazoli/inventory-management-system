@@ -88,14 +88,14 @@ class ProductControllerTest {
                     status().isFound(),
                     redirectedUrl("/products/list")
             );
-            verify(productService, times(1)).createProduct(any(Product.class));
+            verify(productService, times(1)).createProduct(any(Product.class), any(User.class));
         }
 
         @Test
         void doNotCreateProductWithNameTaken() throws Exception {
             // given
             when(categoryService.listCategories(any(User.class))).thenReturn(categories);
-            doThrow(ProductNameTakenException.class).when(productService).createProduct(any(Product.class));
+            doThrow(ProductNameTakenException.class).when(productService).createProduct(any(Product.class), any(User.class));
             // when
             var result = client.perform(post("/products/create")
                     .param("name", "A")
@@ -117,7 +117,7 @@ class ProductControllerTest {
                     model().attribute("mode", "create"),
                     view().name("product/product-form")
             );
-            verify(productService, times(1)).createProduct(any(Product.class));
+            verify(productService, times(1)).createProduct(any(Product.class), any(User.class));
         }
 
         @Test
@@ -148,7 +148,7 @@ class ProductControllerTest {
                     new Product("C", new Category("C"), 3, "3.00")
             );
             var pageable = PageRequest.of(0, 8, Sort.by("name"));
-            when(productService.listProducts(anyInt())).thenReturn(new PageImpl<>(products, pageable, 3));
+            when(productService.listProducts(anyInt(), any(User.class))).thenReturn(new PageImpl<>(products, pageable, 3));
             // when
             var result = client.perform(get("/products/list"));
             // then
@@ -163,7 +163,7 @@ class ProductControllerTest {
                     model().attribute("totalPages", 1),
                     view().name("product/product-table")
             );
-            verify(productService, times(1)).listProducts(anyInt());
+            verify(productService, times(1)).listProducts(anyInt(), any(User.class));
         }
 
     }
@@ -178,7 +178,7 @@ class ProductControllerTest {
                     new Product("A", new Category("A"), 1, "1.00"),
                     new Product("Aa", new Category("Aa"), 2, "2.00")
             );
-            when(productService.findProducts(anyString())).thenReturn(products);
+            when(productService.findProducts(anyString(), any(User.class))).thenReturn(products);
             // when
             var result = client.perform(get("/products/find")
                     .param("name", "A")
@@ -192,7 +192,7 @@ class ProductControllerTest {
                     )),
                     view().name("product/product-table")
             );
-            verify(productService, times(1)).findProducts(anyString());
+            verify(productService, times(1)).findProducts(anyString(), any(User.class));
         }
 
     }
@@ -204,7 +204,7 @@ class ProductControllerTest {
         void retrieveUpdateProductPage() throws Exception {
             // given
             var product = new Product(1L, "A", new Category(1L, "A"), 1, new BigDecimal("1.00"));
-            when(productService.findProduct(anyLong())).thenReturn(product);
+            when(productService.findProduct(anyLong(), any(User.class))).thenReturn(product);
             when(categoryService.listCategories(any(User.class))).thenReturn(categories);
             // when
             var result = client.perform(get("/products/update/{id}", 1));
@@ -238,13 +238,13 @@ class ProductControllerTest {
                     status().isFound(),
                     redirectedUrl("/products/list")
             );
-            verify(productService, times(1)).updateProduct(anyLong(), any(Product.class));
+            verify(productService, times(1)).updateProduct(anyLong(), any(Product.class), any(User.class));
         }
 
         @Test
         void doNotUpdateProductUsingNameTaken() throws Exception {
             // given
-            doThrow(ProductNameTakenException.class).when(productService).updateProduct(anyLong(), any(Product.class));
+            doThrow(ProductNameTakenException.class).when(productService).updateProduct(anyLong(), any(Product.class), any(User.class));
             when(categoryService.listCategories(any(User.class))).thenReturn(categories);
             // when
             var result = client.perform(post("/products/update/{id}", 1)
@@ -268,7 +268,7 @@ class ProductControllerTest {
                     model().attribute("mode", "update"),
                     view().name("product/product-form")
             );
-            verify(productService, times(1)).updateProduct(anyLong(), any(Product.class));
+            verify(productService, times(1)).updateProduct(anyLong(), any(Product.class), any(User.class));
         }
 
         @Test
@@ -301,13 +301,13 @@ class ProductControllerTest {
                     status().isFound(),
                     redirectedUrl("/products/list")
             );
-            verify(productService, times(1)).deleteProduct(anyLong());
+            verify(productService, times(1)).deleteProduct(anyLong(), any(User.class));
         }
 
         @Test
         void doNotDeleteProductAssociatedWithOrders() throws Exception {
             // given
-            doThrow(ProductDeletionNotAllowedException.class).when(productService).deleteProduct(anyLong());
+            doThrow(ProductDeletionNotAllowedException.class).when(productService).deleteProduct(anyLong(), any(User.class));
             // when
             var result = client.perform(post("/products/delete/{id}", 1L)
                     .with(csrf())
@@ -318,7 +318,7 @@ class ProductControllerTest {
                     flash().attribute("deleteNotAllowed", true),
                     redirectedUrl("/products/list")
             );
-            verify(productService, times(1)).deleteProduct(anyLong());
+            verify(productService, times(1)).deleteProduct(anyLong(), any(User.class));
         }
 
     }

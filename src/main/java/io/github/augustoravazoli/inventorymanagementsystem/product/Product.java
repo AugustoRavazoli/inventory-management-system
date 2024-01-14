@@ -1,6 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.product;
 
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -10,13 +11,14 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "name", "owner_id" }))
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @ManyToOne
@@ -31,6 +33,9 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal price = BigDecimal.ZERO;
 
+    @ManyToOne(optional = false)
+    private User owner;
+
     public Product() {}
 
     public Product(Long id, String name, Category category, Integer quantity, BigDecimal price) {
@@ -43,6 +48,11 @@ public class Product {
 
     public Product(String name, Category category, Integer quantity, String price) {
         this(null, name, category, quantity, new BigDecimal(price));
+    }
+
+    public Product(String name, Category category, Integer quantity, String price, User owner) {
+        this(null, name, category, quantity, new BigDecimal(price));
+        this.owner = owner;
     }
 
     public Product(Long id) {
@@ -91,6 +101,14 @@ public class Product {
 
     public void decreaseQuantity(int amount) {
         this.quantity -= amount;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
     public ProductForm toForm() {

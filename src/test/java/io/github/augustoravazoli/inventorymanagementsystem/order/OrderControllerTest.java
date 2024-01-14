@@ -1,10 +1,12 @@
 package io.github.augustoravazoli.inventorymanagementsystem.order;
 
+import io.github.augustoravazoli.inventorymanagementsystem.MockUserDetailsService;
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerService;
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductService;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -13,10 +15,11 @@ import org.junit.jupiter.params.provider.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 
@@ -40,7 +43,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OrderController.class)
-@WithMockUser
+@Import(MockUserDetailsService.class)
+@WithUserDetails
 class OrderControllerTest {
 
     @MockBean
@@ -67,7 +71,7 @@ class OrderControllerTest {
         void retrieveCreateOrderPage() throws Exception {
             // given
             when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
-            when(productService.listProducts()).thenReturn(List.of(productA, productB));
+            when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             // when
             var result = client.perform(get("/orders/create"));
             // then
@@ -110,7 +114,7 @@ class OrderControllerTest {
         void doNotCreateOrderWithInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
             // given
             when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
-            when(productService.listProducts()).thenReturn(List.of(productA, productB));
+            when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             doThrow(exception).when(orderService).createOrder(any(Order.class));
             // when
             var result = client.perform(post("/orders/create")
@@ -265,7 +269,7 @@ class OrderControllerTest {
                     .build();
             when(orderService.findOrder(anyLong())).thenReturn(order);
             when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
-            when(productService.listProducts()).thenReturn(List.of(productA, productB));
+            when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             // when
             var result = client.perform(get("/orders/update/{id}", 1L));
             // then
@@ -313,7 +317,7 @@ class OrderControllerTest {
         void doNotUpdateOrderUsingInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
             // given
             when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
-            when(productService.listProducts()).thenReturn(List.of(productA, productB));
+            when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             doThrow(exception).when(orderService).updateOrder(anyLong(), any(Order.class));
             // when
             var result = client.perform(post("/orders/update/{id}", 1L)

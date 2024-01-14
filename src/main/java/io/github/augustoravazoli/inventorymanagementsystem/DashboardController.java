@@ -40,7 +40,7 @@ public class DashboardController {
                 .orElse(BigDecimal.ZERO);
         model.addAttribute("totalCustomers", customerRepository.count());
         model.addAttribute("totalCategories", categoryRepository.countByOwner(user));
-        model.addAttribute("totalProducts", productRepository.count());
+        model.addAttribute("totalProducts", productRepository.countByOwner(user));
         model.addAttribute("totalUnpaidOrders", orderRepository.countByStatus(Order.Status.UNPAID));
         model.addAttribute("totalPaidOrders", orderRepository.countByStatus(Order.Status.PAID));
         model.addAttribute("totalSales", totalSales);

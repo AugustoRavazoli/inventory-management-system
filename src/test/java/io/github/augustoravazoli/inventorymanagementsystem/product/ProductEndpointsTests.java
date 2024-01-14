@@ -88,10 +88,10 @@ class ProductEndpointsTests {
                     status().isFound(),
                     redirectedUrl("/products/list")
             );
-            var productOptional = productRepository.findByName("A");
+            var productOptional = productRepository.findByNameAndOwner("A", user);
             assertThat(productOptional).get()
-                    .extracting("name", "category.name", "quantity", "price")
-                    .containsExactly("A", "A", 1, new BigDecimal("1.00"));
+                    .extracting("name", "category.name", "quantity", "price", "owner.email")
+                    .containsExactly("A", "A", 1, new BigDecimal("1.00"), "user@email.com");
         }
 
     }
@@ -103,9 +103,9 @@ class ProductEndpointsTests {
         void listProducts() throws Exception {
             // given
             productRepository.saveAll(List.of(
-                    new Product("A", categoryA, 1, "1.00"),
-                    new Product("B", categoryB, 2, "2.00"),
-                    new Product("C", categoryC, 3, "3.00")
+                    new Product("A", categoryA, 1, "1.00", user),
+                    new Product("B", categoryB, 2, "2.00", user),
+                    new Product("C", categoryC, 3, "3.00", user)
             ));
             // when
             var result = client.perform(get("/products/list"));
@@ -126,8 +126,8 @@ class ProductEndpointsTests {
         void findProducts() throws Exception {
             // given
             productRepository.saveAll(List.of(
-                    new Product("A", categoryA, 1, "1.00"),
-                    new Product("Aa", categoryRepository.save(new Category("Aa", user)), 2, "2.00")
+                    new Product("A", categoryA, 1, "1.00", user),
+                    new Product("Aa", categoryRepository.save(new Category("Aa", user)), 2, "2.00", user)
             ));
             // when
             var result = client.perform(get("/products/find")
@@ -149,7 +149,7 @@ class ProductEndpointsTests {
         @Test
         void updateProduct() throws Exception {
             // given
-            var id = productRepository.save(new Product("A", categoryA, 1, "1.00")).getId();
+            var id = productRepository.save(new Product("A", categoryA, 1, "1.00", user)).getId();
             // when
             var result = client.perform(post("/products/update/{id}", id)
                     .param("name", "B")
@@ -165,9 +165,9 @@ class ProductEndpointsTests {
             );
             var optionalProduct = productRepository.findById(id);
             assertThat(optionalProduct).get()
-                    .extracting("name", "category", "quantity", "price")
+                    .extracting("name", "category", "quantity", "price", "owner.email")
                     .usingRecursiveFieldByFieldElementComparatorOnFields("category")
-                    .containsExactly("B", categoryB, 1, new BigDecimal("2.00"));
+                    .containsExactly("B", categoryB, 1, new BigDecimal("2.00"), "user@email.com");
         }
 
     }
@@ -178,7 +178,7 @@ class ProductEndpointsTests {
         @Test
         void deleteProduct() throws Exception {
             // given
-            var id = productRepository.save(new Product("A", categoryA, 1, "1.00")).getId();
+            var id = productRepository.save(new Product("A", categoryA, 1, "1.00", user)).getId();
             // when
             var result = client.perform(post("/products/delete/{id}", id)
                     .with(csrf())

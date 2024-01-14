@@ -21,10 +21,12 @@ CREATE TABLE category (
 
 CREATE TABLE product (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
     category_id BIGINT REFERENCES category(id) ON DELETE SET NULL,
     quantity INTEGER NOT NULL CHECK (quantity >= 0),
-    price DECIMAL(12, 2) NOT NULL CHECK (price >= 0.01)
+    price DECIMAL(12, 2) NOT NULL CHECK (price >= 0.01),
+    owner_id BIGINT NOT NULL REFERENCES "user"(id),
+    UNIQUE(name, owner_id)
 );
 
 CREATE TABLE customer (

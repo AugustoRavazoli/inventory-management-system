@@ -2,8 +2,10 @@ package io.github.augustoravazoli.inventorymanagementsystem.order;
 
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerService;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductService;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,16 +26,16 @@ public class OrderController {
     }
 
     @GetMapping("/create")
-    public String retrieveCreateOrderPage(Model model) {
+    public String retrieveCreateOrderPage(@AuthenticationPrincipal User user, Model model) {
         model.addAttribute("order", new OrderForm());
         model.addAttribute("customers", customerService.listCustomers());
-        model.addAttribute("products", productService.listProducts());
+        model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "create");
         return "order/order-form";
     }
 
     @PostMapping("/create")
-    public String createOrder(@Valid @ModelAttribute OrderForm order, Model model) {
+    public String createOrder(@AuthenticationPrincipal User user, @Valid @ModelAttribute OrderForm order, Model model) {
         try {
             orderService.createOrder(order.toEntity());
             return "redirect:/orders/list?status=UNPAID";
@@ -44,7 +46,7 @@ public class OrderController {
         }
         model.addAttribute("order", order);
         model.addAttribute("customers", customerService.listCustomers());
-        model.addAttribute("products", productService.listProducts());
+        model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "create");
         return "order/order-form";
     }
@@ -76,18 +78,19 @@ public class OrderController {
     }
 
     @GetMapping("/update/{id}")
-    public String retrieveUpdateOrderPage(@PathVariable("id") long id, Model model) {
+    public String retrieveUpdateOrderPage(@AuthenticationPrincipal User user, @PathVariable("id") long id, Model model) {
         var order = orderService.findOrder(id);
         model.addAttribute("order", order.toForm());
         model.addAttribute("id", order.getId());
         model.addAttribute("customers", customerService.listCustomers());
-        model.addAttribute("products", productService.listProducts());
+        model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "update");
         return "order/order-form";
     }
 
     @PostMapping("/update/{id}")
     public String updateOrder(
+            @AuthenticationPrincipal User user,
             @PathVariable("id") long id,
             @Valid @ModelAttribute OrderForm order,
             Model model,
@@ -106,7 +109,7 @@ public class OrderController {
         model.addAttribute("order", order);
         model.addAttribute("id", id);
         model.addAttribute("customers", customerService.listCustomers());
-        model.addAttribute("products", productService.listProducts());
+        model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "update");
         return "order/order-form";
     }

@@ -32,7 +32,7 @@ public class ProductController {
     @PostMapping("/create")
     public String createProduct(@AuthenticationPrincipal User user, @Valid @ModelAttribute ProductForm product, Model model) {
         try {
-            productService.createProduct(product.toEntity());
+            productService.createProduct(product.toEntity(), user);
         } catch (ProductNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("product", product);
@@ -44,8 +44,8 @@ public class ProductController {
     }
 
     @GetMapping("/list")
-    public String listProducts(@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
-        var productPage = productService.listProducts(page);
+    public String listProducts(@AuthenticationPrincipal User user, @RequestParam(name = "page", defaultValue = "1") int page, Model model) {
+        var productPage = productService.listProducts(page, user);
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("currentPage", productPage.getNumber() + 1);
         model.addAttribute("totalPages", productPage.getTotalPages());
@@ -53,15 +53,15 @@ public class ProductController {
     }
 
     @GetMapping("/find")
-    public String findProducts(@RequestParam("name") String name, Model model) {
-        var products = productService.findProducts(name);
+    public String findProducts(@AuthenticationPrincipal User user, @RequestParam("name") String name, Model model) {
+        var products = productService.findProducts(name, user);
         model.addAttribute("products", products);
         return "product/product-table";
     }
 
     @GetMapping("/update/{id}")
     public String retrieveUpdateProductPage(@AuthenticationPrincipal User user, @PathVariable("id") long id, Model model) {
-        var product = productService.findProduct(id);
+        var product = productService.findProduct(id, user);
         model.addAttribute("product", product.toForm());
         model.addAttribute("categories", categoryService.listCategories(user));
         model.addAttribute("id", product.getId());
@@ -72,7 +72,7 @@ public class ProductController {
     @PostMapping("/update/{id}")
     public String updateProduct(@AuthenticationPrincipal User user, @PathVariable("id") long id, @Valid @ModelAttribute ProductForm product, Model model) {
         try {
-            productService.updateProduct(id, product.toEntity());
+            productService.updateProduct(id, product.toEntity(), user);
         } catch (ProductNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("product", product);
@@ -85,9 +85,9 @@ public class ProductController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable("id") long id, RedirectAttributes redirectAttributes) {
+    public String deleteProduct(@AuthenticationPrincipal User user, @PathVariable("id") long id, RedirectAttributes redirectAttributes) {
         try {
-            productService.deleteProduct(id);
+            productService.deleteProduct(id, user);
         } catch (ProductDeletionNotAllowedException e) {
             redirectAttributes.addFlashAttribute("deleteNotAllowed", true);
         }

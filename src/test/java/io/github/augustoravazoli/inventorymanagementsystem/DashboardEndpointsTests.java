@@ -59,9 +59,9 @@ class DashboardEndpointsTests {
         var user = userRepository.save(new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO"));
         var customerA = customerRepository.save(new Customer("A", "A", "A"));
         var customerB = customerRepository.save(new Customer("B", "B", "B"));
-        var productA = productRepository.save(new Product("A", categoryRepository.save(new Category("A", user)), 10, "1.00"));
-        var productB = productRepository.save(new Product("B", categoryRepository.save(new Category("B", user)), 20, "2.00"));
-        var productC = productRepository.save(new Product("C", categoryRepository.save(new Category("C", user)), 30, "3.00"));
+        var productA = productRepository.save(new Product("A", categoryRepository.save(new Category("A", user)), 10, "1.00", user));
+        var productB = productRepository.save(new Product("B", categoryRepository.save(new Category("B", user)), 20, "2.00", user));
+        var productC = productRepository.save(new Product("C", categoryRepository.save(new Category("C", user)), 30, "3.00", user));
         orderRepository.saveAll(List.of(
                 new OrderBuilder()
                         .status(Order.Status.UNPAID)
