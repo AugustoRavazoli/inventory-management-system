@@ -234,7 +234,7 @@ class ProductServiceTest {
         void deleteProduct() {
             // given
             when(productRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
-            when(orderRepository.existsByItemsProductId(1L)).thenReturn(false);
+            when(orderRepository.existsByItemsProductIdAndOwner(1L, user)).thenReturn(false);
             // when
             productService.deleteProduct(1L, user);
             // then
@@ -256,7 +256,7 @@ class ProductServiceTest {
         void doNotDeleteProductAssociatedWithOrders() {
             // given
             when(productRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
-            when(orderRepository.existsByItemsProductId(1L)).thenReturn(true);
+            when(orderRepository.existsByItemsProductIdAndOwner(1L, user)).thenReturn(true);
             // when
             var exception = assertThatThrownBy(() -> productService.deleteProduct(1L, user));
             // then

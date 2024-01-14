@@ -42,7 +42,8 @@ CREATE TABLE "order" (
     id BIGSERIAL PRIMARY KEY,
     status VARCHAR(255) NOT NULL CHECK (status IN ('UNPAID', 'PAID')),
     "date" date NOT NULL DEFAULT CURRENT_DATE,
-    customer_id BIGINT NOT NULL REFERENCES customer(id)
+    customer_id BIGINT NOT NULL REFERENCES customer(id),
+    owner_id BIGINT NOT NULL REFERENCES "user"(id)
 );
 
 CREATE TABLE order_item (

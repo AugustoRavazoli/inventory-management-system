@@ -106,7 +106,7 @@ class OrderControllerTest {
                     status().isFound(),
                     redirectedUrl("/orders/list?status=UNPAID")
             );
-            verify(orderService, times(1)).createOrder(any(Order.class));
+            verify(orderService, times(1)).createOrder(any(Order.class), any(User.class));
         }
 
         @ParameterizedTest
@@ -115,7 +115,7 @@ class OrderControllerTest {
             // given
             when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
-            doThrow(exception).when(orderService).createOrder(any(Order.class));
+            doThrow(exception).when(orderService).createOrder(any(Order.class), any(User.class));
             // when
             var result = client.perform(post("/orders/create")
                     .param("status", "UNPAID")
@@ -191,7 +191,7 @@ class OrderControllerTest {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("date"));
             var orderPage = new PageImpl<>(orders, pageable, 3);
-            when(orderService.listOrders(any(Order.Status.class), anyInt())).thenReturn(orderPage);
+            when(orderService.listOrders(any(Order.Status.class), anyInt(), any(User.class))).thenReturn(orderPage);
             // when
             var result = client.perform(get("/orders/list")
                     .param("status", status.name())
@@ -209,7 +209,7 @@ class OrderControllerTest {
                     model().attribute("totalPages", 1),
                     view().name("order/order-table")
             );
-            verify(orderService, times(1)).listOrders(any(Order.Status.class), anyInt());
+            verify(orderService, times(1)).listOrders(any(Order.Status.class), anyInt(), any(User.class));
         }
 
     }
@@ -235,7 +235,7 @@ class OrderControllerTest {
                             .item(10, productB)
                             .build()
             );
-            when(orderService.findOrders(any(Order.Status.class), anyString())).thenReturn(orders);
+            when(orderService.findOrders(any(Order.Status.class), anyString(), any(User.class))).thenReturn(orders);
             // when
             var result = client.perform(get("/orders/find")
                     .param("status", "UNPAID")
@@ -250,7 +250,7 @@ class OrderControllerTest {
                     )),
                     view().name("order/order-table")
             );
-            verify(orderService, times(1)).findOrders(any(Order.Status.class), anyString());
+            verify(orderService, times(1)).findOrders(any(Order.Status.class), anyString(), any(User.class));
         }
 
     }
@@ -267,7 +267,7 @@ class OrderControllerTest {
                     .customer(customerA)
                     .item(5, productA)
                     .build();
-            when(orderService.findOrder(anyLong())).thenReturn(order);
+            when(orderService.findOrder(anyLong(), any(User.class))).thenReturn(order);
             when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             // when
@@ -309,7 +309,7 @@ class OrderControllerTest {
                     status().isFound(),
                     redirectedUrlTemplate("/orders/list?status={status}", sessionStatus)
             );
-            verify(orderService, times(1)).updateOrder(anyLong(), any(Order.class));
+            verify(orderService, times(1)).updateOrder(anyLong(), any(Order.class), any(User.class));
         }
 
         @ParameterizedTest
@@ -318,7 +318,7 @@ class OrderControllerTest {
             // given
             when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
-            doThrow(exception).when(orderService).updateOrder(anyLong(), any(Order.class));
+            doThrow(exception).when(orderService).updateOrder(anyLong(), any(Order.class), any(User.class));
             // when
             var result = client.perform(post("/orders/update/{id}", 1L)
                     .param("status", "PAID")
@@ -346,7 +346,7 @@ class OrderControllerTest {
                     model().attribute("mode", "update"),
                     view().name("order/order-form")
             );
-            verify(orderService, times(1)).updateOrder(anyLong(), any(Order.class));
+            verify(orderService, times(1)).updateOrder(anyLong(), any(Order.class), any(User.class));
         }
 
         @ParameterizedTest
@@ -379,7 +379,7 @@ class OrderControllerTest {
                     status().isFound(),
                     redirectedUrlTemplate("/orders/list?status={status}", sessionStatus)
             );
-            verify(orderService, times(1)).deleteOrder(anyLong());
+            verify(orderService, times(1)).deleteOrder(anyLong(), any(User.class));
         }
 
     }

@@ -5,6 +5,7 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,7 @@ class OrderServiceTest {
     private Product productA;
     private Product productB;
     private Product productC;
+    private final User user = new User();
 
     @BeforeEach
     void setup() {
@@ -67,12 +69,13 @@ class OrderServiceTest {
                     .item(5, productA)
                     .item(10, productB)
                     .build();
-            when(customerRepository.existsById(1L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
-            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
+            when(productRepository.findByIdAndOwner(2L, user)).thenReturn(Optional.of(productB));
             // when
-            orderService.createOrder(order);
+            orderService.createOrder(order, user);
             // then
+            assertThat(order.getOwner()).isEqualTo(user);
             assertThat(productA.getQuantity()).isEqualTo(5);
             assertThat(productB.getQuantity()).isEqualTo(10);
             verify(orderRepository, times(1)).save(order);
@@ -87,9 +90,9 @@ class OrderServiceTest {
                     .item(5, productA)
                     .item(10, productB)
                     .build();
-            when(customerRepository.existsById(1L)).thenReturn(false);
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(false);
             // when
-            var exception = assertThatThrownBy(() -> orderService.createOrder(order));
+            var exception = assertThatThrownBy(() -> orderService.createOrder(order, user));
             // then
             exception.isInstanceOf(InvalidCustomerException.class);
             assertThat(productA.getQuantity()).isEqualTo(10);
@@ -106,9 +109,9 @@ class OrderServiceTest {
                     .item(5, productA)
                     .item(10, productA)
                     .build();
-            when(customerRepository.existsById(1L)).thenReturn(true);
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> orderService.createOrder(order));
+            var exception = assertThatThrownBy(() -> orderService.createOrder(order, user));
             // then
             exception.isInstanceOf(DuplicatedOrderItemException.class);
             assertThat(productA.getQuantity()).isEqualTo(10);
@@ -123,10 +126,10 @@ class OrderServiceTest {
                     .customer(customerA)
                     .item(5, productA)
                     .build();
-            when(customerRepository.existsById(1L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.empty());
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> orderService.createOrder(order));
+            var exception = assertThatThrownBy(() -> orderService.createOrder(order, user));
             // then
             exception.isInstanceOf(InvalidProductException.class);
             verify(orderRepository, never()).save(any(Order.class));
@@ -140,10 +143,10 @@ class OrderServiceTest {
                     .customer(customerA)
                     .item(1000, productA)
                     .build();
-            when(customerRepository.existsById(1L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
             // when
-            var exception = assertThatThrownBy(() -> orderService.createOrder(order));
+            var exception = assertThatThrownBy(() -> orderService.createOrder(order, user));
             // then
             exception.isInstanceOf(ProductWithInsufficientStockException.class);
             assertThat(productA.getQuantity()).isEqualTo(10);
@@ -184,9 +187,9 @@ class OrderServiceTest {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("date"));
             var expectedOrderPage = new PageImpl<>(orders, pageable, 3);
-            when(orderRepository.findAllByStatus(Order.Status.UNPAID, pageable)).thenReturn(expectedOrderPage);
+            when(orderRepository.findAllByStatusAndOwner(Order.Status.UNPAID, user, pageable)).thenReturn(expectedOrderPage);
             // when
-            var actualOrderPage = orderService.listOrders(Order.Status.UNPAID, 1);
+            var actualOrderPage = orderService.listOrders(Order.Status.UNPAID, 1, user);
             // then
             assertThat(actualOrderPage.getContent()).extracting("date").isSorted();
             assertThat(actualOrderPage).usingRecursiveComparison().isEqualTo(expectedOrderPage);
@@ -216,10 +219,10 @@ class OrderServiceTest {
                             .item(10, productB)
                             .build()
             );
-            when(orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCase(Order.Status.UNPAID, "A"))
+            when(orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(Order.Status.UNPAID, "A", user))
                     .thenReturn(expectedOrders);
             // when
-            var actualOrders = orderService.findOrders(Order.Status.UNPAID, "A");
+            var actualOrders = orderService.findOrders(Order.Status.UNPAID, "A", user);
             // then
             assertThat(actualOrders).extracting("customer.name").isSorted();
             assertThat(actualOrders).usingRecursiveComparison().isEqualTo(expectedOrders);
@@ -240,9 +243,9 @@ class OrderServiceTest {
                     .item(5, productA)
                     .item(10, productB)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(expectedOrder));
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(expectedOrder));
             // when
-            var actualOrder = orderService.findOrder(1L);
+            var actualOrder = orderService.findOrder(1L, user);
             // then
             assertThat(actualOrder).usingRecursiveComparison().isEqualTo(expectedOrder);
         }
@@ -250,9 +253,9 @@ class OrderServiceTest {
         @Test
         void doNotFindOrderThatDoesNotExists() {
             // given
-            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> orderService.findOrder(1L));
+            var exception = assertThatThrownBy(() -> orderService.findOrder(1L, user));
             // then
             exception.isInstanceOf(OrderNotFoundException.class);
         }
@@ -273,6 +276,7 @@ class OrderServiceTest {
                     .customer(customerA)
                     .item(5, productA)
                     .item(8, productB)
+                    .owner(user)
                     .build();
         }
 
@@ -286,15 +290,16 @@ class OrderServiceTest {
                     .item(8, productB)
                     .item(15, productC)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
-            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
-            when(productRepository.findById(3L)).thenReturn(Optional.of(productC));
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
+            when(productRepository.findByIdAndOwner(2L, user)).thenReturn(Optional.of(productB));
+            when(productRepository.findByIdAndOwner(3L, user)).thenReturn(Optional.of(productC));
             // when
-            orderService.updateOrder(1L, updatedOrder);
+            orderService.updateOrder(1L, updatedOrder, user);
             // then
-            assertThat(order).usingRecursiveComparison().isEqualTo(updatedOrder);
+            assertThat(order.getOwner()).isEqualTo(user);
+            assertThat(order).usingRecursiveComparison().ignoringFields("owner").isEqualTo(updatedOrder);
             assertThat(productA.getQuantity()).isEqualTo(5);
             assertThat(productB.getQuantity()).isEqualTo(12);
             assertThat(productC.getQuantity()).isEqualTo(15);
@@ -309,14 +314,15 @@ class OrderServiceTest {
                     .customer(customerB)
                     .item(5, productA)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
-            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
+            when(productRepository.findByIdAndOwner(2L, user)).thenReturn(Optional.of(productB));
             // when
-            orderService.updateOrder(1L, updatedOrder);
+            orderService.updateOrder(1L, updatedOrder, user);
             // then
-            assertThat(order).usingRecursiveComparison().isEqualTo(updatedOrder);
+            assertThat(order.getOwner()).isEqualTo(user);
+            assertThat(order).usingRecursiveComparison().ignoringFields("owner").isEqualTo(updatedOrder);
             assertThat(productA.getQuantity()).isEqualTo(5);
             assertThat(productB.getQuantity()).isEqualTo(20);
             verify(orderRepository, times(1)).save(order);
@@ -331,14 +337,15 @@ class OrderServiceTest {
                     .item(3, productA)
                     .item(10, productB)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
-            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
+            when(productRepository.findByIdAndOwner(2L, user)).thenReturn(Optional.of(productB));
             // when
-            orderService.updateOrder(1L, updatedOrder);
+            orderService.updateOrder(1L, updatedOrder, user);
             // then
-            assertThat(order).usingRecursiveComparison().isEqualTo(updatedOrder);
+            assertThat(order.getOwner()).isEqualTo(user);
+            assertThat(order).usingRecursiveComparison().ignoringFields("owner").isEqualTo(updatedOrder);
             assertThat(productA.getQuantity()).isEqualTo(7);
             assertThat(productB.getQuantity()).isEqualTo(10);
             verify(orderRepository, times(1)).save(order);
@@ -353,9 +360,9 @@ class OrderServiceTest {
                     .item(3, productA)
                     .item(10, productB)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder, user));
             // then
             exception.isInstanceOf(OrderNotFoundException.class);
             assertThat(productA.getQuantity()).isEqualTo(5);
@@ -372,10 +379,10 @@ class OrderServiceTest {
                     .item(3, productA)
                     .item(10, productB)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(customerRepository.existsById(2L)).thenReturn(false);
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(false);
             // when
-            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder, user));
             // then
             exception.isInstanceOf(InvalidCustomerException.class);
             assertThat(productA.getQuantity()).isEqualTo(5);
@@ -392,10 +399,10 @@ class OrderServiceTest {
                     .item(3, productA)
                     .item(3, productA)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(customerRepository.existsById(2L)).thenReturn(true);
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder, user));
             // then
             exception.isInstanceOf(DuplicatedOrderItemException.class);
             assertThat(productA.getQuantity()).isEqualTo(5);
@@ -411,11 +418,11 @@ class OrderServiceTest {
                     .item(3, productA)
                     .item(10, productB)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.empty());
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder, user));
             // then
             exception.isInstanceOf(InvalidProductException.class);
             verify(orderRepository, never()).save(any(Order.class));
@@ -430,10 +437,10 @@ class OrderServiceTest {
                     .item(100, productA)
                     .item(100, productB)
                     .build();
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(customerRepository.existsById(2L)).thenReturn(true);
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
-            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder));
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
+            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder, user));
             // then
             exception.isInstanceOf(ProductWithInsufficientStockException.class);
             assertThat(productA.getQuantity()).isEqualTo(5);
@@ -463,11 +470,11 @@ class OrderServiceTest {
         @Test
         void deleteUnpaidOrderResetProductStock() {
             // given
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-            when(productRepository.findById(1L)).thenReturn(Optional.of(productA));
-            when(productRepository.findById(2L)).thenReturn(Optional.of(productB));
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
+            when(productRepository.findByIdAndOwner(2L, user)).thenReturn(Optional.of(productB));
             // when
-            orderService.deleteOrder(1L);
+            orderService.deleteOrder(1L, user);
             // then
             assertThat(productA.getQuantity()).isEqualTo(10);
             assertThat(productB.getQuantity()).isEqualTo(20);
@@ -478,9 +485,9 @@ class OrderServiceTest {
         void deletePaidOrderDoesNotChangeProductStock() {
             // given
             order.setStatus(Order.Status.PAID);
-            when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
             // when
-            orderService.deleteOrder(1L);
+            orderService.deleteOrder(1L, user);
             // then
             assertThat(productA.getQuantity()).isEqualTo(5);
             assertThat(productB.getQuantity()).isEqualTo(12);
@@ -491,9 +498,9 @@ class OrderServiceTest {
         @Test
         void doNotDeleteOrderThatDoesNotExists() {
             // given
-            when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> orderService.deleteOrder(1L));
+            var exception = assertThatThrownBy(() -> orderService.deleteOrder(1L, user));
             // then
             exception.isInstanceOf(OrderNotFoundException.class);
             verify(productRepository, never()).findById(anyLong());

@@ -90,7 +90,7 @@ public class ProductService {
             logger.info("Product with id {} of user {} not found, throwing exception", id, owner.getEmail());
             throw new ProductNotFoundException();
         }
-        if (orderRepository.existsByItemsProductId(id)) {
+        if (orderRepository.existsByItemsProductIdAndOwner(id, owner)) {
             logger.info("Product with id {} of user {} still is being used in orders, throwing exception", id, owner.getEmail());
             throw new ProductDeletionNotAllowedException();
         }

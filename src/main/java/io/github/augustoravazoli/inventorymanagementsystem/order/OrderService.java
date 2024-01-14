@@ -3,6 +3,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.order;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -30,58 +31,59 @@ public class OrderService {
     }
 
     @Transactional
-    public void createOrder(Order order) {
-        checkCustomer(order.getCustomer());
+    public void createOrder(Order order, User owner) {
+        checkCustomer(order.getCustomer(), owner);
         checkDuplicates(order.getItems());
-        checkProductAvailability(order.getItems());
-        updateProductQuantities(order.getItems(), "decrease");
+        checkProductAvailability(order.getItems(), owner);
+        updateProductQuantities(order.getItems(), "decrease", owner);
+        order.setOwner(owner);
         orderRepository.save(order);
-        logger.info("Order created for customer {}", order.getCustomer().getName());
+        logger.info("Order created for customer {} of user {}", order.getCustomer().getName(), owner.getEmail());
     }
 
-    public Page<Order> listOrders(Order.Status status, int page) {
-        logger.info("Listing {} orders paginated", status);
-        return orderRepository.findAllByStatus(status, PageRequest.of(page - 1, 8, Sort.by("date")));
+    public Page<Order> listOrders(Order.Status status, int page, User owner) {
+        logger.info("Listing {} orders paginated for user {}", status, owner.getEmail());
+        return orderRepository.findAllByStatusAndOwner(status, owner, PageRequest.of(page - 1, 8, Sort.by("date")));
     }
 
-    public List<Order> findOrders(Order.Status status, String customerName) {
-        logger.info("Finding {} orders containing name {}", status, customerName);
-        return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCase(status, customerName);
+    public List<Order> findOrders(Order.Status status, String customerName, User owner) {
+        logger.info("Finding {} orders containing customer name {} for user {}", status, customerName, owner.getEmail());
+        return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(status, customerName, owner);
     }
 
-    public Order findOrder(long id) {
-        logger.info("Finding order with id {}", id);
-        return orderRepository.findById(id)
+    public Order findOrder(long id, User owner) {
+        logger.info("Finding order with id {} for user {}", id, owner.getEmail());
+        return orderRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(OrderNotFoundException::new);
     }
 
     @Transactional
-    public void updateOrder(long id, Order updatedOrder) {
-        var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
-        checkCustomer(updatedOrder.getCustomer());
+    public void updateOrder(long id, Order updatedOrder, User owner) {
+        var order = orderRepository.findByIdAndOwner(id, owner).orElseThrow(OrderNotFoundException::new);
+        checkCustomer(updatedOrder.getCustomer(), owner);
         checkDuplicates(updatedOrder.getItems());
-        checkProductAvailability(updatedOrder.getItems());
-        updateProductQuantitiesForExistingItems(order.getItems(), updatedOrder.getItems());
-        decreaseProductQuantitiesForNewItems(order.getItems(), updatedOrder.getItems());
-        resetProductQuantitiesForRemovedItems(order.getItems(), updatedOrder.getItems());
+        checkProductAvailability(updatedOrder.getItems(), owner);
+        updateProductQuantitiesForExistingItems(order.getItems(), updatedOrder.getItems(), owner);
+        decreaseProductQuantitiesForNewItems(order.getItems(), updatedOrder.getItems(), owner);
+        resetProductQuantitiesForRemovedItems(order.getItems(), updatedOrder.getItems(), owner);
         updateOrderDetails(order, updatedOrder);
         orderRepository.save(order);
-        logger.info("Order with id {} updated", order.getId());
+        logger.info("Order with id {} of user {} updated", order.getId(), owner.getEmail());
     }
 
     @Transactional
-    public void deleteOrder(long id) {
-        var order = orderRepository.findById(id).orElseThrow(OrderNotFoundException::new);
+    public void deleteOrder(long id, User owner) {
+        var order = orderRepository.findByIdAndOwner(id, owner).orElseThrow(OrderNotFoundException::new);
         if (order.getStatus() == Order.Status.UNPAID) {
             logger.info("Order status is UNPAID, reset associated product quantities");
-            updateProductQuantities(order.getItems(), "increase");
+            updateProductQuantities(order.getItems(), "increase", owner);
         }
         orderRepository.delete(order);
-        logger.info("Order with id {} deleted", id);
+        logger.info("Order with id {} of user {} deleted", id, owner.getEmail());
     }
 
-    private void checkCustomer(Customer customer) {
-        if (!customerRepository.existsById(customer.getId())) {
+    private void checkCustomer(Customer customer, User owner) {
+        if (!customerRepository.existsByIdAndOwner(customer.getId(), owner)) {
             logger.info("Customer with id {} not found, throwing exception", customer.getId());
             throw new InvalidCustomerException();
         }
@@ -95,9 +97,9 @@ public class OrderService {
         }
     }
 
-    private void checkProductAvailability(List<OrderItem> items) {
+    private void checkProductAvailability(List<OrderItem> items, User owner) {
         for (var item : items) {
-            var product = productRepository.findById(item.getProduct().getId())
+            var product = productRepository.findByIdAndOwner(item.getProduct().getId(), owner)
                     .orElseThrow(InvalidProductException::new);
             if (item.getQuantity() > product.getQuantity()) {
                 logger.info("Order items contains products with insufficient stock, throwing exception");
@@ -106,9 +108,9 @@ public class OrderService {
         }
     }
 
-    private void updateProductQuantities(List<OrderItem> items, String operation) {
+    private void updateProductQuantities(List<OrderItem> items, String operation, User owner) {
         for (var item : items) {
-            var product = productRepository.findById(item.getProduct().getId()).orElseThrow();
+            var product = productRepository.findByIdAndOwner(item.getProduct().getId(), owner).orElseThrow();
             switch (operation) {
                 case "increase" -> product.increaseQuantity(item.getQuantity());
                 case "decrease" -> product.decreaseQuantity(item.getQuantity());
@@ -118,21 +120,21 @@ public class OrderService {
         }
     }
 
-    private void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+    private void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
         var existingItems = updatedItems.stream().filter(item -> contains(item, items)).toList();
         var oldItems = items.stream().filter(item -> contains(item, existingItems)).toList();
-        updateProductQuantities(oldItems, "increase");
-        updateProductQuantities(existingItems, "decrease");
+        updateProductQuantities(oldItems, "increase", owner);
+        updateProductQuantities(existingItems, "decrease", owner);
     }
 
-    private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+    private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
         var newItems = updatedItems.stream().filter(item -> !contains(item, items)).toList();
-        updateProductQuantities(newItems, "decrease");
+        updateProductQuantities(newItems, "decrease", owner);
     }
 
-    private void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems) {
+    private void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
         var removedItems = items.stream().filter(item -> !contains(item, updatedItems)).toList();
-        updateProductQuantities(removedItems, "increase");
+        updateProductQuantities(removedItems, "increase", owner);
     }
 
     private boolean contains(OrderItem item, List<OrderItem> items) {

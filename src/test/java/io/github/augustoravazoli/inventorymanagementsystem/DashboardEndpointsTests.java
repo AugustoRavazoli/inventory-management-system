@@ -68,18 +68,21 @@ class DashboardEndpointsTests {
                         .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
+                        .owner(user)
                         .build(),
                 new OrderBuilder()
                         .status(Order.Status.PAID)
                         .customer(customerB)
                         .item(3, productA)
                         .item(8, productB)
+                        .owner(user)
                         .build(),
                 new OrderBuilder()
                         .status(Order.Status.PAID)
                         .customer(customerB)
                         .item(2, productA)
                         .item(5, productC)
+                        .owner(user)
                         .build()
         ));
     }

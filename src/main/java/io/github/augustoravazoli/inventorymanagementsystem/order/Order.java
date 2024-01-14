@@ -1,6 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.order;
 
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,18 +40,22 @@ public class Order {
     @JoinColumn(name = "order_id", nullable = false)
     private List<OrderItem> items = new ArrayList<>();
 
+    @ManyToOne(optional = false)
+    private User owner;
+
     public Order() {}
 
-    public Order(Long id, Status status, LocalDate date, Customer customer, List<OrderItem> items) {
+    public Order(Long id, Status status, LocalDate date, Customer customer, List<OrderItem> items, User owner) {
         this.id = id;
         this.status = status;
         this.date = date;
         this.customer = customer;
         this.items = items;
+        this.owner = owner;
     }
 
     public Order(Status status, Customer customer, List<OrderItem> items) {
-        this(null, status, null, customer, items);
+        this(null, status, null, customer, items, null);
     }
 
     public Long getId() {
@@ -102,6 +107,14 @@ public class Order {
                 .map(OrderItem::getAmount)
                 .reduce(BigDecimal::add)
                 .orElse(BigDecimal.ZERO);
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
     public OrderForm toForm() {

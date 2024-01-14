@@ -76,7 +76,7 @@ public class CustomerService {
             logger.info("Customer with id {} of user {} not found, throwing exception", id, owner.getEmail());
             throw new CustomerNotFoundException();
         }
-        if (orderRepository.existsByCustomerId(id)) {
+        if (orderRepository.existsByCustomerIdAndOwner(id, owner)) {
             logger.info("Customer with id {} of user {} still has orders, throwing exception", id, owner.getEmail());
             throw new CustomerDeletionNotAllowedException();
         }

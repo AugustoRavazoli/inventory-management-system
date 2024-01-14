@@ -1,23 +1,27 @@
 package io.github.augustoravazoli.inventorymanagementsystem.order;
 
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    long countByStatus(Order.Status status);
+    long countByStatusAndOwner(Order.Status status, User owner);
 
-    boolean existsByCustomerId(long customerId);
+    boolean existsByCustomerIdAndOwner(long customerId, User owner);
 
-    boolean existsByItemsProductId(long productId);
+    boolean existsByItemsProductIdAndOwner(long productId, User owner);
 
-    Page<Order> findAllByStatus(Order.Status status, Pageable pageable);
+    Optional<Order> findByIdAndOwner(long id, User owner);
 
-    List<Order> findAllByStatusAndCustomerNameContainingIgnoreCase(Order.Status status, String customerName);
+    Page<Order> findAllByStatusAndOwner(Order.Status status, User owner, Pageable pageable);
+
+    List<Order> findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(Order.Status status, String customerName, User owner);
 
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items")
     List<Order> findAllWithItems();

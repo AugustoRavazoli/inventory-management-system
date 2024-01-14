@@ -117,6 +117,7 @@ class OrderEndpointsTests {
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
+                            .owner(user)
                             .build()
                     );
             assertThat(order.getItems()).extracting("product.quantity")
@@ -137,18 +138,21 @@ class OrderEndpointsTests {
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
+                            .owner(user)
                             .build(),
                     new OrderBuilder()
                             .status(Order.Status.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
+                            .owner(user)
                             .build(),
                     new OrderBuilder()
                             .status(Order.Status.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
+                            .owner(user)
                             .build()
             ));
             // when
@@ -177,12 +181,14 @@ class OrderEndpointsTests {
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
+                            .owner(user)
                             .build(),
                     new OrderBuilder()
                             .status(Order.Status.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
+                            .owner(user)
                             .build()
             ));
             // when
@@ -216,6 +222,7 @@ class OrderEndpointsTests {
                     .item(5, productA)
                     .item(8, productB)
                     .item(15, productC)
+                    .owner(user)
                     .build())
                     .getId();
             // when
@@ -246,6 +253,7 @@ class OrderEndpointsTests {
                             .item(3, productA)
                             .item(10, productB)
                             .item(20, productD)
+                            .owner(user)
                             .build()
                     );
             assertThat(productRepository.findAll(Sort.by("name")))
@@ -271,6 +279,7 @@ class OrderEndpointsTests {
                             .item(5, productA)
                             .item(8, productB)
                             .item(15, productC)
+                            .owner(user)
                             .build())
                             .getId();
             // when

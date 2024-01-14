@@ -43,13 +43,13 @@ INSERT INTO customer (name, address, phone, owner_id) VALUES
     ('G', 'G', 'G', 1),
     ('H', 'H', 'H', 1);
 
-INSERT INTO "order" (status, customer_id) VALUES
-    ('UNPAID', 1),
-    ('UNPAID', 2),
-    ('UNPAID', 3),
-    ('UNPAID', 4),
-    ('PAID', 5),
-    ('PAID', 6);
+INSERT INTO "order" (status, customer_id, owner_id) VALUES
+    ('UNPAID', 1, 1),
+    ('UNPAID', 2, 1),
+    ('UNPAID', 3, 1),
+    ('UNPAID', 4, 1),
+    ('PAID', 5, 1),
+    ('PAID', 6, 1);
 
 INSERT INTO order_item (quantity, product_id, order_id) VALUES
     (1, 1, 1),

@@ -33,7 +33,7 @@ public class DashboardController {
 
     @GetMapping
     public String retrieveDashboardPage(@AuthenticationPrincipal User user, Model model) {
-        var totalSales = orderRepository.findAllByStatus(Order.Status.PAID, Pageable.unpaged())
+        var totalSales = orderRepository.findAllByStatusAndOwner(Order.Status.PAID, user, Pageable.unpaged())
                 .stream()
                 .map(Order::getAmount)
                 .reduce(BigDecimal::add)
@@ -41,8 +41,8 @@ public class DashboardController {
         model.addAttribute("totalCustomers", customerRepository.countByOwner(user));
         model.addAttribute("totalCategories", categoryRepository.countByOwner(user));
         model.addAttribute("totalProducts", productRepository.countByOwner(user));
-        model.addAttribute("totalUnpaidOrders", orderRepository.countByStatus(Order.Status.UNPAID));
-        model.addAttribute("totalPaidOrders", orderRepository.countByStatus(Order.Status.PAID));
+        model.addAttribute("totalUnpaidOrders", orderRepository.countByStatusAndOwner(Order.Status.UNPAID, user));
+        model.addAttribute("totalPaidOrders", orderRepository.countByStatusAndOwner(Order.Status.PAID, user));
         model.addAttribute("totalSales", totalSales);
         return "dashboard";
     }

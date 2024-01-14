@@ -197,7 +197,7 @@ class CustomerServiceTest {
         void deleteCustomer() {
             // given
             when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
-            when(orderRepository.existsByCustomerId(1L)).thenReturn(false);
+            when(orderRepository.existsByCustomerIdAndOwner(1L, user)).thenReturn(false);
             // when
             customerService.deleteCustomer(1L, user);
             // then
@@ -219,7 +219,7 @@ class CustomerServiceTest {
         void doNotDeleteCustomerAssociatedWithOrders() {
             // given
             when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
-            when(orderRepository.existsByCustomerId(1L)).thenReturn(true);
+            when(orderRepository.existsByCustomerIdAndOwner(1L, user)).thenReturn(true);
             // when
             var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L, user));
             // then

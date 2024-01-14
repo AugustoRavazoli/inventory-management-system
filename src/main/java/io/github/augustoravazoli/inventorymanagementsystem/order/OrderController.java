@@ -37,7 +37,7 @@ public class OrderController {
     @PostMapping("/create")
     public String createOrder(@AuthenticationPrincipal User user, @Valid @ModelAttribute OrderForm order, Model model) {
         try {
-            orderService.createOrder(order.toEntity());
+            orderService.createOrder(order.toEntity(), user);
             return "redirect:/orders/list?status=UNPAID";
         } catch (ProductWithInsufficientStockException e) {
             model.addAttribute("insufficientStock", true);
@@ -53,12 +53,13 @@ public class OrderController {
 
     @GetMapping("/list")
     public String listOrders(
+            @AuthenticationPrincipal User user,
             @RequestParam("status") OrderForm.StatusForm status,
             @RequestParam(name = "page", defaultValue = "1") int page,
             Model model,
             HttpSession session
     ) {
-        var orderPage = orderService.listOrders(status.toEntity(), page);
+        var orderPage = orderService.listOrders(status.toEntity(), page, user);
         model.addAttribute("orders", orderPage.getContent());
         model.addAttribute("currentPage", orderPage.getNumber() + 1);
         model.addAttribute("totalPages", orderPage.getTotalPages());
@@ -68,18 +69,19 @@ public class OrderController {
 
     @GetMapping("/find")
     public String findOrders(
+            @AuthenticationPrincipal User user,
             @RequestParam("status") OrderForm.StatusForm status,
             @RequestParam("customer-name") String customerName,
             Model model
     ) {
-        var orders = orderService.findOrders(status.toEntity(), customerName);
+        var orders = orderService.findOrders(status.toEntity(), customerName, user);
         model.addAttribute("orders", orders);
         return "order/order-table";
     }
 
     @GetMapping("/update/{id}")
     public String retrieveUpdateOrderPage(@AuthenticationPrincipal User user, @PathVariable("id") long id, Model model) {
-        var order = orderService.findOrder(id);
+        var order = orderService.findOrder(id, user);
         model.addAttribute("order", order.toForm());
         model.addAttribute("id", order.getId());
         model.addAttribute("customers", customerService.listCustomers(user));
@@ -98,7 +100,7 @@ public class OrderController {
             HttpSession session
     ) {
         try {
-            orderService.updateOrder(id, order.toEntity());
+            orderService.updateOrder(id, order.toEntity(), user);
             redirectAttributes.addAttribute("status", session.getAttribute("status"));
             return "redirect:/orders/list";
         } catch (ProductWithInsufficientStockException e) {
@@ -115,8 +117,8 @@ public class OrderController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteOrder(@PathVariable("id") long id, RedirectAttributes redirectAttributes, HttpSession session) {
-        orderService.deleteOrder(id);
+    public String deleteOrder(@AuthenticationPrincipal User user, @PathVariable("id") long id, RedirectAttributes redirectAttributes, HttpSession session) {
+        orderService.deleteOrder(id, user);
         redirectAttributes.addAttribute("status", session.getAttribute("status"));
         return "redirect:/orders/list";
     }
