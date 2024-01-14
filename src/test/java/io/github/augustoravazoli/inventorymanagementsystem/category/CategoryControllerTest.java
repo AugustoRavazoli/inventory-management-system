@@ -1,14 +1,18 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
+import io.github.augustoravazoli.inventorymanagementsystem.MockUserDetailsService;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.test.context.support.WithMockUser;
+
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -23,7 +27,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CategoryController.class)
-@WithMockUser
+@Import(MockUserDetailsService.class)
+@WithUserDetails
 class CategoryControllerTest {
 
     @MockBean
@@ -60,13 +65,13 @@ class CategoryControllerTest {
                     status().isFound(),
                     redirectedUrl("/categories/list")
             );
-            verify(categoryService).createCategory(any(Category.class));
+            verify(categoryService).createCategory(any(Category.class), any(User.class));
         }
 
         @Test
         void doNotCreateCategoryWithNameTaken() throws Exception {
             // given
-            doThrow(CategoryNameTakenException.class).when(categoryService).createCategory(any(Category.class));
+            doThrow(CategoryNameTakenException.class).when(categoryService).createCategory(any(Category.class), any(User.class));
             // when
             var result = client.perform(post("/categories/create")
                     .param("name", "A")
@@ -80,7 +85,7 @@ class CategoryControllerTest {
                     model().attribute("mode", "create"),
                     view().name("category/category-form")
             );
-            verify(categoryService).createCategory(any(Category.class));
+            verify(categoryService).createCategory(any(Category.class), any(User.class));
         }
 
         @Test
@@ -104,7 +109,7 @@ class CategoryControllerTest {
             // given
             var categories = List.of(new Category("A"), new Category("B"), new Category("C"));
             var pageable = PageRequest.of(0, 8, Sort.by("name"));
-            when(categoryService.listCategories(anyInt())).thenReturn(new PageImpl<>(categories, pageable, 3));
+            when(categoryService.listCategories(anyInt(), any(User.class))).thenReturn(new PageImpl<>(categories, pageable, 3));
             // when
             var result = client.perform(get("/categories/list"));
             // then
@@ -119,7 +124,7 @@ class CategoryControllerTest {
                     model().attribute("totalPages", 1),
                     view().name("category/category-table")
             );
-            verify(categoryService, times(1)).listCategories(anyInt());
+            verify(categoryService, times(1)).listCategories(anyInt(), any(User.class));
         }
 
     }
@@ -131,7 +136,7 @@ class CategoryControllerTest {
         void findCategories() throws Exception {
             // given
             var categories = List.of(new Category("A"), new Category("Aa"));
-            when(categoryService.findCategories(anyString())).thenReturn(categories);
+            when(categoryService.findCategories(anyString(), any(User.class))).thenReturn(categories);
             // when
             var result = client.perform(get("/categories/find")
                     .param("name", "A")
@@ -145,7 +150,7 @@ class CategoryControllerTest {
                     )),
                     view().name("category/category-table")
             );
-            verify(categoryService, times(1)).findCategories(anyString());
+            verify(categoryService, times(1)).findCategories(anyString(), any(User.class));
         }
 
     }
@@ -156,7 +161,7 @@ class CategoryControllerTest {
         @Test
         void retrieveUpdateCategoryPage() throws Exception {
             // given
-            when(categoryService.findCategory(anyLong())).thenReturn(new Category(1L, "A"));
+            when(categoryService.findCategory(anyLong(), any(User.class))).thenReturn(new Category(1L, "A"));
             // when
             var result = client.perform(get("/categories/update/{id}", 1));
             // then
@@ -181,13 +186,13 @@ class CategoryControllerTest {
                     status().isFound(),
                     redirectedUrl("/categories/list")
             );
-            verify(categoryService, times(1)).updateCategory(anyLong(), any(Category.class));
+            verify(categoryService, times(1)).updateCategory(anyLong(), any(Category.class), any(User.class));
         }
 
         @Test
         void doNotUpdateCategoryUsingNameTaken() throws Exception {
             // given
-            doThrow(CategoryNameTakenException.class).when(categoryService).updateCategory(anyLong(), any(Category.class));
+            doThrow(CategoryNameTakenException.class).when(categoryService).updateCategory(anyLong(), any(Category.class), any(User.class));
             // when
             var result = client.perform(post("/categories/update/{id}", 1L)
                     .param("name", "A")
@@ -202,7 +207,7 @@ class CategoryControllerTest {
                     model().attribute("mode", "update"),
                     view().name("category/category-form")
             );
-            verify(categoryService, times(1)).updateCategory(anyLong(), any(Category.class));
+            verify(categoryService, times(1)).updateCategory(anyLong(), any(Category.class), any(User.class));
         }
 
         @Test
@@ -232,7 +237,7 @@ class CategoryControllerTest {
                     status().isFound(),
                     redirectedUrl("/categories/list")
             );
-            verify(categoryService, times(1)).deleteCategory(anyLong());
+            verify(categoryService, times(1)).deleteCategory(anyLong(), any(User.class));
         }
 
     }

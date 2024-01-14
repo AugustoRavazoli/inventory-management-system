@@ -1,16 +1,21 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "name", "owner_id" }))
 public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
+
+    @ManyToOne(optional = false)
+    private User owner;
 
     public Category() {}
 
@@ -27,6 +32,11 @@ public class Category {
         this(null, name);
     }
 
+    public Category(String name, User owner) {
+        this(null, name);
+        this.owner = owner;
+    }
+
     public Long getId() {
         return id;
     }
@@ -37,6 +47,14 @@ public class Category {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
     public CategoryForm toForm() {

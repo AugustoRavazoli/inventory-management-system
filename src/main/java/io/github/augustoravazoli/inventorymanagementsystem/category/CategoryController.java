@@ -1,6 +1,8 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +25,9 @@ public class CategoryController {
     }
 
     @PostMapping("/create")
-    public String createCategory(@Valid @ModelAttribute CategoryForm category, Model model) {
+    public String createCategory(@AuthenticationPrincipal User user, @Valid @ModelAttribute("category") CategoryForm category, Model model) {
         try {
-            categoryService.createCategory(category.toEntity());
+            categoryService.createCategory(category.toEntity(), user);
         } catch (CategoryNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("category", category);
@@ -36,8 +38,8 @@ public class CategoryController {
     }
 
     @GetMapping("/list")
-    public String listCategories(@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
-        var categoryPage = categoryService.listCategories(page);
+    public String listCategories(@AuthenticationPrincipal User user, @RequestParam(name = "page", defaultValue = "1") int page, Model model) {
+        var categoryPage = categoryService.listCategories(page, user);
         model.addAttribute("categories", categoryPage.getContent());
         model.addAttribute("currentPage", categoryPage.getNumber() + 1);
         model.addAttribute("totalPages", categoryPage.getTotalPages());
@@ -45,15 +47,15 @@ public class CategoryController {
     }
 
     @GetMapping("/find")
-    public String findCategories(@RequestParam("name") String name, Model model) {
-        var categories = categoryService.findCategories(name);
+    public String findCategories(@AuthenticationPrincipal User user, @RequestParam("name") String name, Model model) {
+        var categories = categoryService.findCategories(name, user);
         model.addAttribute("categories", categories);
         return "category/category-table";
     }
 
     @GetMapping("/update/{id}")
-    public String retrieveUpdateCategoryPage(@PathVariable("id") long id, Model model) {
-        var category = categoryService.findCategory(id);
+    public String retrieveUpdateCategoryPage(@AuthenticationPrincipal User user, @PathVariable("id") long id, Model model) {
+        var category = categoryService.findCategory(id, user);
         model.addAttribute("category", category.toForm());
         model.addAttribute("id", category.getId());
         model.addAttribute("mode", "update");
@@ -61,9 +63,9 @@ public class CategoryController {
     }
 
     @PostMapping("/update/{id}")
-    public String updateCategory(@PathVariable("id") long id, @Valid @ModelAttribute CategoryForm category, Model model) {
+    public String updateCategory(@AuthenticationPrincipal User user, @PathVariable("id") long id, @Valid @ModelAttribute CategoryForm category, Model model) {
         try {
-            categoryService.updateCategory(id, category.toEntity());
+            categoryService.updateCategory(id, category.toEntity(), user);
         } catch (CategoryNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("category", category);
@@ -75,8 +77,8 @@ public class CategoryController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteCategory(@PathVariable("id") long id) {
-        categoryService.deleteCategory(id);
+    public String deleteCategory(@AuthenticationPrincipal User user, @PathVariable("id") long id) {
+        categoryService.deleteCategory(id, user);
         return "redirect:/categories/list";
     }
 

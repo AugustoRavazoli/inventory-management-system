@@ -3,6 +3,8 @@ package io.github.augustoravazoli.inventorymanagementsystem.product;
 import io.github.augustoravazoli.inventorymanagementsystem.TestApplication;
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.user.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -11,7 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -29,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestApplication.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@WithMockUser
+@WithUserDetails(value = "user@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
 class ProductEndpointsTests {
 
     @Autowired
@@ -41,23 +44,30 @@ class ProductEndpointsTests {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     private List<Category> categories;
 
     private Category categoryA;
     private Category categoryB;
     private Category categoryC;
 
+    private User user;
+
     @BeforeEach
     void setup() {
-        categoryA = categoryRepository.save(new Category("A"));
-        categoryB = categoryRepository.save(new Category("B"));
-        categoryC = categoryRepository.save(new Category("C"));
+        user = userRepository.save(new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO"));
+        categoryA = categoryRepository.save(new Category("A", user));
+        categoryB = categoryRepository.save(new Category("B", user));
+        categoryC = categoryRepository.save(new Category("C", user));
     }
 
     @AfterEach
     void tearDown() {
         productRepository.deleteAll();
         categoryRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Nested
@@ -117,7 +127,7 @@ class ProductEndpointsTests {
             // given
             productRepository.saveAll(List.of(
                     new Product("A", categoryA, 1, "1.00"),
-                    new Product("Aa", categoryRepository.save(new Category("Aa")), 2, "2.00")
+                    new Product("Aa", categoryRepository.save(new Category("Aa", user)), 2, "2.00")
             ));
             // when
             var result = client.perform(get("/products/find")

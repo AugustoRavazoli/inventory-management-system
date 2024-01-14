@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,8 @@ class CategoryServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
+    private final User user = new User();
+
     @Nested
     class CreateCategoryTests {
 
@@ -34,10 +37,11 @@ class CategoryServiceTest {
         void createCategory() {
             // given
             var category = new Category("A");
-            when(categoryRepository.existsByName("A")).thenReturn(false);
+            when(categoryRepository.existsByNameAndOwner("A", user)).thenReturn(false);
             // when
-            categoryService.createCategory(category);
+            categoryService.createCategory(category, user);
             // then
+            assertThat(category.getOwner()).isEqualTo(user);
             verify(categoryRepository, times(1)).save(category);
         }
 
@@ -45,9 +49,9 @@ class CategoryServiceTest {
         void doNotCreateCategoryWithNameTaken() {
             // given
             var category = new Category("A");
-            when(categoryRepository.existsByName("A")).thenReturn(true);
+            when(categoryRepository.existsByNameAndOwner("A", user)).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> categoryService.createCategory(category));
+            var exception = assertThatThrownBy(() -> categoryService.createCategory(category, user));
             // then
             exception.isInstanceOf(CategoryNameTakenException.class);
             verify(categoryRepository, never()).save(any(Category.class));
@@ -59,9 +63,9 @@ class CategoryServiceTest {
     class ListCategoriesTests {
 
         private final List<Category> categories = List.of(
-                new Category("A"),
-                new Category("B"),
-                new Category("C")
+                new Category("A", user),
+                new Category("B", user),
+                new Category("C", user)
         );
 
         @Test
@@ -69,9 +73,9 @@ class CategoryServiceTest {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("name"));
             var expectedCategoryPage = new PageImpl<>(categories, pageable, 3);
-            when(categoryRepository.findAll(pageable)).thenReturn(expectedCategoryPage);
+            when(categoryRepository.findAllByOwner(user, pageable)).thenReturn(expectedCategoryPage);
             // when
-            var actualCategoryPage = categoryService.listCategories(1);
+            var actualCategoryPage = categoryService.listCategories(1, user);
             // then
             assertThat(actualCategoryPage.getContent()).extracting("name").isSorted();
             assertThat(actualCategoryPage).usingRecursiveComparison().isEqualTo(expectedCategoryPage);
@@ -81,9 +85,9 @@ class CategoryServiceTest {
         void listCategories() {
             // given
             var expectedCategories = categories;
-            when(categoryRepository.findAll(Sort.by("name"))).thenReturn(expectedCategories);
+            when(categoryRepository.findAllByOwner(user, Sort.by("name"))).thenReturn(expectedCategories);
             // when
-            var actualCategories = categoryService.listCategories();
+            var actualCategories = categoryService.listCategories(user);
             // then
             assertThat(actualCategories).extracting("name").isSorted();
             assertThat(actualCategories).usingRecursiveComparison().isEqualTo(expectedCategories);
@@ -97,10 +101,10 @@ class CategoryServiceTest {
         @Test
         void findCategories() {
             // given
-            var expectedCategories = List.of(new Category("A"), new Category("Aa"));
-            when(categoryRepository.findAllByNameContainingIgnoreCase("A")).thenReturn(expectedCategories);
+            var expectedCategories = List.of(new Category("A", user), new Category("Aa", user));
+            when(categoryRepository.findAllByNameContainingIgnoreCaseAndOwner("A", user)).thenReturn(expectedCategories);
             // when
-            var actualCategories = categoryService.findCategories("A");
+            var actualCategories = categoryService.findCategories("A", user);
             // then
             assertThat(actualCategories).extracting("name").isSorted();
             assertThat(actualCategories).usingRecursiveComparison().isEqualTo(expectedCategories);
@@ -115,9 +119,10 @@ class CategoryServiceTest {
         void findCategory() {
             // given
             var expectedCategory = new Category(1L, "A");
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(expectedCategory));
+            expectedCategory.setOwner(user);
+            when(categoryRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(expectedCategory));
             // when
-            var actualCategory = categoryService.findCategory(1L);
+            var actualCategory = categoryService.findCategory(1L, user);
             // then
             assertThat(actualCategory).usingRecursiveComparison().isEqualTo(expectedCategory);
         }
@@ -125,9 +130,9 @@ class CategoryServiceTest {
         @Test
         void doNotFindCategoryThatDoesNotExists() {
             // given
-            when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+            when(categoryRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> categoryService.findCategory(1L));
+            var exception = assertThatThrownBy(() -> categoryService.findCategory(1L, user));
             // then
             exception.isInstanceOf(CategoryNotFoundException.class);
         }
@@ -141,13 +146,15 @@ class CategoryServiceTest {
         void updateCategory() {
             // given
             var category = new Category(1L, "A");
+            category.setOwner(user);
             var updatedCategory = new Category("B");
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-            when(categoryRepository.existsByName("B")).thenReturn(false);
+            when(categoryRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(category));
+            when(categoryRepository.existsByNameAndOwner("B", user)).thenReturn(false);
             // when
-            categoryService.updateCategory(1L, updatedCategory);
+            categoryService.updateCategory(1L, updatedCategory, user);
             // then
             assertThat(category.getName()).isEqualTo("B");
+            assertThat(category.getOwner()).isEqualTo(user);
             verify(categoryRepository, times(1)).save(category);
         }
 
@@ -155,9 +162,9 @@ class CategoryServiceTest {
         void doNotUpdateCategoryThatDoesNotExists() {
             // given
             var updatedCategory = new Category("B");
-            when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+            when(categoryRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, updatedCategory));
+            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, updatedCategory, user));
             // then
             exception.isInstanceOf(CategoryNotFoundException.class);
             verify(categoryRepository, never()).save(any(Category.class));
@@ -167,11 +174,12 @@ class CategoryServiceTest {
         void doNotUpdateCategoryUsingNameTaken() {
             // given
             var category = new Category("A");
+            category.setOwner(user);
             var updatedCategory = new Category("B");
-            when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-            when(categoryRepository.existsByName("B")).thenReturn(true);
+            when(categoryRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(category));
+            when(categoryRepository.existsByNameAndOwner("B", user)).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, updatedCategory));
+            var exception = assertThatThrownBy(() -> categoryService.updateCategory(1L, updatedCategory, user));
             // then
             exception.isInstanceOf(CategoryNameTakenException.class);
             verify(categoryRepository, never()).save(any(Category.class));
@@ -185,9 +193,9 @@ class CategoryServiceTest {
         @Test
         void deleteCategory() {
             // given
-            when(categoryRepository.existsById(1L)).thenReturn(true);
+            when(categoryRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
             // when
-            categoryService.deleteCategory(1L);
+            categoryService.deleteCategory(1L, user);
             // then
             verify(categoryRepository, times(1)).deleteById(1L);
         }
@@ -195,9 +203,9 @@ class CategoryServiceTest {
         @Test
         void doNotDeleteCategoryThatDoesNotExists() {
             // given
-            when(categoryRepository.existsById(1L)).thenReturn(false);
+            when(categoryRepository.existsByIdAndOwner(1L, user)).thenReturn(false);
             // when
-            var exception = assertThatThrownBy(() -> categoryService.deleteCategory(1L));
+            var exception = assertThatThrownBy(() -> categoryService.deleteCategory(1L, user));
             // then
             exception.isInstanceOf(CategoryNotFoundException.class);
             verify(categoryRepository, never()).deleteById(anyLong());

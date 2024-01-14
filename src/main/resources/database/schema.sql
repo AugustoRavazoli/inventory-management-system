@@ -1,9 +1,9 @@
-DROP TABLE IF EXISTS "user";
 DROP TABLE IF EXISTS order_item;
 DROP TABLE IF EXISTS "order";
 DROP TABLE IF EXISTS product;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS "user";
 
 CREATE TABLE "user" (
     id BIGSERIAL PRIMARY KEY,
@@ -14,7 +14,9 @@ CREATE TABLE "user" (
 
 CREATE TABLE category (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
+    name VARCHAR(255) NOT NULL,
+    owner_id BIGINT NOT NULL REFERENCES "user"(id),
+    UNIQUE(name, owner_id)
 );
 
 CREATE TABLE product (

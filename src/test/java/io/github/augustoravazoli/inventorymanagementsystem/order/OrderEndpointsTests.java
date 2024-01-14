@@ -7,6 +7,8 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.user.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -16,7 +18,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -35,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestApplication.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@WithMockUser
+@WithUserDetails(value = "user@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
 class OrderEndpointsTests {
 
     @Autowired
@@ -53,21 +56,26 @@ class OrderEndpointsTests {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     private Customer customerA;
     private Customer customerB;
     private Product productA;
     private Product productB;
     private Product productC;
     private Product productD;
+    private User user;
 
     @BeforeEach
     void setup() {
+        user = userRepository.save(new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO"));
         customerA = customerRepository.save(new Customer("A", "A", "A"));
         customerB = customerRepository.save(new Customer("B", "B", "B"));
-        productA = productRepository.save(new Product("A", categoryRepository.save(new Category("A")), 10, "1.00"));
-        productB = productRepository.save(new Product("B", categoryRepository.save(new Category("B")), 20, "2.00"));
-        productC = productRepository.save(new Product("C", categoryRepository.save(new Category("C")), 30, "3.00"));
-        productD = productRepository.save(new Product("D", categoryRepository.save(new Category("D")), 40, "4.00"));
+        productA = productRepository.save(new Product("A", categoryRepository.save(new Category("A", user)), 10, "1.00"));
+        productB = productRepository.save(new Product("B", categoryRepository.save(new Category("B", user)), 20, "2.00"));
+        productC = productRepository.save(new Product("C", categoryRepository.save(new Category("C", user)), 30, "3.00"));
+        productD = productRepository.save(new Product("D", categoryRepository.save(new Category("D", user)), 40, "4.00"));
     }
 
     @AfterEach
@@ -76,6 +84,7 @@ class OrderEndpointsTests {
         productRepository.deleteAll();
         categoryRepository.deleteAll();
         customerRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Nested

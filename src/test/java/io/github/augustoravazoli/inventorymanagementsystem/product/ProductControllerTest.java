@@ -1,16 +1,20 @@
 package io.github.augustoravazoli.inventorymanagementsystem.product;
 
+import io.github.augustoravazoli.inventorymanagementsystem.MockUserDetailsService;
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryService;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.test.context.support.WithMockUser;
+
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -27,7 +31,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
-@WithMockUser
+@Import(MockUserDetailsService.class)
+@WithUserDetails
 class ProductControllerTest {
 
     @MockBean
@@ -51,7 +56,7 @@ class ProductControllerTest {
         @Test
         void retrieveCreateProductPage() throws Exception {
             // given
-            when(categoryService.listCategories()).thenReturn(categories);
+            when(categoryService.listCategories(any(User.class))).thenReturn(categories);
             // when
             var result = client.perform(get("/products/create"));
             // then
@@ -89,7 +94,7 @@ class ProductControllerTest {
         @Test
         void doNotCreateProductWithNameTaken() throws Exception {
             // given
-            when(categoryService.listCategories()).thenReturn(categories);
+            when(categoryService.listCategories(any(User.class))).thenReturn(categories);
             doThrow(ProductNameTakenException.class).when(productService).createProduct(any(Product.class));
             // when
             var result = client.perform(post("/products/create")
@@ -200,7 +205,7 @@ class ProductControllerTest {
             // given
             var product = new Product(1L, "A", new Category(1L, "A"), 1, new BigDecimal("1.00"));
             when(productService.findProduct(anyLong())).thenReturn(product);
-            when(categoryService.listCategories()).thenReturn(categories);
+            when(categoryService.listCategories(any(User.class))).thenReturn(categories);
             // when
             var result = client.perform(get("/products/update/{id}", 1));
             // then
@@ -240,7 +245,7 @@ class ProductControllerTest {
         void doNotUpdateProductUsingNameTaken() throws Exception {
             // given
             doThrow(ProductNameTakenException.class).when(productService).updateProduct(anyLong(), any(Product.class));
-            when(categoryService.listCategories()).thenReturn(categories);
+            when(categoryService.listCategories(any(User.class))).thenReturn(categories);
             // when
             var result = client.perform(post("/products/update/{id}", 1)
                     .param("name", "B")

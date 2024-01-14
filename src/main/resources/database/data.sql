@@ -1,12 +1,15 @@
-INSERT INTO category (name) VALUES
-    ('A'),
-    ('B'),
-    ('C'),
-    ('D'),
-    ('E'),
-    ('F'),
-    ('G'),
-    ('H');
+INSERT INTO "user" (name, email, password) VALUES
+    ('user', 'user@email.com', '$2a$10$ngSdw1kgIS40jwcvUqw48Osyd9NE8PjuMUatovpt6hlCBF0TDFUJu');
+
+INSERT INTO category (name, owner_id) VALUES
+    ('A', 1),
+    ('B', 1),
+    ('C', 1),
+    ('D', 1),
+    ('E', 1),
+    ('F', 1),
+    ('G', 1),
+    ('H', 1);
 
 INSERT INTO product (name, category_id, quantity, price) VALUES
     ('A', 1, 50, '100'),

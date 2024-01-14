@@ -1,14 +1,18 @@
 package io.github.augustoravazoli.inventorymanagementsystem.category;
 
 import io.github.augustoravazoli.inventorymanagementsystem.TestApplication;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.user.UserRepository;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestApplication.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@WithMockUser
+@WithUserDetails(value = "user@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
 class CategoryEndpointsTests {
 
     @Autowired
@@ -34,9 +38,20 @@ class CategoryEndpointsTests {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private User user;
+
+    @BeforeEach
+    void setup() {
+        user = userRepository.save(new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO"));
+    }
+
     @AfterEach
     void tearDown() {
         categoryRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Nested
@@ -53,8 +68,9 @@ class CategoryEndpointsTests {
                     status().isFound(),
                     redirectedUrl("/categories/list")
             );
-            var categoryOptional = categoryRepository.findByName("A");
-            assertThat(categoryOptional).get().hasFieldOrPropertyWithValue("name", "A");
+            var categoryOptional = categoryRepository.findByNameAndOwner("A", user);
+            assertThat(categoryOptional).get().extracting("name", "owner.email")
+                    .containsExactly("A", "user@email.com");
         }
 
     }
@@ -66,9 +82,9 @@ class CategoryEndpointsTests {
         void listCategories() throws Exception {
             // given
             categoryRepository.saveAll(List.of(
-                    new Category("A"),
-                    new Category("B"),
-                    new Category("C")
+                    new Category("A", user),
+                    new Category("B", user),
+                    new Category("C", user)
             ));
             // when
             var result = client.perform(get("/categories/list"));
@@ -88,7 +104,10 @@ class CategoryEndpointsTests {
         @Test
         void findCategories() throws Exception {
             // given
-            categoryRepository.saveAll(List.of(new Category("A"), new Category("Aa")));
+            categoryRepository.saveAll(List.of(
+                    new Category("A", user),
+                    new Category("Aa", user)
+            ));
             // when
             var result = client.perform(get("/categories/find")
                     .param("name", "A")
@@ -109,7 +128,7 @@ class CategoryEndpointsTests {
         @Test
         void updateCategory() throws Exception {
             // given
-            var id = categoryRepository.save(new Category("A")).getId();
+            var id = categoryRepository.save(new Category("A", user)).getId();
             // when
             var result = client.perform(post("/categories/update/{id}", id)
                     .param("name", "B")
@@ -121,7 +140,8 @@ class CategoryEndpointsTests {
                     redirectedUrl("/categories/list")
             );
             var categoryOptional = categoryRepository.findById(id);
-            assertThat(categoryOptional).get().hasFieldOrPropertyWithValue("name", "B");
+            assertThat(categoryOptional).get().extracting("name", "owner.email")
+                    .containsExactly("B", "user@email.com");
         }
 
     }
@@ -132,7 +152,7 @@ class CategoryEndpointsTests {
         @Test
         void deleteCategory() throws Exception {
             // given
-            var id = categoryRepository.save(new Category("A")).getId();
+            var id = categoryRepository.save(new Category("A", user)).getId();
             // when
             var result = client.perform(post("/categories/delete/{id}", id)
                     .with(csrf())
