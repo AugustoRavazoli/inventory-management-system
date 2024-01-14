@@ -36,7 +36,7 @@
             <label class="form-label" for="email" th:text="#{login-form.email-label}"></label>
             <div class="input-group">
               <span class="input-group-text rounded-0 bg-white"><i class="bi bi-envelope-fill"></i></span>
-              <input class="form-control shadow-none rounded-0" id="email" name="email" th:placeholder="#{login-form.email-placeholder}" required>
+              <input type="email" class="form-control shadow-none rounded-0" id="email" name="email" th:placeholder="#{login-form.email-placeholder}" required>
               <div th:text="#{login-form.email-invalid-message}" class="invalid-feedback"></div>
             </div>
           </div>
