@@ -1,9 +1,11 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "name", "owner_id" }))
 public class Customer {
 
     @Id
@@ -11,7 +13,7 @@ public class Customer {
     private Long id;
 
     @NotBlank
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @NotBlank
@@ -21,6 +23,9 @@ public class Customer {
     @NotBlank
     @Column(nullable = false)
     private String phone;
+
+    @ManyToOne(optional = false)
+    private User owner;
 
     public Customer() {}
 
@@ -33,6 +38,11 @@ public class Customer {
 
     public Customer(String name, String address, String phone) {
         this(null, name, address, phone);
+    }
+
+    public Customer(String name, String address, String phone, User owner) {
+        this(null, name, address, phone);
+        this.owner = owner;
     }
 
     public Customer(Long id) {
@@ -65,6 +75,14 @@ public class Customer {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
     public CustomerForm toForm() {

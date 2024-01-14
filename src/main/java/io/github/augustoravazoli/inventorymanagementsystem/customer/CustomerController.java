@@ -1,6 +1,8 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,9 +26,9 @@ public class CustomerController {
     }
 
     @PostMapping("/create")
-    public String createCustomer(@Valid @ModelAttribute CustomerForm customer, Model model) {
+    public String createCustomer(@AuthenticationPrincipal User user, @Valid @ModelAttribute CustomerForm customer, Model model) {
         try {
-            customerService.createCustomer(customer.toEntity());
+            customerService.createCustomer(customer.toEntity(), user);
         } catch (CustomerNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("customer", customer);
@@ -37,8 +39,8 @@ public class CustomerController {
     }
 
     @GetMapping("/list")
-    public String listCustomers(@RequestParam(name = "page", defaultValue = "1") int page, Model model) {
-        var customerPage = customerService.listCustomers(page);
+    public String listCustomers(@AuthenticationPrincipal User user, @RequestParam(name = "page", defaultValue = "1") int page, Model model) {
+        var customerPage = customerService.listCustomers(page, user);
         model.addAttribute("customers", customerPage.getContent());
         model.addAttribute("currentPage", customerPage.getNumber() + 1);
         model.addAttribute("totalPages", customerPage.getTotalPages());
@@ -46,15 +48,15 @@ public class CustomerController {
     }
 
     @GetMapping("/find")
-    public String findCustomers(@RequestParam("name") String name, Model model) {
-        var customers = customerService.findCustomers(name);
+    public String findCustomers(@AuthenticationPrincipal User user, @RequestParam("name") String name, Model model) {
+        var customers = customerService.findCustomers(name, user);
         model.addAttribute("customers", customers);
         return "customer/customer-table";
     }
 
     @GetMapping("/update/{id}")
-    public String retrieveUpdateCustomerPage(@PathVariable("id") long id, Model model) {
-        var customer = customerService.findCustomer(id);
+    public String retrieveUpdateCustomerPage(@AuthenticationPrincipal User user, @PathVariable("id") long id, Model model) {
+        var customer = customerService.findCustomer(id, user);
         model.addAttribute("customer", customer.toForm());
         model.addAttribute("id", customer.getId());
         model.addAttribute("mode", "update");
@@ -62,9 +64,9 @@ public class CustomerController {
     }
 
     @PostMapping("/update/{id}")
-    public String updateCustomer(@PathVariable("id") long id, @Valid @ModelAttribute CustomerForm customer, Model model) {
+    public String updateCustomer(@AuthenticationPrincipal User user, @PathVariable("id") long id, @Valid @ModelAttribute CustomerForm customer, Model model) {
         try {
-            customerService.updateCustomer(id, customer.toEntity());
+            customerService.updateCustomer(id, customer.toEntity(), user);
         } catch (CustomerNameTakenException e) {
             model.addAttribute("duplicatedName", true);
             model.addAttribute("customer", customer);
@@ -76,9 +78,9 @@ public class CustomerController {
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteCustomer(@PathVariable("id") long id, RedirectAttributes redirectAttributes) {
+    public String deleteCustomer(@AuthenticationPrincipal User user, @PathVariable("id") long id, RedirectAttributes redirectAttributes) {
         try {
-            customerService.deleteCustomer(id);
+            customerService.deleteCustomer(id, user);
         } catch (CustomerDeletionNotAllowedException e) {
             redirectAttributes.addFlashAttribute("deleteNotAllowed", true);
         }

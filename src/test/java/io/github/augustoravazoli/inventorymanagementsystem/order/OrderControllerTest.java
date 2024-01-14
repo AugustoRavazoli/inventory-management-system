@@ -70,7 +70,7 @@ class OrderControllerTest {
         @Test
         void retrieveCreateOrderPage() throws Exception {
             // given
-            when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
+            when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             // when
             var result = client.perform(get("/orders/create"));
@@ -113,7 +113,7 @@ class OrderControllerTest {
         @ArgumentsSource(AttributeNameAndExceptionProvider.class)
         void doNotCreateOrderWithInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
             // given
-            when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
+            when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             doThrow(exception).when(orderService).createOrder(any(Order.class));
             // when
@@ -268,7 +268,7 @@ class OrderControllerTest {
                     .item(5, productA)
                     .build();
             when(orderService.findOrder(anyLong())).thenReturn(order);
-            when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
+            when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             // when
             var result = client.perform(get("/orders/update/{id}", 1L));
@@ -316,7 +316,7 @@ class OrderControllerTest {
         @ArgumentsSource(AttributeNameAndExceptionProvider.class)
         void doNotUpdateOrderUsingInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
             // given
-            when(customerService.listCustomers()).thenReturn(List.of(customerA, customerB));
+            when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
             doThrow(exception).when(orderService).updateOrder(anyLong(), any(Order.class));
             // when

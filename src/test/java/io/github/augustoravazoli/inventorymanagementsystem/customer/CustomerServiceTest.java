@@ -1,6 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,8 @@ class CustomerServiceTest {
     @Mock
     private OrderRepository orderRepository;
 
+    private final User user = new User();
+
     @Nested
     class CreateCustomerTests {
 
@@ -37,10 +40,11 @@ class CustomerServiceTest {
         void createCustomer() {
             // given
             var customer = new Customer("A", "A", "A");
-            when(customerRepository.existsByName("A")).thenReturn(false);
+            when(customerRepository.existsByNameAndOwner("A", user)).thenReturn(false);
             // when
-            customerService.createCustomer(customer);
+            customerService.createCustomer(customer, user);
             // then
+            assertThat(customer.getOwner()).isEqualTo(user);
             verify(customerRepository, times(1)).save(customer);
         }
 
@@ -48,9 +52,9 @@ class CustomerServiceTest {
         void doNotCreateCustomerWithNameTaken() {
             // given
             var customer = new Customer("A", "A", "A");
-            when(customerRepository.existsByName("A")).thenReturn(true);
+            when(customerRepository.existsByNameAndOwner("A", user)).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> customerService.createCustomer(customer));
+            var exception = assertThatThrownBy(() -> customerService.createCustomer(customer, user));
             // then
             exception.isInstanceOf(CustomerNameTakenException.class);
             verify(customerRepository, never()).save(any(Customer.class));
@@ -72,9 +76,9 @@ class CustomerServiceTest {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("name"));
             var expectedCustomerPage = new PageImpl<>(customers, pageable, 3);
-            when(customerRepository.findAll(pageable)).thenReturn(expectedCustomerPage);
+            when(customerRepository.findAllByOwner(user, pageable)).thenReturn(expectedCustomerPage);
             // when
-            var actualCustomerPage = customerService.listCustomers(1);
+            var actualCustomerPage = customerService.listCustomers(1, user);
             // then
             assertThat(actualCustomerPage.getContent()).extracting("name").isSorted();
             assertThat(actualCustomerPage).usingRecursiveComparison().isEqualTo(expectedCustomerPage);
@@ -84,9 +88,9 @@ class CustomerServiceTest {
         void listCustomers() {
             // given
             var expectedCustomers = customers;
-            when(customerRepository.findAll(Sort.by("name"))).thenReturn(expectedCustomers);
+            when(customerRepository.findAllByOwner(user, Sort.by("name"))).thenReturn(expectedCustomers);
             // when
-            var actualCustomers = customerService.listCustomers();
+            var actualCustomers = customerService.listCustomers(user);
             // then
             assertThat(actualCustomers).extracting("name").isSorted();
             assertThat(actualCustomers).usingRecursiveComparison().isEqualTo(expectedCustomers);
@@ -104,9 +108,9 @@ class CustomerServiceTest {
                     new Customer("A", "A", "A"),
                     new Customer("Aa", "Aa", "Aa")
             );
-            when(customerRepository.findAllByNameContainingIgnoreCase("A")).thenReturn(expectedCustomers);
+            when(customerRepository.findAllByNameContainingIgnoreCaseAndOwner("A", user)).thenReturn(expectedCustomers);
             // when
-            var actualCustomers = customerService.findCustomers("A");
+            var actualCustomers = customerService.findCustomers("A", user);
             // then
             assertThat(actualCustomers).extracting("name").isSorted();
             assertThat(actualCustomers).usingRecursiveComparison().isEqualTo(expectedCustomers);
@@ -121,9 +125,9 @@ class CustomerServiceTest {
         void findCustomer() {
             // given
             var expectedCustomer = new Customer(1L, "A", "A", "A");
-            when(customerRepository.findById(1L)).thenReturn(Optional.of(expectedCustomer));
+            when(customerRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(expectedCustomer));
             // when
-            var actualCustomer = customerService.findCustomer(1L);
+            var actualCustomer = customerService.findCustomer(1L, user);
             // then
             assertThat(actualCustomer).usingRecursiveComparison().isEqualTo(expectedCustomer);
         }
@@ -131,9 +135,9 @@ class CustomerServiceTest {
         @Test
         void doNotFindCustomerThatDoesNotExists() {
             // given
-            when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+            when(customerRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> customerService.findCustomer(1L));
+            var exception = assertThatThrownBy(() -> customerService.findCustomer(1L, user));
             // then
             exception.isInstanceOf(CustomerNotFoundException.class);
         }
@@ -146,14 +150,15 @@ class CustomerServiceTest {
         @Test
         void updateCustomer() {
             // given
-            var customer = new Customer("A", "A", "A");
+            var customer = new Customer("A", "A", "A", user);
             var updatedCustomer = new Customer("B", "B", "B");
-            when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-            when(customerRepository.existsByName("B")).thenReturn(false);
+            when(customerRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(customer));
+            when(customerRepository.existsByNameAndOwner("B", user)).thenReturn(false);
             // when
-            customerService.updateCustomer(1L, updatedCustomer);
+            customerService.updateCustomer(1L, updatedCustomer, user);
             // then
-            assertThat(customer).usingRecursiveComparison().isEqualTo(updatedCustomer);
+            assertThat(customer).usingRecursiveComparison().ignoringFields("owner").isEqualTo(updatedCustomer);
+            assertThat(customer.getOwner()).isEqualTo(user);
             verify(customerRepository, times(1)).save(customer);
         }
 
@@ -161,9 +166,9 @@ class CustomerServiceTest {
         void doNotUpdateCustomerThatDoesNotExists() {
             // given
             var updatedCustomer = new Customer("B", "B", "B");
-            when(customerRepository.findById(1L)).thenReturn(Optional.empty());
+            when(customerRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when
-            var exception = assertThatThrownBy(() -> customerService.updateCustomer(1L, updatedCustomer));
+            var exception = assertThatThrownBy(() -> customerService.updateCustomer(1L, updatedCustomer, user));
             // then
             exception.isInstanceOf(CustomerNotFoundException.class);
             verify(customerRepository, never()).save(any(Customer.class));
@@ -174,10 +179,10 @@ class CustomerServiceTest {
             // given
             var customer = new Customer("A", "A", "A");
             var updatedCustomer = new Customer("B", "B", "B");
-            when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
-            when(customerRepository.existsByName("B")).thenReturn(true);
+            when(customerRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(customer));
+            when(customerRepository.existsByNameAndOwner("B", user)).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> customerService.updateCustomer(1L, updatedCustomer));
+            var exception = assertThatThrownBy(() -> customerService.updateCustomer(1L, updatedCustomer, user));
             // then
             exception.isInstanceOf(CustomerNameTakenException.class);
             verify(customerRepository, never()).save(any(Customer.class));
@@ -191,10 +196,10 @@ class CustomerServiceTest {
         @Test
         void deleteCustomer() {
             // given
-            when(customerRepository.existsById(1L)).thenReturn(true);
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
             when(orderRepository.existsByCustomerId(1L)).thenReturn(false);
             // when
-            customerService.deleteCustomer(1L);
+            customerService.deleteCustomer(1L, user);
             // then
             verify(customerRepository, times(1)).deleteById(1L);
         }
@@ -202,9 +207,9 @@ class CustomerServiceTest {
         @Test
         void doNotDeleteCustomerThatDoesNotExists() {
             // given
-            when(customerRepository.existsById(1L)).thenReturn(false);
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(false);
             // when
-            var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L));
+            var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L, user));
             // then
             exception.isInstanceOf(CustomerNotFoundException.class);
             verify(customerRepository, never()).deleteById(anyLong());
@@ -213,10 +218,10 @@ class CustomerServiceTest {
         @Test
         void doNotDeleteCustomerAssociatedWithOrders() {
             // given
-            when(customerRepository.existsById(1L)).thenReturn(true);
+            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
             when(orderRepository.existsByCustomerId(1L)).thenReturn(true);
             // when
-            var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L));
+            var exception = assertThatThrownBy(() -> customerService.deleteCustomer(1L, user));
             // then
             exception.isInstanceOf(CustomerDeletionNotAllowedException.class);
             verify(customerRepository, never()).deleteById(anyLong());

@@ -1,14 +1,18 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import io.github.augustoravazoli.inventorymanagementsystem.TestApplication;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.user.UserRepository;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestApplication.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-@WithMockUser
+@WithUserDetails(value = "user@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
 class CustomerEndpointsTests {
 
     @Autowired
@@ -35,9 +39,20 @@ class CustomerEndpointsTests {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private User user;
+
+    @BeforeEach
+    void setup() {
+        user = userRepository.save(new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO"));
+    }
+
     @AfterEach
     void tearDown() {
         customerRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Nested
@@ -57,10 +72,10 @@ class CustomerEndpointsTests {
                     status().isFound(),
                     redirectedUrl("/customers/list")
             );
-            var customerOptional = customerRepository.findByName("A");
+            var customerOptional = customerRepository.findByNameAndOwner("A", user);
             assertThat(customerOptional).get()
-                    .extracting("name", "address", "phone")
-                    .containsExactly("A", "A", "A");
+                    .extracting("name", "address", "phone", "owner.email")
+                    .containsExactly("A", "A", "A", "user@email.com");
         }
 
     }
@@ -72,9 +87,9 @@ class CustomerEndpointsTests {
         void listCustomers() throws Exception {
             // given
             customerRepository.saveAll(List.of(
-                    new Customer("A", "A", "A"),
-                    new Customer("B", "B", "B"),
-                    new Customer("C", "C", "C")
+                    new Customer("A", "A", "A", user),
+                    new Customer("B", "B", "B", user),
+                    new Customer("C", "C", "C", user)
             ));
             // when
             var result = client.perform(get("/customers/list"));
@@ -95,8 +110,8 @@ class CustomerEndpointsTests {
         void findCustomers() throws Exception {
             // given
             customerRepository.saveAll(List.of(
-                    new Customer("A", "A", "A"),
-                    new Customer("Aa", "Aa", "Aa"))
+                    new Customer("A", "A", "A", user),
+                    new Customer("Aa", "Aa", "Aa", user))
             );
             // when
             var result = client.perform(get("/customers/find")
@@ -118,7 +133,7 @@ class CustomerEndpointsTests {
         @Test
         void updateCustomer() throws Exception {
             // given
-            var id = customerRepository.save(new Customer("A", "A", "A")).getId();
+            var id = customerRepository.save(new Customer("A", "A", "A", user)).getId();
             // when
             var result = client.perform(post("/customers/update/{id}", id)
                     .param("name", "B")
@@ -133,8 +148,8 @@ class CustomerEndpointsTests {
             );
             var customerOptional = customerRepository.findById(id);
             assertThat(customerOptional).get()
-                    .extracting("name", "address", "phone")
-                    .containsExactly("B", "B", "B");
+                    .extracting("name", "address", "phone", "owner.email")
+                    .containsExactly("B", "B", "B", "user@email.com");
         }
 
     }
@@ -145,7 +160,7 @@ class CustomerEndpointsTests {
         @Test
         void deleteCustomer() throws Exception {
             // given
-            var id = customerRepository.save(new Customer("A", "A", "A")).getId();
+            var id = customerRepository.save(new Customer("A", "A", "A", user)).getId();
             // when
             var result = client.perform(post("/customers/delete/{id}", id)
                     .with(csrf())

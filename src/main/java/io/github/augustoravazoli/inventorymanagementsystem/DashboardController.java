@@ -38,7 +38,7 @@ public class DashboardController {
                 .map(Order::getAmount)
                 .reduce(BigDecimal::add)
                 .orElse(BigDecimal.ZERO);
-        model.addAttribute("totalCustomers", customerRepository.count());
+        model.addAttribute("totalCustomers", customerRepository.countByOwner(user));
         model.addAttribute("totalCategories", categoryRepository.countByOwner(user));
         model.addAttribute("totalProducts", productRepository.countByOwner(user));
         model.addAttribute("totalUnpaidOrders", orderRepository.countByStatus(Order.Status.UNPAID));

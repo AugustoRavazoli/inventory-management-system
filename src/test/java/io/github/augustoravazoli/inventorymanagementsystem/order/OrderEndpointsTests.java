@@ -70,8 +70,8 @@ class OrderEndpointsTests {
     @BeforeEach
     void setup() {
         user = userRepository.save(new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO"));
-        customerA = customerRepository.save(new Customer("A", "A", "A"));
-        customerB = customerRepository.save(new Customer("B", "B", "B"));
+        customerA = customerRepository.save(new Customer("A", "A", "A", user));
+        customerB = customerRepository.save(new Customer("B", "B", "B", user));
         productA = productRepository.save(new Product("A", categoryRepository.save(new Category("A", user)), 10, "1.00", user));
         productB = productRepository.save(new Product("B", categoryRepository.save(new Category("B", user)), 20, "2.00", user));
         productC = productRepository.save(new Product("C", categoryRepository.save(new Category("C", user)), 30, "3.00", user));

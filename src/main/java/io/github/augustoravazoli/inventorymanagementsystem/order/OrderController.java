@@ -28,7 +28,7 @@ public class OrderController {
     @GetMapping("/create")
     public String retrieveCreateOrderPage(@AuthenticationPrincipal User user, Model model) {
         model.addAttribute("order", new OrderForm());
-        model.addAttribute("customers", customerService.listCustomers());
+        model.addAttribute("customers", customerService.listCustomers(user));
         model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "create");
         return "order/order-form";
@@ -45,7 +45,7 @@ public class OrderController {
             model.addAttribute("duplicatedItem", true);
         }
         model.addAttribute("order", order);
-        model.addAttribute("customers", customerService.listCustomers());
+        model.addAttribute("customers", customerService.listCustomers(user));
         model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "create");
         return "order/order-form";
@@ -82,7 +82,7 @@ public class OrderController {
         var order = orderService.findOrder(id);
         model.addAttribute("order", order.toForm());
         model.addAttribute("id", order.getId());
-        model.addAttribute("customers", customerService.listCustomers());
+        model.addAttribute("customers", customerService.listCustomers(user));
         model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "update");
         return "order/order-form";
@@ -108,7 +108,7 @@ public class OrderController {
         }
         model.addAttribute("order", order);
         model.addAttribute("id", id);
-        model.addAttribute("customers", customerService.listCustomers());
+        model.addAttribute("customers", customerService.listCustomers(user));
         model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "update");
         return "order/order-form";

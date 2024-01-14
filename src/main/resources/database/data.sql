@@ -33,15 +33,15 @@ INSERT INTO product (name, category_id, quantity, price, owner_id) VALUES
     ('S', 3, 950, '1000', 1),
     ('T', 4, 1000, '1050', 1);
 
-INSERT INTO customer (name, address, phone) VALUES
-    ('A', 'A', 'A'),
-    ('B', 'B', 'B'),
-    ('C', 'C', 'C'),
-    ('D', 'D', 'D'),
-    ('E', 'E', 'E'),
-    ('F', 'F', 'F'),
-    ('G', 'G', 'G'),
-    ('H', 'H', 'H');
+INSERT INTO customer (name, address, phone, owner_id) VALUES
+    ('A', 'A', 'A', 1),
+    ('B', 'B', 'B', 1),
+    ('C', 'C', 'C', 1),
+    ('D', 'D', 'D', 1),
+    ('E', 'E', 'E', 1),
+    ('F', 'F', 'F', 1),
+    ('G', 'G', 'G', 1),
+    ('H', 'H', 'H', 1);
 
 INSERT INTO "order" (status, customer_id) VALUES
     ('UNPAID', 1),

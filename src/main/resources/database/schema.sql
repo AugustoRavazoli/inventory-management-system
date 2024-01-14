@@ -31,9 +31,11 @@ CREATE TABLE product (
 
 CREATE TABLE customer (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
     address VARCHAR(255) NOT NULL,
-    phone VARCHAR(255) NOT NULL
+    phone VARCHAR(255) NOT NULL,
+    owner_id BIGINT NOT NULL REFERENCES "user"(id),
+    UNIQUE(name, owner_id)
 );
 
 CREATE TABLE "order" (

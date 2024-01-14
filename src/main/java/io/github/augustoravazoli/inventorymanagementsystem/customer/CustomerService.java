@@ -1,6 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -24,62 +25,63 @@ public class CustomerService {
         this.orderRepository = orderRepository;
     }
 
-    public void createCustomer(Customer customer) {
-        if (customerRepository.existsByName(customer.getName())) {
-            logger.info("Customer name {} already in use, throwing exception", customer.getName());
+    public void createCustomer(Customer customer, User owner) {
+        if (customerRepository.existsByNameAndOwner(customer.getName(), owner)) {
+            logger.info("Customer name {} of user {} already in use, throwing exception", customer.getName(), owner.getEmail());
             throw new CustomerNameTakenException();
         }
+        customer.setOwner(owner);
         customerRepository.save(customer);
-        logger.info("Customer {} created", customer.getName());
+        logger.info("Customer {} created for user {}", customer.getName(), owner.getEmail());
     }
 
-    public Page<Customer> listCustomers(int page) {
-        logger.info("Listing customers paginated");
-        return customerRepository.findAll(PageRequest.of(page - 1, 8, Sort.by("name")));
+    public Page<Customer> listCustomers(int page, User owner) {
+        logger.info("Listing customers paginated for user {}", owner.getEmail());
+        return customerRepository.findAllByOwner(owner, PageRequest.of(page - 1, 8, Sort.by("name")));
     }
 
-    public List<Customer> listCustomers() {
-        logger.info("Listing customers");
-        return customerRepository.findAll(Sort.by("name"));
+    public List<Customer> listCustomers(User owner) {
+        logger.info("Listing customers for user {}", owner.getEmail());
+        return customerRepository.findAllByOwner(owner, Sort.by("name"));
     }
 
-    public List<Customer> findCustomers(String name) {
-        logger.info("Finding customers containing name {}", name);
-        return customerRepository.findAllByNameContainingIgnoreCase(name);
+    public List<Customer> findCustomers(String name, User owner) {
+        logger.info("Finding customers containing name {} for user {}", name, owner.getEmail());
+        return customerRepository.findAllByNameContainingIgnoreCaseAndOwner(name, owner);
     }
 
-    public Customer findCustomer(long id) {
-        logger.info("Finding customer with id {}", id);
-        return customerRepository.findById(id)
+    public Customer findCustomer(long id, User owner) {
+        logger.info("Finding customer with id {} for user {}", id, owner.getEmail());
+        return customerRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(CustomerNotFoundException::new);
     }
 
-    public void updateCustomer(long id, Customer updatedCustomer) {
-        var customer = customerRepository.findById(id)
+    public void updateCustomer(long id, Customer updatedCustomer, User owner) {
+        var customer = customerRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(CustomerNotFoundException::new);
         if (!customer.getName().equals(updatedCustomer.getName())
-            && customerRepository.existsByName(updatedCustomer.getName())) {
-            logger.info("New customer name {} already in use, throwing exception", updatedCustomer.getName());
+            && customerRepository.existsByNameAndOwner(updatedCustomer.getName(), owner)) {
+            logger.info("New customer name {} of user {} already in use, throwing exception", updatedCustomer.getName(), owner.getEmail());
             throw new CustomerNameTakenException();
         }
         customer.setName(updatedCustomer.getName());
         customer.setAddress(updatedCustomer.getAddress());
         customer.setPhone(updatedCustomer.getPhone());
         customerRepository.save(customer);
-        logger.info("Customer {} updated, new name is {}", customer.getName(), updatedCustomer.getName());
+        logger.info("Customer {} of user {} updated, new name is {}", customer.getName(), owner.getEmail(), updatedCustomer.getName());
     }
 
-    public void deleteCustomer(long id) {
-        if (!customerRepository.existsById(id)) {
-            logger.info("Customer with id {} not found, throwing exception", id);
+    public void deleteCustomer(long id, User owner) {
+        if (!customerRepository.existsByIdAndOwner(id, owner)) {
+            logger.info("Customer with id {} of user {} not found, throwing exception", id, owner.getEmail());
             throw new CustomerNotFoundException();
         }
         if (orderRepository.existsByCustomerId(id)) {
-            logger.info("Category with id {} still has orders, throwing exception", id);
+            logger.info("Customer with id {} of user {} still has orders, throwing exception", id, owner.getEmail());
             throw new CustomerDeletionNotAllowedException();
         }
         customerRepository.deleteById(id);
-        logger.info("Customer with id {} deleted", id);
+        logger.info("Customer with id {} of user {} deleted", id, owner.getEmail());
     }
 
 }
