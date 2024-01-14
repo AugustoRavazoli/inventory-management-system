@@ -13,6 +13,7 @@ Inventory Management System is a simple prototype application for inventory mana
 
 ## Features
 
+- User can register their account
 - User can authenticate through the system.
 - User can log out from the system
 - User can view information on dashboard.
@@ -60,7 +61,7 @@ Start the application
 ```
 
 The application will start at `http://localhost:8080/`
-with user `admin` and password `admin` with prefilled data.
+with a default user with email `user@email.com` and password `password` with prefilled data.
 
 ### Tests
 
