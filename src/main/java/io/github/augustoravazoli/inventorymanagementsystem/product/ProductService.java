@@ -82,7 +82,7 @@ public class ProductService {
         product.setQuantity(updatedProduct.getQuantity());
         product.setPrice(updatedProduct.getPrice());
         productRepository.save(product);
-        logger.info("Product {} of user {} updated, new name is {}", product.getName(), owner.getEmail(), updatedProduct.getName());
+        logger.info("Product with id {} of user {} updated, new name is {}", product.getId(), owner.getEmail(), updatedProduct.getName());
     }
 
     public void deleteProduct(long id, User owner) {

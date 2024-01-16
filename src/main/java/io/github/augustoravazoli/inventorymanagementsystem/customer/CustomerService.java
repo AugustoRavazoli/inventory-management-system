@@ -68,7 +68,7 @@ public class CustomerService {
         customer.setAddress(updatedCustomer.getAddress());
         customer.setPhone(updatedCustomer.getPhone());
         customerRepository.save(customer);
-        logger.info("Customer {} of user {} updated, new name is {}", customer.getName(), owner.getEmail(), updatedCustomer.getName());
+        logger.info("Customer with id {} of user {} updated, new name is {}", customer.getId(), owner.getEmail(), updatedCustomer.getName());
     }
 
     public void deleteCustomer(long id, User owner) {

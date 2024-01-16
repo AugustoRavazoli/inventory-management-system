@@ -62,7 +62,7 @@ public class CategoryService {
         }
         category.setName(updatedCategory.getName());
         categoryRepository.save(category);
-        logger.info("Category {} of user {} updated, new name is {}", category.getName(), owner.getEmail(), updatedCategory.getName());
+        logger.info("Category with id {} of user {} updated, new name is {}", category.getId(), owner.getEmail(), updatedCategory.getName());
     }
 
     public void deleteCategory(long id, User owner) {
