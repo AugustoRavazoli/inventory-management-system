@@ -112,7 +112,7 @@ class OrderEndpointsTests {
                     .usingRecursiveComparison()
                     .ignoringFields("id", "items.id", "items.product.quantity")
                     .isEqualTo(new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .date(LocalDate.now())
                             .customer(customerA)
                             .item(5, productA)
@@ -134,21 +134,21 @@ class OrderEndpointsTests {
             // given
             orderRepository.saveAll(List.of(
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .owner(user)
                             .build(),
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .owner(user)
                             .build(),
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
@@ -177,14 +177,14 @@ class OrderEndpointsTests {
             // given
             orderRepository.saveAll(List.of(
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .owner(user)
                             .build(),
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
@@ -217,7 +217,7 @@ class OrderEndpointsTests {
             productC.setQuantity(15);
             productRepository.saveAll(List.of(productA, productB, productC));
             var id = orderRepository.save(new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .item(8, productB)
@@ -248,7 +248,7 @@ class OrderEndpointsTests {
                     .usingRecursiveComparison()
                     .ignoringFields("id", "date", "items.id", "items.product.quantity")
                     .isEqualTo(new OrderBuilder()
-                            .status(Order.Status.PAID)
+                            .status(OrderStatus.PAID)
                             .customer(customerB)
                             .item(3, productA)
                             .item(10, productB)
@@ -274,7 +274,7 @@ class OrderEndpointsTests {
             productC.setQuantity(15);
             productRepository.saveAll(List.of(productA, productB, productC));
             var id = orderRepository.save(new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .customer(customerA)
                             .item(5, productA)
                             .item(8, productB)

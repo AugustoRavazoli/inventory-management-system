@@ -4,6 +4,7 @@ import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepo
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.order.Order;
 import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderStatus;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +34,7 @@ public class DashboardController {
 
     @GetMapping
     public String retrieveDashboardPage(@AuthenticationPrincipal User user, Model model) {
-        var totalSales = orderRepository.findAllByStatusAndOwner(Order.Status.PAID, user, Pageable.unpaged())
+        var totalSales = orderRepository.findAllByStatusAndOwner(OrderStatus.PAID, user, Pageable.unpaged())
                 .stream()
                 .map(Order::getAmount)
                 .reduce(BigDecimal::add)
@@ -41,8 +42,8 @@ public class DashboardController {
         model.addAttribute("totalCustomers", customerRepository.countByOwner(user));
         model.addAttribute("totalCategories", categoryRepository.countByOwner(user));
         model.addAttribute("totalProducts", productRepository.countByOwner(user));
-        model.addAttribute("totalUnpaidOrders", orderRepository.countByStatusAndOwner(Order.Status.UNPAID, user));
-        model.addAttribute("totalPaidOrders", orderRepository.countByStatusAndOwner(Order.Status.PAID, user));
+        model.addAttribute("totalUnpaidOrders", orderRepository.countByStatusAndOwner(OrderStatus.UNPAID, user));
+        model.addAttribute("totalPaidOrders", orderRepository.countByStatusAndOwner(OrderStatus.PAID, user));
         model.addAttribute("totalSales", totalSales);
         return "dashboard";
     }

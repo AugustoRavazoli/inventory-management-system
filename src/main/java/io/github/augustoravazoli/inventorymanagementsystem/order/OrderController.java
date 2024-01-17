@@ -54,12 +54,12 @@ public class OrderController {
     @GetMapping("/list")
     public String listOrders(
             @AuthenticationPrincipal User user,
-            @RequestParam("status") OrderForm.StatusForm status,
+            @RequestParam("status") OrderStatus status,
             @RequestParam(name = "page", defaultValue = "1") int page,
             Model model,
             HttpSession session
     ) {
-        var orderPage = orderService.listOrders(status.toEntity(), page, user);
+        var orderPage = orderService.listOrders(status, page, user);
         model.addAttribute("orders", orderPage.getContent());
         model.addAttribute("currentPage", orderPage.getNumber() + 1);
         model.addAttribute("totalPages", orderPage.getTotalPages());
@@ -70,11 +70,11 @@ public class OrderController {
     @GetMapping("/find")
     public String findOrders(
             @AuthenticationPrincipal User user,
-            @RequestParam("status") OrderForm.StatusForm status,
+            @RequestParam("status") OrderStatus status,
             @RequestParam("customer-name") String customerName,
             Model model
     ) {
-        var orders = orderService.findOrders(status.toEntity(), customerName, user);
+        var orders = orderService.findOrders(status, customerName, user);
         model.addAttribute("orders", orders);
         return "order/order-table";
     }

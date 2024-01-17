@@ -9,17 +9,8 @@ import java.util.List;
 
 public class OrderForm {
 
-    public enum StatusForm {
-        PAID, UNPAID;
-
-        public Order.Status toEntity() {
-            return Order.Status.valueOf(name());
-        }
-
-    }
-
     @NotNull
-    private StatusForm status;
+    private OrderStatus status;
 
     @NotNull
     private Long customerId;
@@ -30,17 +21,17 @@ public class OrderForm {
 
     public OrderForm() {}
 
-    public OrderForm(StatusForm status, Long customerId, List<OrderItemForm> items) {
+    public OrderForm(OrderStatus status, Long customerId, List<OrderItemForm> items) {
         this.status = status;
         this.customerId = customerId;
         this.items = items;
     }
 
-    public StatusForm getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(StatusForm status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 
@@ -62,7 +53,7 @@ public class OrderForm {
 
     public Order toEntity() {
         return new Order(
-                Order.Status.valueOf(status.name()),
+                status,
                 new Customer(customerId),
                 items.stream().map(OrderItemForm::toEntity).toList()
         );

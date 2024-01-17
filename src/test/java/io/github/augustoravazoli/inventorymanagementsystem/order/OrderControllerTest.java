@@ -163,21 +163,21 @@ class OrderControllerTest {
 
         private final List<Order> orders = List.of(
                 new OrderBuilder()
-                        .status(Order.Status.UNPAID)
+                        .status(OrderStatus.UNPAID)
                         .date(LocalDate.now())
                         .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .build(),
                 new OrderBuilder()
-                        .status(Order.Status.UNPAID)
+                        .status(OrderStatus.UNPAID)
                         .date(LocalDate.now())
                         .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .build(),
                 new OrderBuilder()
-                        .status(Order.Status.UNPAID)
+                        .status(OrderStatus.UNPAID)
                         .date(LocalDate.now())
                         .customer(customerA)
                         .item(5, productA)
@@ -186,12 +186,12 @@ class OrderControllerTest {
         );
 
         @ParameterizedTest
-        @EnumSource(OrderForm.StatusForm.class)
-        void listOrders(OrderForm.StatusForm status) throws Exception {
+        @EnumSource(OrderStatus.class)
+        void listOrders(OrderStatus status) throws Exception {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("date"));
             var orderPage = new PageImpl<>(orders, pageable, 3);
-            when(orderService.listOrders(any(Order.Status.class), anyInt(), any(User.class))).thenReturn(orderPage);
+            when(orderService.listOrders(any(OrderStatus.class), anyInt(), any(User.class))).thenReturn(orderPage);
             // when
             var result = client.perform(get("/orders/list")
                     .param("status", status.name())
@@ -209,7 +209,7 @@ class OrderControllerTest {
                     model().attribute("totalPages", 1),
                     view().name("order/order-table")
             );
-            verify(orderService, times(1)).listOrders(any(Order.Status.class), anyInt(), any(User.class));
+            verify(orderService, times(1)).listOrders(any(OrderStatus.class), anyInt(), any(User.class));
         }
 
     }
@@ -221,21 +221,21 @@ class OrderControllerTest {
         void findOrders() throws Exception {
             var orders = List.of(
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .date(LocalDate.now())
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build(),
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .date(LocalDate.now())
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build()
             );
-            when(orderService.findOrders(any(Order.Status.class), anyString(), any(User.class))).thenReturn(orders);
+            when(orderService.findOrders(any(OrderStatus.class), anyString(), any(User.class))).thenReturn(orders);
             // when
             var result = client.perform(get("/orders/find")
                     .param("status", "UNPAID")
@@ -250,7 +250,7 @@ class OrderControllerTest {
                     )),
                     view().name("order/order-table")
             );
-            verify(orderService, times(1)).findOrders(any(Order.Status.class), anyString(), any(User.class));
+            verify(orderService, times(1)).findOrders(any(OrderStatus.class), anyString(), any(User.class));
         }
 
     }
@@ -263,7 +263,7 @@ class OrderControllerTest {
             // given
             var order = new OrderBuilder()
                     .id(1L)
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .build();

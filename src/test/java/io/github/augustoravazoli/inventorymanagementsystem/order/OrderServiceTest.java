@@ -64,7 +64,7 @@ class OrderServiceTest {
         void createOrder() {
             // given
             var order = new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .item(10, productB)
@@ -85,7 +85,7 @@ class OrderServiceTest {
         void doNotCreateOrderWithNonexistentCustomer() {
             // given
             var order = new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .item(10, productB)
@@ -104,7 +104,7 @@ class OrderServiceTest {
         void doNotCreateOrderWithDuplicatedItems() {
             // given
             var order = new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .item(10, productA)
@@ -122,7 +122,7 @@ class OrderServiceTest {
         void doNotCreateOrderWithNonexistentProducts() {
             // given
             var order = new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .build();
@@ -139,7 +139,7 @@ class OrderServiceTest {
         void doNotCreateOrderWithProductsWithInsufficientStock() {
             // given
             var order = new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(1000, productA)
                     .build();
@@ -160,21 +160,21 @@ class OrderServiceTest {
 
         private final List<Order> orders = List.of(
                 new OrderBuilder()
-                        .status(Order.Status.UNPAID)
+                        .status(OrderStatus.UNPAID)
                         .date(LocalDate.now())
                         .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .build(),
                 new OrderBuilder()
-                        .status(Order.Status.UNPAID)
+                        .status(OrderStatus.UNPAID)
                         .date(LocalDate.now())
                         .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .build(),
                 new OrderBuilder()
-                        .status(Order.Status.UNPAID)
+                        .status(OrderStatus.UNPAID)
                         .date(LocalDate.now())
                         .customer(customerA)
                         .item(5, productA)
@@ -187,9 +187,9 @@ class OrderServiceTest {
             // given
             var pageable = PageRequest.of(0, 8, Sort.by("date"));
             var expectedOrderPage = new PageImpl<>(orders, pageable, 3);
-            when(orderRepository.findAllByStatusAndOwner(Order.Status.UNPAID, user, pageable)).thenReturn(expectedOrderPage);
+            when(orderRepository.findAllByStatusAndOwner(OrderStatus.UNPAID, user, pageable)).thenReturn(expectedOrderPage);
             // when
-            var actualOrderPage = orderService.listOrders(Order.Status.UNPAID, 1, user);
+            var actualOrderPage = orderService.listOrders(OrderStatus.UNPAID, 1, user);
             // then
             assertThat(actualOrderPage.getContent()).extracting("date").isSorted();
             assertThat(actualOrderPage).usingRecursiveComparison().isEqualTo(expectedOrderPage);
@@ -205,24 +205,24 @@ class OrderServiceTest {
             // given
             var expectedOrders = List.of(
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .date(LocalDate.now())
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build(),
                     new OrderBuilder()
-                            .status(Order.Status.UNPAID)
+                            .status(OrderStatus.UNPAID)
                             .date(LocalDate.now())
                             .customer(customerA)
                             .item(5, productA)
                             .item(10, productB)
                             .build()
             );
-            when(orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(Order.Status.UNPAID, "A", user))
+            when(orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(OrderStatus.UNPAID, "A", user))
                     .thenReturn(expectedOrders);
             // when
-            var actualOrders = orderService.findOrders(Order.Status.UNPAID, "A", user);
+            var actualOrders = orderService.findOrders(OrderStatus.UNPAID, "A", user);
             // then
             assertThat(actualOrders).extracting("customer.name").isSorted();
             assertThat(actualOrders).usingRecursiveComparison().isEqualTo(expectedOrders);
@@ -237,7 +237,7 @@ class OrderServiceTest {
         void findOrder() {
             // given
             var expectedOrder =  new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .date(LocalDate.now())
                     .customer(customerA)
                     .item(5, productA)
@@ -272,7 +272,7 @@ class OrderServiceTest {
             productA.setQuantity(5);
             productB.setQuantity(12);
             order = new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .item(8, productB)
@@ -284,7 +284,7 @@ class OrderServiceTest {
         void updateOrderWithNewItemsDecreaseProductStock() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(5, productA)
                     .item(8, productB)
@@ -310,7 +310,7 @@ class OrderServiceTest {
         void updateOrderWithDeletedItemsResetProductStock() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(5, productA)
                     .build();
@@ -332,7 +332,7 @@ class OrderServiceTest {
         void updateOrderWithSameItemsButDifferentQuantitiesChangeStock() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(3, productA)
                     .item(10, productB)
@@ -355,7 +355,7 @@ class OrderServiceTest {
         void doNotUpdateOrderThatDoesNotExists() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(3, productA)
                     .item(10, productB)
@@ -374,7 +374,7 @@ class OrderServiceTest {
         void doNotUpdateOrderUsingNonexistentCustomer() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(3, productA)
                     .item(10, productB)
@@ -394,7 +394,7 @@ class OrderServiceTest {
         void doNotUpdateOrderUsingDuplicatedItems() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(3, productA)
                     .item(3, productA)
@@ -413,7 +413,7 @@ class OrderServiceTest {
         void doNotUpdateOrderUsingNonexistentProducts() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(3, productA)
                     .item(10, productB)
@@ -432,7 +432,7 @@ class OrderServiceTest {
         void doNotUpdateOrderUsingProductsWithInsufficientStock() {
             // given
             var updatedOrder = new OrderBuilder()
-                    .status(Order.Status.PAID)
+                    .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(100, productA)
                     .item(100, productB)
@@ -460,7 +460,7 @@ class OrderServiceTest {
             productA.setQuantity(5);
             productB.setQuantity(12);
             order = new OrderBuilder()
-                    .status(Order.Status.UNPAID)
+                    .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
                     .item(8, productB)
@@ -484,7 +484,7 @@ class OrderServiceTest {
         @Test
         void deletePaidOrderDoesNotChangeProductStock() {
             // given
-            order.setStatus(Order.Status.PAID);
+            order.setStatus(OrderStatus.PAID);
             when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
             // when
             orderService.deleteOrder(1L, user);

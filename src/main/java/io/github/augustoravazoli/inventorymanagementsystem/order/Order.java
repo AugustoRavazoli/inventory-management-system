@@ -15,17 +15,13 @@ import java.util.List;
 @Table(name = "`order`")
 public class Order {
 
-    public enum Status {
-        PAID, UNPAID
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status;
+    private OrderStatus status;
 
     @CreationTimestamp
     @Column(nullable = false)
@@ -45,7 +41,7 @@ public class Order {
 
     public Order() {}
 
-    public Order(Long id, Status status, LocalDate date, Customer customer, List<OrderItem> items, User owner) {
+    public Order(Long id, OrderStatus status, LocalDate date, Customer customer, List<OrderItem> items, User owner) {
         this.id = id;
         this.status = status;
         this.date = date;
@@ -54,7 +50,7 @@ public class Order {
         this.owner = owner;
     }
 
-    public Order(Status status, Customer customer, List<OrderItem> items) {
+    public Order(OrderStatus status, Customer customer, List<OrderItem> items) {
         this(null, status, null, customer, items, null);
     }
 
@@ -62,11 +58,11 @@ public class Order {
         return id;
     }
 
-    public Status getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 
@@ -119,7 +115,7 @@ public class Order {
 
     public OrderForm toForm() {
         return new OrderForm(
-                OrderForm.StatusForm.valueOf(status.name()),
+                status,
                 customer.getId(),
                 items.stream().map(item -> new OrderItemForm(item.getQuantity(), item.getProduct().getId())).toList()
         );

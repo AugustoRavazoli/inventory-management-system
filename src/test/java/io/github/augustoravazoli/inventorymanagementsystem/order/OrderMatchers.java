@@ -20,7 +20,7 @@ public class OrderMatchers {
 
     public static Matcher<OrderForm> order(String status, Long customerId, Matcher<Iterable<? extends OrderItemForm>> itemsMatcher) {
         return allOf(
-                hasProperty("status", is(OrderForm.StatusForm.valueOf(status))),
+                hasProperty("status", is(OrderStatus.valueOf(status))),
                 hasProperty("customerId", is(customerId)),
                 hasProperty("items", itemsMatcher)
         );

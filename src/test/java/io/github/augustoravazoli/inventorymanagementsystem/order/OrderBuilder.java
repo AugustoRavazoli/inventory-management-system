@@ -11,7 +11,7 @@ import java.util.List;
 public class OrderBuilder {
 
     private Long id;
-    private Order.Status status;
+    private OrderStatus status;
     private LocalDate date;
     private Customer customer;
     private final List<OrderItem> items = new ArrayList<>();
@@ -22,7 +22,7 @@ public class OrderBuilder {
         return this;
     }
 
-    public OrderBuilder status(Order.Status status) {
+    public OrderBuilder status(OrderStatus status) {
         this.status = status;
         return this;
     }

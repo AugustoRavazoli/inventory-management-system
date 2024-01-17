@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    long countByStatusAndOwner(Order.Status status, User owner);
+    long countByStatusAndOwner(OrderStatus status, User owner);
 
     boolean existsByCustomerIdAndOwner(long customerId, User owner);
 
@@ -19,9 +19,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByIdAndOwner(long id, User owner);
 
-    Page<Order> findAllByStatusAndOwner(Order.Status status, User owner, Pageable pageable);
+    Page<Order> findAllByStatusAndOwner(OrderStatus status, User owner, Pageable pageable);
 
-    List<Order> findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(Order.Status status, String customerName, User owner);
+    List<Order> findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(OrderStatus status, String customerName, User owner);
 
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items")
     List<Order> findAllWithItems();

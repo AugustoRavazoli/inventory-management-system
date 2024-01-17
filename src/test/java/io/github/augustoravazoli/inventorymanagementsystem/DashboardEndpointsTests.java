@@ -4,9 +4,9 @@ import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
-import io.github.augustoravazoli.inventorymanagementsystem.order.Order;
 import io.github.augustoravazoli.inventorymanagementsystem.order.OrderBuilder;
 import io.github.augustoravazoli.inventorymanagementsystem.order.OrderRepository;
+import io.github.augustoravazoli.inventorymanagementsystem.order.OrderStatus;
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
@@ -64,21 +64,21 @@ class DashboardEndpointsTests {
         var productC = productRepository.save(new Product("C", categoryRepository.save(new Category("C", user)), 30, "3.00", user));
         orderRepository.saveAll(List.of(
                 new OrderBuilder()
-                        .status(Order.Status.UNPAID)
+                        .status(OrderStatus.UNPAID)
                         .customer(customerA)
                         .item(5, productA)
                         .item(10, productB)
                         .owner(user)
                         .build(),
                 new OrderBuilder()
-                        .status(Order.Status.PAID)
+                        .status(OrderStatus.PAID)
                         .customer(customerB)
                         .item(3, productA)
                         .item(8, productB)
                         .owner(user)
                         .build(),
                 new OrderBuilder()
-                        .status(Order.Status.PAID)
+                        .status(OrderStatus.PAID)
                         .customer(customerB)
                         .item(2, productA)
                         .item(5, productC)

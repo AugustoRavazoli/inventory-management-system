@@ -41,12 +41,12 @@ public class OrderService {
         logger.info("Order created for customer {} of user {}", order.getCustomer().getName(), owner.getEmail());
     }
 
-    public Page<Order> listOrders(Order.Status status, int page, User owner) {
+    public Page<Order> listOrders(OrderStatus status, int page, User owner) {
         logger.info("Listing {} orders paginated for user {}", status, owner.getEmail());
         return orderRepository.findAllByStatusAndOwner(status, owner, PageRequest.of(page - 1, 8, Sort.by("date")));
     }
 
-    public List<Order> findOrders(Order.Status status, String customerName, User owner) {
+    public List<Order> findOrders(OrderStatus status, String customerName, User owner) {
         logger.info("Finding {} orders containing customer name {} for user {}", status, customerName, owner.getEmail());
         return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(status, customerName, owner);
     }
@@ -74,7 +74,7 @@ public class OrderService {
     @Transactional
     public void deleteOrder(long id, User owner) {
         var order = orderRepository.findByIdAndOwner(id, owner).orElseThrow(OrderNotFoundException::new);
-        if (order.getStatus() == Order.Status.UNPAID) {
+        if (order.getStatus() == OrderStatus.UNPAID) {
             logger.info("Order status is UNPAID, reset associated product quantities");
             updateProductQuantities(order.getItems(), "increase", owner);
         }
