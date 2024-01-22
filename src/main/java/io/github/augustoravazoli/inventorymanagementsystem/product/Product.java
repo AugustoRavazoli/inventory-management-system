@@ -5,6 +5,8 @@ import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -18,6 +20,7 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     @Column(nullable = false)
     private String name;
 
@@ -25,14 +28,17 @@ public class Product {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Category category;
 
+    @NotNull
     @Min(0)
     @Column(nullable = false)
     private Integer quantity = 0;
 
+    @NotNull
     @DecimalMin("0.01")
     @Column(nullable = false)
     private BigDecimal price = BigDecimal.ZERO;
 
+    @NotNull
     @ManyToOne(optional = false)
     private User owner;
 
