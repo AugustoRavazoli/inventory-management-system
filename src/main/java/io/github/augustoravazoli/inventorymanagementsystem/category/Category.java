@@ -2,6 +2,8 @@ package io.github.augustoravazoli.inventorymanagementsystem.category;
 
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = { "name", "owner_id" }))
@@ -11,9 +13,11 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank
     @Column(nullable = false)
     private String name;
 
+    @NotNull
     @ManyToOne(optional = false)
     private User owner;
 
