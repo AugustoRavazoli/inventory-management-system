@@ -3,6 +3,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.customer;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = { "name", "owner_id" }))
@@ -24,6 +25,7 @@ public class Customer {
     @Column(nullable = false)
     private String phone;
 
+    @NotNull
     @ManyToOne(optional = false)
     private User owner;
 
