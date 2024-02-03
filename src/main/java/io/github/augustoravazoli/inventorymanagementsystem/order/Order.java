@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Generated;
 import org.hibernate.validator.constraints.UniqueElements;
 
 import java.math.BigDecimal;
@@ -15,12 +16,16 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 @Entity
-@Table(name = "\"order\"")
+@Table(name = "\"order\"", uniqueConstraints = @UniqueConstraint(columnNames = { "number", "owner_id" }))
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Generated
+    @Column(nullable = false)
+    private Integer number;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -62,6 +67,10 @@ public class Order {
 
     public Long getId() {
         return id;
+    }
+
+    public Integer getNumber() {
+        return number;
     }
 
     public OrderStatus getStatus() {

@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS order_sequence;
 DROP TABLE IF EXISTS order_item;
 DROP TABLE IF EXISTS "order";
 DROP TABLE IF EXISTS product;
@@ -40,10 +41,12 @@ CREATE TABLE customer (
 
 CREATE TABLE "order" (
     id BIGSERIAL PRIMARY KEY,
+    number INTEGER NOT NULL,
     status VARCHAR(255) NOT NULL CHECK (status IN ('UNPAID', 'PAID')),
     "date" date NOT NULL DEFAULT CURRENT_DATE,
     customer_id BIGINT NOT NULL REFERENCES customer(id),
-    owner_id BIGINT NOT NULL REFERENCES "user"(id)
+    owner_id BIGINT NOT NULL REFERENCES "user"(id),
+    UNIQUE(number, owner_id)
 );
 
 CREATE TABLE order_item (
@@ -53,3 +56,42 @@ CREATE TABLE order_item (
     "index" INTEGER NOT NULL,
     PRIMARY KEY (product_id, order_id)
 );
+
+CREATE TABLE order_sequence (
+    owner_id BIGINT PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
+    counter INTEGER NOT NULL
+);
+
+CREATE OR REPLACE FUNCTION next_order_number(p_owner_id BIGINT)
+    RETURNS INTEGER
+    LANGUAGE PLPGSQL
+    VOLATILE
+AS
+'
+DECLARE
+    v_counter INTEGER;
+BEGIN
+    INSERT INTO order_sequence(owner_id, counter)
+    VALUES (p_owner_id, 1)
+    ON CONFLICT(owner_id)
+    DO UPDATE SET counter = order_sequence.counter + 1
+    RETURNING counter INTO v_counter;
+    RETURN v_counter;
+END;
+';
+
+CREATE OR REPLACE FUNCTION generate_order_number()
+    RETURNS TRIGGER
+    LANGUAGE PLPGSQL
+AS
+'
+BEGIN
+    NEW.number := next_order_number(NEW.owner_id);
+    RETURN NEW;
+END;
+';
+
+CREATE OR REPLACE TRIGGER base_table_insert_trigger
+    BEFORE INSERT ON "order"
+    FOR EACH ROW
+    EXECUTE PROCEDURE generate_order_number();

@@ -110,7 +110,7 @@ class OrderEndpointsTests {
             var order = orderRepository.findAllWithItems().getFirst();
             assertThat(order)
                     .usingRecursiveComparison()
-                    .ignoringFields("id", "items.id", "items.index", "items.order", "items.product.quantity")
+                    .ignoringFields("id", "number", "items.id", "items.index", "items.order", "items.product.quantity")
                     .isEqualTo(new OrderBuilder()
                             .status(OrderStatus.UNPAID)
                             .date(LocalDate.now())
@@ -246,7 +246,7 @@ class OrderEndpointsTests {
             var order = orderRepository.findAllWithItems().getFirst();
             assertThat(order)
                     .usingRecursiveComparison()
-                    .ignoringFields("id", "date", "items.id", "items.index", "items.order", "items.product.quantity")
+                    .ignoringFields("id", "number", "date", "items.id", "items.index", "items.order", "items.product.quantity")
                     .isEqualTo(new OrderBuilder()
                             .status(OrderStatus.PAID)
                             .customer(customerB)
