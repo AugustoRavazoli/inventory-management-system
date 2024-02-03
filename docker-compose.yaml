@@ -7,3 +7,11 @@ services:
       - 'POSTGRES_USER=myuser'
     ports:
       - '5432'
+  pgadmin:
+    image: 'dpage/pgadmin4'
+    environment:
+      - 'PGADMIN_DEFAULT_EMAIL=myuser@email.com'
+      - 'PGADMIN_DEFAULT_PASSWORD=secret'
+      - 'PGADMIN_CONFIG_SERVER_MODE=False'
+    ports:
+      - '5050:80'
