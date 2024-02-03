@@ -33,7 +33,6 @@ public class OrderService {
     @Transactional
     public void createOrder(Order order, User owner) {
         checkCustomer(order.getCustomer(), owner);
-        checkDuplicates(order.getItems());
         checkProductAvailability(order.getItems(), owner);
         updateProductQuantities(order.getItems(), "decrease", owner);
         order.setOwner(owner);
@@ -61,7 +60,6 @@ public class OrderService {
     public void updateOrder(long id, Order updatedOrder, User owner) {
         var order = orderRepository.findByIdAndOwner(id, owner).orElseThrow(OrderNotFoundException::new);
         checkCustomer(updatedOrder.getCustomer(), owner);
-        checkDuplicates(updatedOrder.getItems());
         checkProductAvailability(updatedOrder.getItems(), owner);
         updateProductQuantitiesForExistingItems(order.getItems(), updatedOrder.getItems(), owner);
         decreaseProductQuantitiesForNewItems(order.getItems(), updatedOrder.getItems(), owner);
@@ -89,14 +87,6 @@ public class OrderService {
         }
     }
 
-    private void checkDuplicates(List<OrderItem> items) {
-        var elements = new HashSet<Long>();
-        if (items.stream().anyMatch(item -> !elements.add(item.getProduct().getId()))) {
-            logger.info("Order items contains duplicated items, throwing exception");
-            throw new DuplicatedOrderItemException();
-        }
-    }
-
     private void checkProductAvailability(List<OrderItem> items, User owner) {
         for (var item : items) {
             var product = productRepository.findByIdAndOwner(item.getProduct().getId(), owner)
@@ -121,25 +111,20 @@ public class OrderService {
     }
 
     private void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
-        var existingItems = updatedItems.stream().filter(item -> contains(item, items)).toList();
-        var oldItems = items.stream().filter(item -> contains(item, existingItems)).toList();
+        var existingItems = updatedItems.stream().filter(items::contains).toList();
+        var oldItems = items.stream().filter(existingItems::contains).toList();
         updateProductQuantities(oldItems, "increase", owner);
         updateProductQuantities(existingItems, "decrease", owner);
     }
 
     private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
-        var newItems = updatedItems.stream().filter(item -> !contains(item, items)).toList();
+        var newItems = updatedItems.stream().filter(item -> !items.contains(item)).toList();
         updateProductQuantities(newItems, "decrease", owner);
     }
 
     private void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
-        var removedItems = items.stream().filter(item -> !contains(item, updatedItems)).toList();
+        var removedItems = items.stream().filter(item -> !updatedItems.contains(item)).toList();
         updateProductQuantities(removedItems, "increase", owner);
-    }
-
-    private boolean contains(OrderItem item, List<OrderItem> items) {
-        return items.stream()
-                .anyMatch(i -> i.getProduct().getId().equals(item.getProduct().getId()));
     }
 
     private void updateOrderDetails(Order order, Order updatedOrder) {

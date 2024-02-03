@@ -4,6 +4,8 @@ import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.Objects;
+
 public class OrderItemForm {
 
     @Min(1)
@@ -34,6 +36,19 @@ public class OrderItemForm {
 
     public void setProductId(Long productId) {
         this.productId = productId;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || this.getClass() != other.getClass()) return false;
+        var that = (OrderItemForm) other;
+        return Objects.equals(this.productId, that.productId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(productId);
     }
 
     public OrderItem toEntity() {

@@ -34,6 +34,7 @@ import static io.github.augustoravazoli.inventorymanagementsystem.order.OrderMat
 import static io.github.augustoravazoli.inventorymanagementsystem.order.OrderMatchers.order;
 import static io.github.augustoravazoli.inventorymanagementsystem.product.ProductMatchers.product;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Named.named;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -109,13 +110,12 @@ class OrderControllerTest {
             verify(orderService, times(1)).createOrder(any(Order.class), any(User.class));
         }
 
-        @ParameterizedTest
-        @ArgumentsSource(AttributeNameAndExceptionProvider.class)
-        void doNotCreateOrderWithInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
+        @Test
+        void doNotCreateOrderWithProductsWithInsufficientStock() throws Exception {
             // given
             when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
-            doThrow(exception).when(orderService).createOrder(any(Order.class), any(User.class));
+            doThrow(ProductWithInsufficientStockException.class).when(orderService).createOrder(any(Order.class), any(User.class));
             // when
             var result = client.perform(post("/orders/create")
                     .param("status", "UNPAID")
@@ -127,7 +127,7 @@ class OrderControllerTest {
             // then
             result.andExpectAll(
                     status().isOk(),
-                    model().attribute(attributeName, true),
+                    model().attribute("insufficientStock", true),
                     model().attribute("order", is(
                             order("UNPAID", 1L, contains(item(5, 1L)))
                     )),
@@ -312,13 +312,12 @@ class OrderControllerTest {
             verify(orderService, times(1)).updateOrder(anyLong(), any(Order.class), any(User.class));
         }
 
-        @ParameterizedTest
-        @ArgumentsSource(AttributeNameAndExceptionProvider.class)
-        void doNotUpdateOrderUsingInvalidItems(String attributeName, Class<? extends RuntimeException> exception) throws Exception {
+        @Test
+        void doNotUpdateOrderUsingProductsWithInsufficientStock() throws Exception {
             // given
             when(customerService.listCustomers(any(User.class))).thenReturn(List.of(customerA, customerB));
             when(productService.listProducts(any(User.class))).thenReturn(List.of(productA, productB));
-            doThrow(exception).when(orderService).updateOrder(anyLong(), any(Order.class), any(User.class));
+            doThrow(ProductWithInsufficientStockException.class).when(orderService).updateOrder(anyLong(), any(Order.class), any(User.class));
             // when
             var result = client.perform(post("/orders/update/{id}", 1L)
                     .param("status", "PAID")
@@ -330,7 +329,7 @@ class OrderControllerTest {
             // then
             result.andExpectAll(
                     status().isOk(),
-                    model().attribute(attributeName, true),
+                    model().attribute("insufficientStock", true),
                     model().attribute("order", is(
                             order("PAID", 2L, contains(item(10, 2L)))
                     )),
@@ -384,39 +383,35 @@ class OrderControllerTest {
 
     }
 
-    static class AttributeNameAndExceptionProvider implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
-            return Stream.of(
-                    arguments("insufficientStock", ProductWithInsufficientStockException.class),
-                    arguments("duplicatedItem", DuplicatedOrderItemException.class)
-            );
-        }
-
-    }
-
     static class RequestParametersProvider implements ArgumentsProvider {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
             return Stream.of(
-                    arguments(Map.of(
+                    arguments(named("Empty fields", Map.of(
                             "status", List.of(""),
                             "customerId", List.of(""),
                             "items[0].quantity", List.of(""),
-                            "item[0].productId", List.of("")
-                    )),
-                    arguments(Map.of(
+                            "items[0].productId", List.of("")
+                    ))),
+                    arguments(named("Invalid quantity", Map.of(
                             "status", List.of("UNPAID"),
                             "customerId", List.of("1"),
                             "items[0].quantity", List.of("0"),
-                            "item[0].productId", List.of("1")
-                    )),
-                    arguments(Map.of(
+                            "items[0].productId", List.of("1")
+                    ))),
+                    arguments(named("Duplicated items", Map.of(
+                            "status", List.of("UNPAID"),
+                            "customerId", List.of("1"),
+                            "items[0].quantity", List.of("1"),
+                            "items[0].productId", List.of("1"),
+                            "items[1].quantity", List.of("1"),
+                            "items[1].productId", List.of("1")
+                    ))),
+                    arguments(named("Empty items", Map.of(
                             "status", List.of("UNPAID"),
                             "customerId", List.of("1")
-                    ))
+                    )))
             );
         }
 

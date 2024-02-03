@@ -4,21 +4,25 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.validator.constraints.UniqueElements;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Entity
-@Table(name = "`order`")
+@Table(name = "\"order\"")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
@@ -27,15 +31,17 @@ public class Order {
     @Column(nullable = false)
     private LocalDate date;
 
+    @NotNull
     @ManyToOne(optional = false)
     private Customer customer;
 
+    @UniqueElements
     @NotEmpty
-    @OrderBy
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id", nullable = false)
+    @OrderBy("index")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    @NotNull
     @ManyToOne(optional = false)
     private User owner;
 
@@ -46,7 +52,7 @@ public class Order {
         this.status = status;
         this.date = date;
         this.customer = customer;
-        this.items = items;
+        setItems(items);
         this.owner = owner;
     }
 
@@ -70,10 +76,6 @@ public class Order {
         return date;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
     public Customer getCustomer() {
         return customer;
     }
@@ -87,6 +89,10 @@ public class Order {
     }
 
     public void setItems(List<OrderItem> items) {
+        IntStream.range(0, items.size()).forEach(i -> {
+            items.get(i).setOrder(this);
+            items.get(i).setIndex(i);
+        });
         this.items.clear();
         this.items.addAll(items);
     }
@@ -117,7 +123,7 @@ public class Order {
         return new OrderForm(
                 status,
                 customer.getId(),
-                items.stream().map(item -> new OrderItemForm(item.getQuantity(), item.getProduct().getId())).toList()
+                items.stream().map(OrderItem::toForm).toList()
         );
     }
 

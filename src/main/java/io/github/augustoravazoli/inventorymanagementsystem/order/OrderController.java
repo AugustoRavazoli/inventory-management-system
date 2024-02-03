@@ -38,17 +38,15 @@ public class OrderController {
     public String createOrder(@AuthenticationPrincipal User user, @Valid @ModelAttribute OrderForm order, Model model) {
         try {
             orderService.createOrder(order.toEntity(), user);
-            return "redirect:/orders/list?status=UNPAID";
         } catch (ProductWithInsufficientStockException e) {
             model.addAttribute("insufficientStock", true);
-        } catch (DuplicatedOrderItemException e) {
-            model.addAttribute("duplicatedItem", true);
+            model.addAttribute("order", order);
+            model.addAttribute("customers", customerService.listCustomers(user));
+            model.addAttribute("products", productService.listProducts(user));
+            model.addAttribute("mode", "create");
+            return "order/order-form";
         }
-        model.addAttribute("order", order);
-        model.addAttribute("customers", customerService.listCustomers(user));
-        model.addAttribute("products", productService.listProducts(user));
-        model.addAttribute("mode", "create");
-        return "order/order-form";
+        return "redirect:/orders/list?status=UNPAID";
     }
 
     @GetMapping("/list")
@@ -101,19 +99,17 @@ public class OrderController {
     ) {
         try {
             orderService.updateOrder(id, order.toEntity(), user);
-            redirectAttributes.addAttribute("status", session.getAttribute("status"));
-            return "redirect:/orders/list";
         } catch (ProductWithInsufficientStockException e) {
             model.addAttribute("insufficientStock", true);
-        } catch (DuplicatedOrderItemException e) {
-            model.addAttribute("duplicatedItem", true);
+            model.addAttribute("order", order);
+            model.addAttribute("id", id);
+            model.addAttribute("customers", customerService.listCustomers(user));
+            model.addAttribute("products", productService.listProducts(user));
+            model.addAttribute("mode", "update");
+            return "order/order-form";
         }
-        model.addAttribute("order", order);
-        model.addAttribute("id", id);
-        model.addAttribute("customers", customerService.listCustomers(user));
-        model.addAttribute("products", productService.listProducts(user));
-        model.addAttribute("mode", "update");
-        return "order/order-form";
+        redirectAttributes.addAttribute("status", session.getAttribute("status"));
+        return "redirect:/orders/list";
     }
 
     @PostMapping("/delete/{id}")

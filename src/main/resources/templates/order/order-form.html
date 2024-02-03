@@ -25,11 +25,11 @@
             method="post"
             th:object="${order}"
             class="needs-validation"
-            novalidate x-data @submit="validateForm($el, $event)">
+            novalidate @submit="validateForm($el, $event, containsDuplicates())">
 
         <div th:if="${insufficientStock}" th:text="#{order-form.insufficient-stock-message}" class="alert alert-danger rounded-0"></div>
 
-        <div th:if="${duplicatedItem}" th:text="#{order-form.duplicated-item-message}" class="alert alert-danger rounded-0"></div>
+        <div x-show="containsDuplicates()" th:text="#{order-form.duplicated-item-message}" class="alert alert-danger rounded-0"></div>
 
         <div layout:replace="~{fragment/form :: select-field(
             label=#{order-form.customer-label},

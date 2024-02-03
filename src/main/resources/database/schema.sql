@@ -47,8 +47,9 @@ CREATE TABLE "order" (
 );
 
 CREATE TABLE order_item (
-    id BIGSERIAL PRIMARY KEY,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     product_id BIGINT NOT NULL REFERENCES product(id),
-    order_id BIGINT NOT NULL REFERENCES "order"(id) ON DELETE CASCADE
+    order_id BIGINT NOT NULL REFERENCES "order"(id) ON DELETE CASCADE,
+    "index" INTEGER NOT NULL,
+    PRIMARY KEY (product_id, order_id)
 );

@@ -1,5 +1,5 @@
-function validateForm(form, event) {
-    if (!form.checkValidity()) {
+function validateForm(form, event, valid) {
+    if (!form.checkValidity() || valid) {
         event.preventDefault();
         event.stopPropagation();
     }

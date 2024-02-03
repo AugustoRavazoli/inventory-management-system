@@ -26,6 +26,17 @@ function order(items) {
     removeItem(index) {
       this.items.length > 1 && this.items.splice(index, 1);
     },
+    containsDuplicates() {
+      const seen = new Set();
+      for (const item of this.items) {
+        const propertyValue = item["productId"];
+        if (seen.has(propertyValue)) {
+          return true;
+        }
+        seen.add(propertyValue);
+      }
+      return false;
+    },
     get totalPrice() {
       return this.items
         .map(item => item.amount)

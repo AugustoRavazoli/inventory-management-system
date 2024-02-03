@@ -101,24 +101,6 @@ class OrderServiceTest {
         }
 
         @Test
-        void doNotCreateOrderWithDuplicatedItems() {
-            // given
-            var order = new OrderBuilder()
-                    .status(OrderStatus.UNPAID)
-                    .customer(customerA)
-                    .item(5, productA)
-                    .item(10, productA)
-                    .build();
-            when(customerRepository.existsByIdAndOwner(1L, user)).thenReturn(true);
-            // when
-            var exception = assertThatThrownBy(() -> orderService.createOrder(order, user));
-            // then
-            exception.isInstanceOf(DuplicatedOrderItemException.class);
-            assertThat(productA.getQuantity()).isEqualTo(10);
-            verify(orderRepository, never()).save(any(Order.class));
-        }
-
-        @Test
         void doNotCreateOrderWithNonexistentProducts() {
             // given
             var order = new OrderBuilder()
@@ -387,25 +369,6 @@ class OrderServiceTest {
             exception.isInstanceOf(InvalidCustomerException.class);
             assertThat(productA.getQuantity()).isEqualTo(5);
             assertThat(productB.getQuantity()).isEqualTo(12);
-            verify(orderRepository, never()).save(any(Order.class));
-        }
-
-        @Test
-        void doNotUpdateOrderUsingDuplicatedItems() {
-            // given
-            var updatedOrder = new OrderBuilder()
-                    .status(OrderStatus.PAID)
-                    .customer(customerB)
-                    .item(3, productA)
-                    .item(3, productA)
-                    .build();
-            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
-            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
-            // when
-            var exception = assertThatThrownBy(() -> orderService.updateOrder(1L, updatedOrder, user));
-            // then
-            exception.isInstanceOf(DuplicatedOrderItemException.class);
-            assertThat(productA.getQuantity()).isEqualTo(5);
             verify(orderRepository, never()).save(any(Order.class));
         }
 
