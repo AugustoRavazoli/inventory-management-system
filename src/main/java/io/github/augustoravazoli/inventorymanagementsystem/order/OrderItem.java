@@ -4,6 +4,8 @@ import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -20,6 +22,7 @@ public class OrderItem {
     @NotNull
     @ManyToOne(optional = false)
     @JoinColumn(name = "product_id")
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     private Product product;
 
     @Id
