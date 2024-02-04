@@ -10,7 +10,8 @@ CREATE TABLE "user" (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password CHAR(60) NOT NULL
+    password CHAR(60) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE category (

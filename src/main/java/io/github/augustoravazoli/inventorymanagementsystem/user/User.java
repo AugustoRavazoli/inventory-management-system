@@ -2,6 +2,7 @@ package io.github.augustoravazoli.inventorymanagementsystem.user;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -28,6 +29,10 @@ public class User implements UserDetails {
     @NotBlank
     @Column(nullable = false)
     private String password;
+
+    @NotNull
+    @Column(nullable = false)
+    private Boolean enabled = true;
 
     public User() {}
 
@@ -98,7 +103,11 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
 }

@@ -1,6 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem.user;
 
-import io.github.augustoravazoli.inventorymanagementsystem.SecurityConfiguration;
+import io.github.augustoravazoli.inventorymanagementsystem.MockUserDetailsService;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.*;
@@ -19,7 +20,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
-@Import(SecurityConfiguration.class)
+@Import(MockUserDetailsService.class)
+@WithUserDetails
 class UserControllerTest {
 
     @MockBean
@@ -97,6 +99,23 @@ class UserControllerTest {
             );
             // then
             result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
+    class DisableUserTests {
+
+        @Test
+        void disableUser() throws Exception {
+            // when
+            var result = client.perform(post("/delete-account").with(csrf()));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    forwardedUrl("/logout")
+            );
+            verify(userService, times(1)).disableUser(any(User.class));
         }
 
     }

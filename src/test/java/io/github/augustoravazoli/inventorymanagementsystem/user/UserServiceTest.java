@@ -56,4 +56,20 @@ class UserServiceTest {
 
     }
 
+    @Nested
+    class DisableUserTests {
+
+        @Test
+        void disableUser() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            // when
+            userService.disableUser(user);
+            // then
+            assertThat(user.isEnabled()).isFalse();
+            verify(userRepository, times(1)).save(user);
+        }
+
+    }
+
 }

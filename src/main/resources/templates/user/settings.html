@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout/layout">
+
+<body>
+
+  <main layout:fragment="content" x-data="{ currentForm: null }">
+    <div class="py-4">
+      <h2 class="h4 mb-3" th:text="#{settings.title}">Settings</h2>
+      <hr class="hr">
+
+      <button @click="currentForm = $el.dataset.link"
+              th:data-link="|javascript: document.deleteForm${#ids.seq('someId')}.submit()|"
+              data-bs-toggle="modal" data-bs-target="#staticBackdrop"
+              class="btn btn-danger rounded-0"
+              th:text="#{settings.delete-account}"
+      ></button>
+      <form th:name="|deleteForm${#ids.prev('someId')}|" th:action="@{/delete-account}" method="post" th:hidden="true">
+        <input type="hidden">
+      </form>
+
+      <div th:replace="~{fragment/confirm-dialog}"></div>
+
+    </div>
+  </main>
+
+</body>

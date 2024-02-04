@@ -28,4 +28,10 @@ public class UserService {
         logger.info("Registering user {}", user.getEmail());
     }
 
+    public void disableUser(User user) {
+        user.setEnabled(false);
+        userRepository.save(user);
+        logger.info("Disabling account for user {}", user.getEmail());
+    }
+
 }
