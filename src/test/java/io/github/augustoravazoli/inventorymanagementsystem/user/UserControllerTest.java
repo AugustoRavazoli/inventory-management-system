@@ -104,6 +104,57 @@ class UserControllerTest {
     }
 
     @Nested
+    class UpdatePasswordTests {
+
+        @Test
+        void updatePassword() throws Exception {
+            // when
+            var result = client.perform(post("/update-password")
+                    .param("password", "password")
+                    .param("new-password", "newPassword")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/settings?update-password-success")
+            );
+            verify(userService, times(1)).updatePassword(anyString(), anyString(), any(User.class));
+        }
+
+        @Test
+        void doNotUpdatePasswordIfPasswordDoNotMatchesExistingPassword() throws Exception {
+            // given
+            doThrow(PasswordMismatchException.class).when(userService).updatePassword(anyString(), anyString(), any(User.class));
+            // when
+            var result = client.perform(post("/update-password")
+                    .param("password", "wrong")
+                    .param("new-password", "newPassword")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/settings?update-password-error")
+            );
+            verify(userService, times(1)).updatePassword(anyString(), anyString(), any(User.class));
+        }
+
+        @Test
+        void doNotUpdatePasswordIfPasswordsAreEmpty() throws Exception {
+            // when
+            var result = client.perform(post("/update-password")
+                    .param("password", "")
+                    .param("new-password", "")
+                    .with(csrf())
+            );
+            // then
+            result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
     class DisableUserTests {
 
         @Test

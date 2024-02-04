@@ -57,6 +57,36 @@ class UserServiceTest {
     }
 
     @Nested
+    class UpdatePasswordTests {
+
+        @Test
+        void updatePassword() {
+            // given
+            var user = new User("user", "user@email.com", "encodedPassword");
+            when(passwordEncoder.matches("password", "encodedPassword")).thenReturn(true);
+            when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedPassword");
+            // when
+            userService.updatePassword("password", "newPassword", user);
+            // then
+            assertThat(user.getPassword()).isEqualTo("newEncodedPassword");
+            verify(userRepository, times(1)).save(user);
+        }
+
+        @Test
+        void doNotUpdatePasswordIfPasswordDoNotMatchesExistingPassword() {
+            // given
+            var user = new User("user", "user@email.com", "encodedPassword");
+            when(passwordEncoder.matches("wrong", "encodedPassword")).thenReturn(false);
+            // when
+            var exception = assertThatThrownBy(() -> userService.updatePassword("wrong", "newPassword", user));
+            // then
+            exception.isInstanceOf(PasswordMismatchException.class);
+            verify(userRepository, never()).save(any(User.class));
+        }
+
+    }
+
+    @Nested
     class DisableUserTests {
 
         @Test

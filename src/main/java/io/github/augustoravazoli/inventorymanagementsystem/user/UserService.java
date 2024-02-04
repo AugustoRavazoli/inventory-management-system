@@ -28,6 +28,14 @@ public class UserService {
         logger.info("Registering user {}", user.getEmail());
     }
 
+    public void updatePassword(String password, String newPassword, User user) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new PasswordMismatchException();
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     public void disableUser(User user) {
         user.setEnabled(false);
         userRepository.save(user);

@@ -1,12 +1,14 @@
 package io.github.augustoravazoli.inventorymanagementsystem.user;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class UserController {
@@ -33,6 +35,20 @@ public class UserController {
             return "user/register";
         }
         return "user/success";
+    }
+
+    @PostMapping("/update-password")
+    public String updateUserPassword(
+            @Valid @RequestParam(name = "password") @NotBlank String password,
+            @Valid @RequestParam(name = "new-password") @NotBlank String newPassword,
+            @AuthenticationPrincipal User user
+    ) {
+        try {
+            userService.updatePassword(password, newPassword, user);
+        } catch (PasswordMismatchException e) {
+            return "redirect:/settings?update-password-error";
+        }
+        return "redirect:/settings?update-password-success";
     }
 
     @PostMapping("/delete-account")

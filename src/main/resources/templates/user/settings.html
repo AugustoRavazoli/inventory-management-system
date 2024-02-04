@@ -3,11 +3,68 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="layout/layout">
 
+<head>
+  <script th:inline="javascript" defer>
+    function togglePassword(input, icon) {
+      input.type = input.type === "password" ? "text" : "password";
+      icon.classList.toggle("bi-eye-slash-fill", input.type === "password");
+      icon.classList.toggle("bi-eye-fill", input.type === "text");
+    }
+  </script>
+</head>
+
 <body>
 
   <main layout:fragment="content" x-data="{ currentForm: null }">
     <div class="py-4">
       <h2 class="h4 mb-3" th:text="#{settings.title}">Settings</h2>
+      <hr class="hr">
+
+      <h3 class="h6 mt-4 mb-3" th:text="#{settings.update-password-title}"></h3>
+
+      <form
+          th:action="@{/update-password}"
+          method="post"
+          class="needs-validation"
+          novalidate
+          x-data
+          @submit="validateForm($el, $event)"
+          style="max-width: 500px;">
+
+        <div th:if="${param.get('update-password-error')}" th:text="#{settings.update-password-error}" class="alert alert-danger py-2 rounded-0"></div>
+
+        <div th:if="${param.get('update-password-success')}" th:text="#{settings.update-password-success}" class="alert alert-success py-2 rounded-0"></div>
+
+        <div class="mb-3">
+          <label th:text="#{settings.password-label}" for="password" class="form-label"></label>
+          <div class="input-group">
+            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
+            <input class="form-control rounded-0" type="password" x-ref="password" id="password" name="password"
+                   th:placeholder="#{settings.password-placeholder}" required>
+            <button @click="togglePassword($refs.password, $refs.icon)" type="button"
+                    class="input-group-text rounded-0 bg-white"><i x-ref="icon" class="bi bi-eye-slash-fill"></i></button>
+            <div th:text="#{settings.password-invalid-message}" class="invalid-feedback"></div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label th:text="#{settings.new-password-label}" for="new-password" class="form-label"></label>
+          <div class="input-group">
+            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
+            <input class="form-control rounded-0" type="password" x-ref="newPassword" id="new-password" name="new-password"
+                   th:placeholder="#{settings.new-password-placeholder}" required>
+            <button @click="togglePassword($refs.newPassword, $refs.newIcon)" type="button"
+                    class="input-group-text rounded-0 bg-white"><i x-ref="newIcon" class="bi bi-eye-slash-fill"></i></button>
+            <div th:text="#{settings.new-password-invalid-message}" class="invalid-feedback"></div>
+          </div>
+        </div>
+
+        <div class="my-4 py-2">
+          <button type="submit" th:text="#{settings.update-password-submit}" class="btn btn-success px-5 rounded-0"></button>
+        </div>
+
+      </form>
+
       <hr class="hr">
 
       <button @click="currentForm = $el.dataset.link"

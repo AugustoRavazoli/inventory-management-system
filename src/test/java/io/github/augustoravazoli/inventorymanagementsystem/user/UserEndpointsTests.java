@@ -67,6 +67,34 @@ class UserEndpointsTests {
     }
 
     @Nested
+    class UpdatePasswordTests {
+
+        @BeforeEach
+        void setup() {
+            userRepository.save(new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO"));
+        }
+
+        @Test
+        @WithUserDetails(value = "user@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+        void updatePassword() throws Exception {
+            // when
+            var result = client.perform(post("/update-password")
+                    .param("password", "password")
+                    .param("new-password", "newPassword")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/settings?update-password-success")
+            );
+            var optionalUser = userRepository.findByEmail("user@email.com");
+            assertThat(optionalUser).get().matches(user -> passwordEncoder.matches("newPassword", user.getPassword()));
+        }
+
+    }
+
+    @Nested
     class DisableUserTests {
 
         @BeforeEach
