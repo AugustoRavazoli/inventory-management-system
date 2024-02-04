@@ -41,17 +41,13 @@
             </div>
           </div>
 
-          <div class="mb-3">
-            <label th:text="#{login-form.password-label}" for="password" class="form-label"></label>
-            <div class="input-group">
-              <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
-              <input class="form-control rounded-0" type="password" x-ref="password" id="password" name="password"
-                     th:placeholder="#{login-form.password-placeholder}" required>
-              <button @click="togglePassword($refs.password, $refs.icon)" type="button"
-                      class="input-group-text rounded-0 bg-white"><i x-ref="icon" class="bi bi-eye-slash-fill"></i></button>
-              <div th:text="#{login-form.password-invalid-message}" class="invalid-feedback"></div>
-            </div>
-          </div>
+          <div th:replace="~{fragment/form :: password-field(
+            label=#{login-form.password-label},
+            name='password',
+            error=#{login-form.password-invalid-message},
+            placeholder=#{login-form.password-placeholder},
+            required=true
+          )}"></div>
 
           <div class="mt-4 py-2 d-flex justify-content-between align-items-center">
             <div class="form-check">

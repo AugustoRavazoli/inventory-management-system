@@ -35,29 +35,21 @@
 
         <div th:if="${param.get('update-password-success')}" th:text="#{settings.update-password-success}" class="alert alert-success py-2 rounded-0"></div>
 
-        <div class="mb-3">
-          <label th:text="#{settings.password-label}" for="password" class="form-label"></label>
-          <div class="input-group">
-            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
-            <input class="form-control rounded-0" type="password" x-ref="password" id="password" name="password"
-                   th:placeholder="#{settings.password-placeholder}" required>
-            <button @click="togglePassword($refs.password, $refs.icon)" type="button"
-                    class="input-group-text rounded-0 bg-white"><i x-ref="icon" class="bi bi-eye-slash-fill"></i></button>
-            <div th:text="#{settings.password-invalid-message}" class="invalid-feedback"></div>
-          </div>
-        </div>
+        <div th:replace="~{fragment/form :: password-field(
+            label=#{settings.password-label},
+            name='password',
+            error=#{settings.password-invalid-message},
+            placeholder=#{settings.password-placeholder},
+            required=true
+          )}"></div>
 
-        <div class="mb-3">
-          <label th:text="#{settings.new-password-label}" for="new-password" class="form-label"></label>
-          <div class="input-group">
-            <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
-            <input class="form-control rounded-0" type="password" x-ref="newPassword" id="new-password" name="new-password"
-                   th:placeholder="#{settings.new-password-placeholder}" required>
-            <button @click="togglePassword($refs.newPassword, $refs.newIcon)" type="button"
-                    class="input-group-text rounded-0 bg-white"><i x-ref="newIcon" class="bi bi-eye-slash-fill"></i></button>
-            <div th:text="#{settings.new-password-invalid-message}" class="invalid-feedback"></div>
-          </div>
-        </div>
+        <div th:replace="~{fragment/form :: password-field(
+            label=#{settings.new-password-label},
+            name='new-password',
+            error=#{settings.new-password-invalid-message},
+            placeholder=#{settings.new-password-placeholder},
+            required=true
+          )}"></div>
 
         <div class="my-4 py-2">
           <button type="submit" th:text="#{settings.update-password-submit}" class="btn btn-success px-5 rounded-0"></button>

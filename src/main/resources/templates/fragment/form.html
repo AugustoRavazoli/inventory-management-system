@@ -49,4 +49,25 @@
   </div>
 </div>
 
+<div th:fragment="password-field (label, name)" class="mb-3">
+  <label th:text="${label}" th:for="${id?: name}" class="form-label"></label>
+  <div class="input-group" x-data>
+    <span class="input-group-text rounded-0 bg-white"><i class="bi bi-lock-fill"></i></span>
+    <input
+        type="password"
+        th:name="${name}"
+        class="form-control rounded-0"
+        id="${id?: name}"
+        th:placeholder="${placeholder}"
+        th:required="${required} ? 'required' : null">
+    <button
+        @click="togglePassword($root.children[1], $root.children[2].children[0])"
+        type="button"
+        class="input-group-text rounded-0 bg-white">
+      <i class="bi bi-eye-slash-fill"></i>
+    </button>
+    <div th:text="${error?: ''}" class="invalid-feedback"></div>
+  </div>
+</div>
+
 </html>
