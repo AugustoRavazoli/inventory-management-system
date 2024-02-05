@@ -30,10 +30,12 @@ public class UserService {
 
     public void updatePassword(String password, String newPassword, User user) {
         if (!passwordEncoder.matches(password, user.getPassword())) {
+            logger.info("Password don't matches existing password, throwing exception");
             throw new PasswordMismatchException();
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        logger.info("Updating password for user {}", user.getPassword());
     }
 
     public void disableUser(User user) {
