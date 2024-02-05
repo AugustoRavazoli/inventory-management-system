@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS dashboard;
 DROP TABLE IF EXISTS order_sequence;
 DROP TABLE IF EXISTS order_item;
 DROP TABLE IF EXISTS "order";
@@ -57,6 +58,40 @@ CREATE TABLE order_item (
     "index" INTEGER NOT NULL,
     PRIMARY KEY (product_id, order_id)
 );
+
+CREATE OR REPLACE FUNCTION calculate_total_sales(p_owner_id BIGINT)
+    RETURNS DECIMAL(12, 2)
+    IMMUTABLE
+    LANGUAGE PLPGSQL
+AS
+'
+DECLARE
+    v_total DECIMAL(12, 2);
+BEGIN
+   SELECT SUM(p.price * oi.quantity)
+   INTO v_total
+   FROM order_item oi
+   INNER JOIN product p
+   ON oi.product_id = p.id
+   INNER JOIN "order" o
+   ON oi.order_id = o.id
+   WHERE o.status = ''PAID'' AND o.owner_id = p_owner_id;
+
+   RETURN COALESCE(v_total, 0.00);
+END;
+';
+
+CREATE VIEW dashboard AS
+    SELECT
+        (SELECT COUNT(id) FROM customer WHERE owner_id = u.id) AS total_customers,
+        (SELECT COUNT(id) FROM category WHERE owner_id = u.id) AS total_categories,
+        (SELECT COUNT(id) FROM product WHERE owner_id = u.id) AS total_products,
+        (SELECT COUNT(id) FROM "order" WHERE status = 'UNPAID' AND owner_id = u.id) AS total_unpaid_orders,
+        (SELECT COUNT(id) FROM "order" WHERE status = 'PAID' AND owner_id = u.id) AS total_paid_orders,
+        (SELECT calculate_total_sales(u.id)) AS total_sales,
+        u.id AS owner_id
+    FROM
+        "user" u;
 
 CREATE TABLE order_sequence (
     owner_id BIGINT PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,

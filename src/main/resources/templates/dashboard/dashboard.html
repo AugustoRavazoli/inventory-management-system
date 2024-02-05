@@ -15,7 +15,7 @@
           <div class="card rounded-0 bg-success" >
             <div class="row card-body text-white">
               <h5 class="card-title h5" th:text="#{dashboard.total-sales}"></h5>
-              <p th:text="${#numbers.formatCurrency(totalSales)}" class="card-text h3"></p>
+              <p th:text="${#numbers.formatCurrency(dashboard.totalSales)}" class="card-text h3"></p>
             </div>
           </div>
         </div>
@@ -24,7 +24,7 @@
           <div class="card rounded-0 bg-primary" >
             <div class="row card-body text-white">
               <h5 class="card-title h5" th:text="#{dashboard.paid-orders}"></h5>
-              <p th:text="${totalPaidOrders}" class="card-text h3"></p>
+              <p th:text="${dashboard.totalPaidOrders}" class="card-text h3"></p>
             </div>
           </div>
         </div>
@@ -33,7 +33,7 @@
           <div class="card rounded-0 bg-secondary" >
             <div class="row card-body text-white">
               <h5 class="card-title h5" th:text="#{dashboard.unpaid-orders}"></h5>
-              <p th:text="${totalUnpaidOrders}" class="card-text h3"></p>
+              <p th:text="${dashboard.totalUnpaidOrders}" class="card-text h3"></p>
             </div>
           </div>
         </div>
@@ -42,7 +42,7 @@
           <div class="card rounded-0 bg-danger" >
             <div class="row card-body text-white">
               <h5 class="card-title h5" th:text="#{dashboard.total-products}"></h5>
-              <p th:text="${totalProducts}" class="card-text h3"></p>
+              <p th:text="${dashboard.totalProducts}" class="card-text h3"></p>
             </div>
           </div>
         </div>
@@ -51,7 +51,7 @@
           <div class="card rounded-0 bg-warning" >
             <div class="row card-body text-white">
               <h5 class="card-title h5" th:text="#{dashboard.total-categories}"></h5>
-              <p th:text="${totalCategories}" class="card-text h3"></p>
+              <p th:text="${dashboard.totalCategories}" class="card-text h3"></p>
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@
           <div class="card rounded-0 bg-info" >
             <div class="row card-body text-white">
               <h5 class="card-title h5" th:text="#{dashboard.total-customers}"></h5>
-              <p th:text="${totalCustomers}" class="card-text h3"></p>
+              <p th:text="${dashboard.totalCustomers}" class="card-text h3"></p>
             </div>
           </div>
         </div>

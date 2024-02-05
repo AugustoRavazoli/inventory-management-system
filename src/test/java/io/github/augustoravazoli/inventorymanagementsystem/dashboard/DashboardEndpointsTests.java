@@ -1,5 +1,6 @@
-package io.github.augustoravazoli.inventorymanagementsystem;
+package io.github.augustoravazoli.inventorymanagementsystem.dashboard;
 
+import io.github.augustoravazoli.inventorymanagementsystem.TestApplication;
 import io.github.augustoravazoli.inventorymanagementsystem.category.Category;
 import io.github.augustoravazoli.inventorymanagementsystem.category.CategoryRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -103,13 +105,15 @@ class DashboardEndpointsTests {
         // then
         result.andExpectAll(
                 status().isOk(),
-                model().attribute("totalCustomers", 2L),
-                model().attribute("totalCategories", 3L),
-                model().attribute("totalProducts", 3L),
-                model().attribute("totalUnpaidOrders", 1L),
-                model().attribute("totalPaidOrders", 2L),
-                model().attribute("totalSales", new BigDecimal("36.00")),
-                view().name("dashboard")
+                model().attribute("dashboard", is(allOf(
+                        hasProperty("totalCustomers", is(2L)),
+                        hasProperty("totalCategories", is(3L)),
+                        hasProperty("totalProducts", is(3L)),
+                        hasProperty("totalUnpaidOrders", is(1L)),
+                        hasProperty("totalPaidOrders", is(2L)),
+                        hasProperty("totalSales", is(new BigDecimal("36.00")))
+                ))),
+                view().name("dashboard/dashboard")
         );
     }
 
