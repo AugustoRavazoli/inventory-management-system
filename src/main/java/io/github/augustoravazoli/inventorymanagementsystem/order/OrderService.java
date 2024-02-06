@@ -12,8 +12,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 public class OrderService {
@@ -33,7 +33,7 @@ public class OrderService {
     @Transactional
     public void createOrder(Order order, User owner) {
         checkCustomer(order.getCustomer(), owner);
-        checkProductAvailability(order.getItems(), owner);
+        checkProductAvailabilityForNewItems(order.getItems(), owner);
         updateProductQuantities(order.getItems(), "decrease", owner);
         order.setOwner(owner);
         orderRepository.save(order);
@@ -60,10 +60,9 @@ public class OrderService {
     public void updateOrder(long id, Order updatedOrder, User owner) {
         var order = orderRepository.findByIdAndOwner(id, owner).orElseThrow(OrderNotFoundException::new);
         checkCustomer(updatedOrder.getCustomer(), owner);
-        checkProductAvailability(updatedOrder.getItems(), owner);
-        updateProductQuantitiesForExistingItems(order.getItems(), updatedOrder.getItems(), owner);
-        decreaseProductQuantitiesForNewItems(order.getItems(), updatedOrder.getItems(), owner);
-        resetProductQuantitiesForRemovedItems(order.getItems(), updatedOrder.getItems(), owner);
+        updateProductQuantitiesForExistingItems(order, updatedOrder, owner);
+        decreaseProductQuantitiesForNewItems(order, updatedOrder, owner);
+        resetProductQuantitiesForRemovedItems(order, updatedOrder, owner);
         updateOrderDetails(order, updatedOrder);
         orderRepository.save(order);
         logger.info("Order with id {} of user {} updated", order.getId(), owner.getEmail());
@@ -87,7 +86,7 @@ public class OrderService {
         }
     }
 
-    private void checkProductAvailability(List<OrderItem> items, User owner) {
+    private void checkProductAvailabilityForNewItems(List<OrderItem> items, User owner) {
         for (var item : items) {
             var product = productRepository.findByIdAndOwner(item.getProduct().getId(), owner)
                     .orElseThrow(InvalidProductException::new);
@@ -110,20 +109,35 @@ public class OrderService {
         }
     }
 
-    private void updateProductQuantitiesForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
-        var existingItems = updatedItems.stream().filter(items::contains).toList();
-        var oldItems = items.stream().filter(existingItems::contains).toList();
-        updateProductQuantities(oldItems, "increase", owner);
-        updateProductQuantities(existingItems, "decrease", owner);
+    private void updateProductQuantitiesForExistingItems(Order order, Order updatedOrder, User owner) {
+        var updatedItems = updatedOrder.getItems().stream().filter(order.getItems()::contains).toList();
+        var items = order.getItems().stream().filter(updatedItems::contains).toList();
+        checkProductAvailabilityForExistingItems(items, updatedItems, owner);
+        updateProductQuantities(items, "increase", owner);
+        updateProductQuantities(updatedItems, "decrease", owner);
     }
 
-    private void decreaseProductQuantitiesForNewItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
-        var newItems = updatedItems.stream().filter(item -> !items.contains(item)).toList();
+    private void checkProductAvailabilityForExistingItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
+        IntStream.range(0, updatedItems.size()).forEach(i -> {
+            var product = productRepository.findByIdAndOwner(items.get(i).getProduct().getId(), owner)
+                    .orElseThrow(InvalidProductException::new);
+            var quantity = (int) items.get(i).getQuantity();
+            var updatedQuantity = (int) updatedItems.get(i).getQuantity();
+            if (updatedQuantity - quantity > product.getQuantity()) {
+                logger.info("Order items contains products with insufficient stock, throwing exception");
+                throw new ProductWithInsufficientStockException();
+            }
+        });
+    }
+
+    private void decreaseProductQuantitiesForNewItems(Order order, Order updatedOrder, User owner) {
+        var newItems = updatedOrder.getItems().stream().filter(item -> !order.getItems().contains(item)).toList();
+        checkProductAvailabilityForNewItems(newItems, owner);
         updateProductQuantities(newItems, "decrease", owner);
     }
 
-    private void resetProductQuantitiesForRemovedItems(List<OrderItem> items, List<OrderItem> updatedItems, User owner) {
-        var removedItems = items.stream().filter(item -> !updatedItems.contains(item)).toList();
+    private void resetProductQuantitiesForRemovedItems(Order order, Order updatedOrder, User owner) {
+        var removedItems = order.getItems().stream().filter(item -> !updatedOrder.getItems().contains(item)).toList();
         updateProductQuantities(removedItems, "increase", owner);
     }
 

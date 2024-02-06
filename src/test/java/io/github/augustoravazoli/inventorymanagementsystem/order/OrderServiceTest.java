@@ -254,6 +254,7 @@ class OrderServiceTest {
             productA.setQuantity(5);
             productB.setQuantity(12);
             order = new OrderBuilder()
+                    .id(1L)
                     .status(OrderStatus.UNPAID)
                     .customer(customerA)
                     .item(5, productA)
@@ -281,7 +282,7 @@ class OrderServiceTest {
             orderService.updateOrder(1L, updatedOrder, user);
             // then
             assertThat(order.getOwner()).isEqualTo(user);
-            assertThat(order).usingRecursiveComparison().ignoringFields("owner").isEqualTo(updatedOrder);
+            assertThat(order).usingRecursiveComparison().ignoringFields("id", "owner").isEqualTo(updatedOrder);
             assertThat(productA.getQuantity()).isEqualTo(5);
             assertThat(productB.getQuantity()).isEqualTo(12);
             assertThat(productC.getQuantity()).isEqualTo(15);
@@ -304,7 +305,7 @@ class OrderServiceTest {
             orderService.updateOrder(1L, updatedOrder, user);
             // then
             assertThat(order.getOwner()).isEqualTo(user);
-            assertThat(order).usingRecursiveComparison().ignoringFields("owner").isEqualTo(updatedOrder);
+            assertThat(order).usingRecursiveComparison().ignoringFields("id", "owner").isEqualTo(updatedOrder);
             assertThat(productA.getQuantity()).isEqualTo(5);
             assertThat(productB.getQuantity()).isEqualTo(20);
             verify(orderRepository, times(1)).save(order);
@@ -317,7 +318,7 @@ class OrderServiceTest {
                     .status(OrderStatus.PAID)
                     .customer(customerB)
                     .item(3, productA)
-                    .item(10, productB)
+                    .item(14, productB)
                     .build();
             when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
             when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
@@ -327,9 +328,34 @@ class OrderServiceTest {
             orderService.updateOrder(1L, updatedOrder, user);
             // then
             assertThat(order.getOwner()).isEqualTo(user);
-            assertThat(order).usingRecursiveComparison().ignoringFields("owner").isEqualTo(updatedOrder);
+            assertThat(order).usingRecursiveComparison().ignoringFields("id", "owner").isEqualTo(updatedOrder);
             assertThat(productA.getQuantity()).isEqualTo(7);
-            assertThat(productB.getQuantity()).isEqualTo(10);
+            assertThat(productB.getQuantity()).isEqualTo(6);
+            verify(orderRepository, times(1)).save(order);
+        }
+
+        @Test
+        void updateOrderWithSameItemsAndQuantitiesButProductsWithEmptyStockDoesNotThrowException() {
+            // given
+            productA.setQuantity(0);
+            productB.setQuantity(0);
+            var updatedOrder = new OrderBuilder()
+                    .status(OrderStatus.PAID)
+                    .customer(customerB)
+                    .item(5, productA)
+                    .item(8, productB)
+                    .build();
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(customerRepository.existsByIdAndOwner(2L, user)).thenReturn(true);
+            when(productRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(productA));
+            when(productRepository.findByIdAndOwner(2L, user)).thenReturn(Optional.of(productB));
+            // when
+            orderService.updateOrder(1L, updatedOrder, user);
+            // then
+            assertThat(order.getOwner()).isEqualTo(user);
+            assertThat(order).usingRecursiveComparison().ignoringFields("id", "owner").isEqualTo(updatedOrder);
+            assertThat(productA.getQuantity()).isEqualTo(0);
+            assertThat(productB.getQuantity()).isEqualTo(0);
             verify(orderRepository, times(1)).save(order);
         }
 

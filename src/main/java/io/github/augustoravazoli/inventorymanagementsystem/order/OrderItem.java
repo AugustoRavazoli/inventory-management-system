@@ -87,13 +87,12 @@ public class OrderItem {
         if (this == other) return true;
         if (other == null || this.getClass() != other.getClass()) return false;
         var that = (OrderItem) other;
-        return Objects.equals(this.product.getId(), that.product.getId())
-                && Objects.equals(this.order.getId(), that.order.getId());
+        return Objects.equals(this.product.getId(), that.product.getId());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(product.getId(), order.getId());
+        return Objects.hash(product.getId());
     }
 
     public OrderItemForm toForm() {
