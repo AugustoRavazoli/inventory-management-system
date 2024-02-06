@@ -52,7 +52,7 @@
               <label th:text="#{order-form.product-label}" :for="id" class="form-label" :class="index > 0 && 'd-lg-none'"></label>
               <div class="input-group mb-3">
                 <span class="input-group-text rounded-0 bg-white"><i class="bi bi-box"></i></span>
-                <select :name="`items[${index}].productId`" x-model="item.product" x-on:change="editItem(index, $el.options[$el.value])"
+                <select :name="`items[${index}].productId`" x-model="item.product" @change="editItem(index, $el.options[$el.selectedIndex])"
                         class="form-select rounded-0" :id="id" required>
                   <option value="" th:text="#{order-form.product-placeholder}" selected disabled></option>
                   <option x-init="item.productId == $el.value && editItem(index, $el)" :selected="item.productId == $el.value" th:each="product : ${products}" th:value="${product.id}" th:data-price="${product.price}" th:text="${product.name}"></option>

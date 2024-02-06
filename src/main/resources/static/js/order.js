@@ -30,7 +30,7 @@ function order(items) {
       const seen = new Set();
       for (const item of this.items) {
         const propertyValue = item["productId"];
-        if (seen.has(propertyValue)) {
+        if (seen.has(propertyValue) && propertyValue !== "") {
           return true;
         }
         seen.add(propertyValue);
