@@ -15,3 +15,8 @@ services:
       - 'PGADMIN_CONFIG_SERVER_MODE=False'
     ports:
       - '5050:80'
+  mailhog:
+    image: 'mailhog/mailhog'
+    ports:
+      - '1025:1025'
+      - '8025:8025'

@@ -1,5 +1,5 @@
-INSERT INTO "user" (name, email, password) VALUES
-    ('user', 'user@email.com', '$2a$10$ngSdw1kgIS40jwcvUqw48Osyd9NE8PjuMUatovpt6hlCBF0TDFUJu');
+INSERT INTO "user" (name, email, password, status) VALUES
+    ('user', 'user@email.com', '$2a$10$ngSdw1kgIS40jwcvUqw48Osyd9NE8PjuMUatovpt6hlCBF0TDFUJu', 'ACTIVE');
 
 INSERT INTO category (name, owner_id) VALUES
     ('A', 1),

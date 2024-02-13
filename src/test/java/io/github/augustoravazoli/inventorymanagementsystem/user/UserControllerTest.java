@@ -8,7 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.mail.MailSender;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.*;
@@ -28,13 +31,17 @@ class UserControllerTest {
     private UserService userService;
 
     @MockBean
-    private UserRepository userRepository;
+    private MailSender mailSender;
 
     @Autowired
     private MockMvc client;
 
     @Nested
+    @RecordApplicationEvents
     class RegisterUserTests {
+
+        @Autowired
+        private ApplicationEvents applicationEvents;
 
         @Test
         void retrieveRegisterUserPage() throws Exception {
@@ -60,7 +67,8 @@ class UserControllerTest {
             // then
             result.andExpectAll(
                     status().isOk(),
-                    view().name("user/success")
+                    model().attribute("email", "user@email.com"),
+                    view().name("user/verify-account")
             );
             verify(userService, times(1)).registerUser(any(User.class));
         }
@@ -99,6 +107,64 @@ class UserControllerTest {
             );
             // then
             result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
+    class VerifyAccountTests {
+
+        @Test
+        void verifyAccount() throws Exception {
+            // when
+            var result = client.perform(get("/verify-account")
+                    .param("token", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/account-verified")
+            );
+            verify(userService, times(1)).verifyAccount(anyString());
+        }
+
+        @Test
+        void doNotVerifyAccountWithExpiredToken() throws Exception {
+            // given
+            doThrow(TokenExpiredException.class).when(userService).verifyAccount(anyString());
+            // when
+            var result = client.perform(get("/verify-account")
+                    .param("token", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/account-expired")
+            );
+            verify(userService, times(1)).verifyAccount(anyString());
+        }
+
+    }
+
+    @Nested
+    class ResendVerificationEmailTests {
+
+        @Test
+        void resendVerificationEmail() throws Exception {
+            // when
+            var result = client.perform(post("/resend-verification-email")
+                    .param("email", "user@email.com")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("email", "user@email.com"),
+                    view().name("user/verify-account")
+            );
+            verify(userService, times(1)).resendVerificationEmail(anyString());
         }
 
     }

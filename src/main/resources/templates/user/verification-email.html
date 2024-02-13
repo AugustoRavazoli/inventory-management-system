@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body style="font-family: Arial, no-serif;">
+  <h1 th:text="#{verification-email.title}"></h1>
+  <p style="padding: 1rem 0;" th:text="#{verification-email.first-paragraph}"></p>
+  <a style="background-color: #198754; color: white; font-weight: bold; padding: 0.75rem 2rem; border-radius: 0;"
+      th:href="${verificationLink}"
+      th:text="#{verification-email.link-text}"
+  ></a>
+  <p style="padding: 1rem 0;" th:text="#{verification-email.second-paragraph}"></p>
+  <p th:text="#{verification-email.thanks}"></p>
+  <p th:text="#{verification-email.team}"></p>
+</body>
+
+</html>

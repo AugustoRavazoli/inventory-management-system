@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <th:block th:replace="~{fragment/head}"></th:block>
+</head>
+
+<body style="background-color: #f7f7f7;">
+
+  <div class="container-fluid">
+    <main class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+
+      <div class="border px-2 py-4 rounded-0 text-center bg-white" style="width: 325px">
+        <i class="bi bi-info-circle text-primary" style="font-size: 6rem"></i>
+        <h1 class="h2" th:text="#{verify-account.title}"></h1>
+        <p class="py-2 px-5" th:text="#{verify-account.message}"></p>
+        <form th:action="@{/resend-verification-email}" method="post">
+          <input type="hidden" name="email" th:value="${email}">
+          <button class="btn btn-primary px-4 mb-3 rounded-0" th:text="#{verify-account.resend}"></button>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+</body>

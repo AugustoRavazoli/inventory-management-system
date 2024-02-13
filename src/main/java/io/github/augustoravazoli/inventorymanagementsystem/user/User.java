@@ -31,8 +31,9 @@ public class User implements UserDetails {
     private String password;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Boolean enabled = true;
+    private AccountStatus status = AccountStatus.UNVERIFIED;
 
     public User() {}
 
@@ -81,6 +82,14 @@ public class User implements UserDetails {
         this.password = password;
     }
 
+    public AccountStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AccountStatus status) {
+        this.status = status;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return emptySet();
@@ -103,11 +112,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        return status == AccountStatus.ACTIVE;
     }
 
 }

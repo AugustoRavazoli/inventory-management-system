@@ -1,5 +1,6 @@
 package io.github.augustoravazoli.inventorymanagementsystem;
 
+import io.github.augustoravazoli.inventorymanagementsystem.user.AccountStatus;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import io.github.augustoravazoli.inventorymanagementsystem.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -49,9 +50,9 @@ class SecurityTests {
     @Test
     void loginUser() throws Exception {
         // given
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(
-                new User("user", "user@email.com", passwordEncoder.encode("password"))
-        ));
+        var user = new User("user", "user@email.com", passwordEncoder.encode("password"));
+        user.setStatus(AccountStatus.ACTIVE);
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
         // when
         var result = client.perform(formLogin()
                 .user("user@email.com")

@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS "order";
 DROP TABLE IF EXISTS product;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS verification_token;
 DROP TABLE IF EXISTS "user";
 
 CREATE TABLE "user" (
@@ -12,8 +13,27 @@ CREATE TABLE "user" (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password CHAR(60) NOT NULL,
-    enabled BOOLEAN NOT NULL DEFAULT TRUE
+    status VARCHAR(255) NOT NULL CHECK (status IN ('ACTIVE', 'DELETED', 'UNVERIFIED'))
 );
+
+CREATE TABLE verification_token (
+    user_id BIGINT PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
+    token CHAR(36) NOT NULL UNIQUE,
+    expiration_time TIMESTAMP NOT NULL
+);
+
+CREATE OR REPLACE PROCEDURE delete_unverified_users_with_expired_tokens()
+    LANGUAGE PLPGSQL
+AS
+'
+BEGIN
+    DELETE FROM "user" u
+    USING verification_token vt
+    WHERE u.id = vt.user_id
+        AND u.status = ''UNVERIFIED''
+        AND vt.expiration_time + INTERVAL ''24 hours'' < CURRENT_TIMESTAMP;
+END;
+';
 
 CREATE TABLE category (
     id BIGSERIAL PRIMARY KEY,

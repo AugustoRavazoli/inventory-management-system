@@ -1,6 +1,7 @@
 package io.github.augustoravazoli.inventorymanagementsystem.user;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -29,12 +30,30 @@ public class UserController {
     public String registerUser(@Valid @ModelAttribute UserForm user, Model model) {
         try {
             userService.registerUser(user.toEntity());
+            model.addAttribute("email", user.getEmail());
         } catch (UserEmailTakenException e) {
             model.addAttribute("duplicatedEmail", true);
             model.addAttribute("user", user);
             return "user/register";
         }
-        return "user/success";
+        return "user/verify-account";
+    }
+
+    @GetMapping("/verify-account")
+    public String verifyAccount(@Valid @RequestParam(name = "token") @NotBlank String token) {
+        try {
+            userService.verifyAccount(token);
+        } catch (TokenExpiredException e) {
+            return "user/account-expired";
+        }
+        return "user/account-verified";
+    }
+
+    @PostMapping("/resend-verification-email")
+    public String resendVerificationEmail(@Valid @RequestParam(name = "email") @Email @NotBlank String email, Model model) {
+        userService.resendVerificationEmail(email);
+        model.addAttribute("email", email);
+        return "user/verify-account";
     }
 
     @PostMapping("/update-password")

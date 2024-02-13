@@ -16,11 +16,21 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfiguration {
 
+    private static final String[] ALLOWED_MATCHERS = new String[] {
+            "/webjars/**",
+            "/js/**",
+            "/img/**",
+            "/register",
+            "/login",
+            "/verify-account",
+            "/resend-verification-email"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/webjars/**", "/js/**", "/img/**", "/register", "/login").permitAll()
+                        .requestMatchers(ALLOWED_MATCHERS).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
