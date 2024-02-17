@@ -16,6 +16,7 @@
 <tr th:fragment="row(cells)">
   <td th:each="cell : ${cells}" th:text="${cell}" class="align-middle"></td>
   <td th:if="${!#strings.isEmpty(updateUrl) && !#strings.isEmpty(deleteUrl)}" class="align-middle">
+    <a th:if="${!#strings.isEmpty(printUrl)}" th:href="@{__${printUrl}__}" class="btn"><i class="bi bi-printer-fill text-secondary"></i></a>
     <a th:href="@{__${updateUrl}__}" class="btn"><i class="bi bi-pencil-fill text-primary"></i></a>
     <button @click="currentForm = $el.dataset.link"
             th:data-link="|javascript: document.deleteForm${#ids.seq('someId')}.submit()|" class="btn"

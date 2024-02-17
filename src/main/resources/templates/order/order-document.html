@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+
+    h1 {
+        color: #333;
+    }
+
+    div {
+        margin-bottom: 20px;
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    li {
+        margin-bottom: 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tbody tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    ul.total-status {
+        list-style-type: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    li.total-status {
+        margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <h1 th:text="#{order-document.title}"></h1>
+  </div>
+  <hr/>
+  <div>
+    <ul>
+      <li>
+        <strong th:text="#{order-document.number-label}"></strong>
+        <span th:text="${order.number}"></span>
+      </li>
+      <li>
+        <strong th:text="#{order-document.date-label}"></strong>
+        <span th:text="${#temporals.format(order.date, #messages.msg('date.format'))}"></span>
+      </li>
+      <li>
+        <strong th:text="#{order-document.customer-label}"></strong>
+        <span th:text="${order.customer.name}"></span>
+      </li>
+      <li>
+        <strong th:text="#{order-document.address-label}"></strong>
+        <span th:text="${order.customer.address}"></span>
+      </li>
+      <li>
+        <strong th:text="#{order-document.phone-label}"></strong>
+        <span th:text="${order.customer.phone}"></span>
+      </li>
+    </ul>
+  </div>
+  <hr/>
+  <div>
+    <table>
+      <thead>
+      <tr>
+        <th th:text="#{order-document.product-heading}"></th>
+        <th th:text="#{order-document.price-heading}"></th>
+        <th th:text="#{order-document.quantity-heading}"></th>
+        <th th:text="#{order-document.amount-heading}"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="item : ${order.items}">
+        <td th:text="${item.product.name}"></td>
+        <td th:text="${#numbers.formatCurrency(item.product.price)}"></td>
+        <td th:text="${item.quantity}"></td>
+        <td th:text="${#numbers.formatCurrency(item.amount)}"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <hr/>
+  <div>
+    <ul class="total-status">
+      <li class="total-status">
+        <strong th:text="#{order-document.total-label}"></strong>
+        <span th:text="${#numbers.formatCurrency(order.amount)}"></span>
+      </li>
+      <li class="total-status">
+        <strong th:text="#{order-document.status-label}"></strong>
+        <th:block th:switch="${order.status.name}">
+          <span th:case="'UNPAID'" th:text="#{order-document.status-unpaid}"></span>
+          <span th:case="'PAID'" th:text="#{order-document.status-paid}"></span>
+        </th:block>
+      </li>
+    </ul>
+  </div>
+</body>
+
+</html>

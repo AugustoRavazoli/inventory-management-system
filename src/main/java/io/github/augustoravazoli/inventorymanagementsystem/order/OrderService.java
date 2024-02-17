@@ -4,6 +4,7 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.Customer;
 import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.util.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -23,11 +24,13 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
+    private final OrderDocumentGenerator orderDocumentGenerator;
 
-    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, CustomerRepository customerRepository) {
+    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, CustomerRepository customerRepository, OrderDocumentGenerator orderDocumentGenerator) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
+        this.orderDocumentGenerator = orderDocumentGenerator;
     }
 
     @Transactional
@@ -57,6 +60,12 @@ public class OrderService {
         logger.info("Finding order with id {} for user {}", id, owner.getEmail());
         return orderRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(OrderNotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Document printOrder(long id, User owner) {
+        var order = orderRepository.findByIdAndOwner(id, owner).orElseThrow(OrderNotFoundException::new);
+        return orderDocumentGenerator.generateOrderDocument(order);
     }
 
     @Transactional

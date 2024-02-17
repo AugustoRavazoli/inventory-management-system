@@ -6,6 +6,7 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerRepo
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductRepository;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.util.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +42,9 @@ class OrderServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private OrderDocumentGenerator orderDocumentGenerator;
 
     private Customer customerA;
     private Customer customerB;
@@ -218,7 +223,7 @@ class OrderServiceTest {
         @Test
         void findOrder() {
             // given
-            var expectedOrder =  new OrderBuilder()
+            var expectedOrder = new OrderBuilder()
                     .status(OrderStatus.UNPAID)
                     .date(LocalDate.now())
                     .customer(customerA)
@@ -234,6 +239,49 @@ class OrderServiceTest {
 
         @Test
         void doNotFindOrderThatDoesNotExists() {
+            // given
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> orderService.findOrder(1L, user));
+            // then
+            exception.isInstanceOf(OrderNotFoundException.class);
+        }
+
+    }
+
+    @Nested
+    class PrintOrderTests {
+
+        private Order order;
+
+        @BeforeEach
+        void setup() {
+            order = new OrderBuilder()
+                    .id(1L)
+                    .status(OrderStatus.UNPAID)
+                    .date(LocalDate.now())
+                    .customer(customerA)
+                    .item(5, productA)
+                    .item(10, productB)
+                    .owner(user)
+                    .build();
+        }
+
+        @Test
+        void printOrder() {
+            // given
+            var expectedDocument = new Document("filename", new ByteArrayOutputStream(), 0);
+            when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.of(order));
+            when(orderDocumentGenerator.generateOrderDocument(order)).thenReturn(expectedDocument);
+            // when
+            var actualDocument = orderService.printOrder(1L, user);
+            // then
+            assertThat(actualDocument).usingRecursiveComparison().isEqualTo(expectedDocument);
+            verify(orderDocumentGenerator, times(1)).generateOrderDocument(order);
+        }
+
+        @Test
+        void doNotPrintOrderThatDoesNotExists() {
             // given
             when(orderRepository.findByIdAndOwner(1L, user)).thenReturn(Optional.empty());
             // when

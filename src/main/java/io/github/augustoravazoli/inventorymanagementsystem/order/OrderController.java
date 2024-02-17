@@ -5,6 +5,8 @@ import io.github.augustoravazoli.inventorymanagementsystem.product.ProductServic
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -86,6 +88,16 @@ public class OrderController {
         model.addAttribute("products", productService.listProducts(user));
         model.addAttribute("mode", "update");
         return "order/order-form";
+    }
+
+    @GetMapping("/print/{id}")
+    public ResponseEntity<?> printOrder(@AuthenticationPrincipal User user, @PathVariable("id") long id) {
+        var document = orderService.printOrder(id, user);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header("Content-Disposition", "attachment; filename=" + document.filename())
+                .contentLength(document.size())
+                .body(document.content().toByteArray());
     }
 
     @PostMapping("/update/{id}")

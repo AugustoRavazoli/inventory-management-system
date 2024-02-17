@@ -7,6 +7,7 @@ import io.github.augustoravazoli.inventorymanagementsystem.customer.CustomerServ
 import io.github.augustoravazoli.inventorymanagementsystem.product.Product;
 import io.github.augustoravazoli.inventorymanagementsystem.product.ProductService;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.util.Document;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -19,10 +20,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -251,6 +254,29 @@ class OrderControllerTest {
                     view().name("order/order-table")
             );
             verify(orderService, times(1)).findOrders(any(OrderStatus.class), anyString(), any(User.class));
+        }
+
+    }
+
+    @Nested
+    class PrintOrderTests {
+
+        @Test
+        void printOrder() throws Exception {
+            // given
+            var content = new ByteArrayOutputStream();
+            content.writeBytes("content".getBytes());
+            when(orderService.printOrder(anyLong(), any(User.class))).thenReturn(new Document("filename", content, content.size()));
+            // when
+            var result = client.perform(get("/orders/print/{id}", 1L));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    content().contentType(MediaType.APPLICATION_PDF),
+                    header().string("Content-Disposition", "attachment; filename=filename"),
+                    content().string("content")
+            );
+            verify(orderService, times(1)).printOrder(anyLong(), any(User.class));
         }
 
     }

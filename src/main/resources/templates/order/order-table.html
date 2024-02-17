@@ -49,6 +49,7 @@
     <th:block th:each="order : ${orders}">
       <div th:replace="~{fragment/table :: row(
             cells=${ { order.number, order.customer.name, #temporals.format(order.date, #messages.msg('date.format')), order.quantity, #numbers.formatCurrency(order.amount)} },
+            printUrl='/orders/print/__${order.id}__',
             updateUrl='/orders/update/__${order.id}__',
             deleteUrl='/orders/delete/__${order.id}__'
           )}"></div>

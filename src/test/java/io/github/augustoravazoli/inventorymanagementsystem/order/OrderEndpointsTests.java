@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
@@ -201,6 +202,32 @@ class OrderEndpointsTests {
                     status().isOk(),
                     model().attribute("orders", hasSize(2)),
                     view().name("order/order-table")
+            );
+        }
+
+    }
+
+    @Nested
+    class PrintOrderTests {
+
+        @Test
+        void printOrder() throws Exception {
+            // given
+            var order = orderRepository.save(new OrderBuilder()
+                    .status(OrderStatus.UNPAID)
+                    .customer(customerA)
+                    .item(5, productA)
+                    .item(10, productB)
+                    .owner(user)
+                    .build()
+            );
+            // when
+            var result = client.perform(get("/orders/print/{id}", order.getId()));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    content().contentType(MediaType.APPLICATION_PDF),
+                    header().exists("Content-Disposition")
             );
         }
 
