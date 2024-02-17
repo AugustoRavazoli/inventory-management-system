@@ -35,12 +35,6 @@ public class EmailSender {
 
     @Async
     @Retryable(retryFor = MailException.class)
-    public void sendHtmlEmail(String to, String subject, String template, Locale locale) {
-        sendHtmlEmail(to, subject, template, emptyMap(), locale);
-    }
-
-    @Async
-    @Retryable(retryFor = MailException.class)
     public void sendHtmlEmail(String to, String subject, String template, Map<String, Object> variables, Locale locale) {
         try {
             var message = mailSender.createMimeMessage();
