@@ -23,7 +23,7 @@ public class VerificationToken {
     private Instant expirationTime;
 
     @NotNull
-    @OneToOne(optional = false, cascade = CascadeType.REMOVE)
+    @OneToOne(optional = false)
     @MapsId
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
