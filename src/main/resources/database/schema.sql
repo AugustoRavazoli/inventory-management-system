@@ -29,6 +29,16 @@ CREATE TABLE password_reset_token (
     expiration_time TIMESTAMP NOT NULL
 );
 
+CREATE OR REPLACE PROCEDURE delete_expired_password_reset_tokens()
+    LANGUAGE PLPGSQL
+AS
+'
+BEGIN
+    DELETE FROM password_reset_token prt
+    WHERE prt.expiration_time + INTERVAL ''24 hours'' < CURRENT_TIMESTAMP;
+END;
+';
+
 CREATE OR REPLACE PROCEDURE delete_unverified_users_with_expired_tokens()
     LANGUAGE PLPGSQL
 AS

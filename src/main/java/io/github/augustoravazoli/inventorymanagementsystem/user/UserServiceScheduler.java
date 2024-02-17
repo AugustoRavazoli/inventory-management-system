@@ -7,14 +7,21 @@ import org.springframework.stereotype.Service;
 public class UserServiceScheduler {
 
     private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
-    public UserServiceScheduler(UserRepository userRepository) {
+    public UserServiceScheduler(UserRepository userRepository, PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
     }
 
     @Scheduled(cron = "@daily")
     private void deleteUnverifiedUsersWithExpiredTokens() {
         userRepository.deleteUnverifiedUsersWithExpiredTokens();
+    }
+
+    @Scheduled(cron = "@daily")
+    private void deleteExpiredPasswordResetTokens() {
+        passwordResetTokenRepository.deleteExpired();
     }
 
 }
