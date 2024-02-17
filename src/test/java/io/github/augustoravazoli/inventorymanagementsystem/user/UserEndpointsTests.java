@@ -118,6 +118,7 @@ class UserEndpointsTests {
             assertThat(optionalUser).get()
                     .hasFieldOrPropertyWithValue("status", AccountStatus.ACTIVE)
                     .hasFieldOrPropertyWithValue("enabled", true);
+            assertThat(verificationTokenRepository.count()).isZero();
         }
 
     }

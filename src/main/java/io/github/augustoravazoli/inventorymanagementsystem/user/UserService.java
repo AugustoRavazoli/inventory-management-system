@@ -52,6 +52,7 @@ public class UserService {
         var user = verificationToken.getUser();
         user.setStatus(AccountStatus.ACTIVE);
         userRepository.save(user);
+        verificationTokenRepository.delete(verificationToken);
         logger.info("Activating account for user {}", user.getEmail());
     }
 

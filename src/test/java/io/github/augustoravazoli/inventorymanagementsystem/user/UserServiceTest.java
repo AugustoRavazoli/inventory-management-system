@@ -90,6 +90,7 @@ class UserServiceTest {
             assertThat(user.getStatus()).isEqualTo(AccountStatus.ACTIVE);
             assertThat(user.isEnabled()).isTrue();
             verify(userRepository, times(1)).save(user);
+            verify(verificationTokenRepository, times(1)).delete(verificationToken);
         }
 
         @Test
@@ -103,6 +104,7 @@ class UserServiceTest {
             // then
             exception.isInstanceOf(TokenExpiredException.class);
             verify(userRepository, never()).save(any(User.class));
+            verify(verificationTokenRepository, never()).delete(any(VerificationToken.class));
         }
 
         @Test
@@ -114,6 +116,7 @@ class UserServiceTest {
             // then
             exception.isInstanceOf(TokenNotFoundException.class);
             verify(userRepository, never()).save(any(User.class));
+            verify(verificationTokenRepository, never()).delete(any(VerificationToken.class));
         }
 
     }
