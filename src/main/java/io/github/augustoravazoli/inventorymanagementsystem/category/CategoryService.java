@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    @Transactional
     public void createCategory(Category category, User owner) {
         if (categoryRepository.existsByNameAndOwner(category.getName(), owner)) {
             logger.info("Category name {} for user {} already in use, throwing exception", category.getName(), owner.getEmail());
@@ -31,27 +33,32 @@ public class CategoryService {
         logger.info("Category {} created for user {}", category.getName(), owner.getEmail());
     }
 
+    @Transactional(readOnly = true)
     public Page<Category> listCategories(int page, User owner) {
         logger.info("Listing categories paginated for user {}", owner.getEmail());
         return categoryRepository.findAllByOwner(owner, PageRequest.of(page - 1, 8, Sort.by("name")));
     }
 
+    @Transactional(readOnly = true)
     public List<Category> listCategories(User owner) {
         logger.info("Listing categories for user {}", owner.getEmail());
         return categoryRepository.findAllByOwner(owner, Sort.by("name"));
     }
 
+    @Transactional(readOnly = true)
     public List<Category> findCategories(String name, User owner) {
         logger.info("Finding categories containing name {} for user {}", name, owner.getEmail());
         return categoryRepository.findAllByNameContainingIgnoreCaseAndOwner(name, owner);
     }
 
+    @Transactional(readOnly = true)
     public Category findCategory(long id, User owner) {
         logger.info("Finding category with id {} for user {}", id, owner.getEmail());
         return categoryRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(CategoryNotFoundException::new);
     }
 
+    @Transactional
     public void updateCategory(long id, Category updatedCategory, User owner) {
         var category = categoryRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(CategoryNotFoundException::new);
@@ -65,6 +72,7 @@ public class CategoryService {
         logger.info("Category with id {} of user {} updated, new name is {}", category.getId(), owner.getEmail(), updatedCategory.getName());
     }
 
+    @Transactional
     public void deleteCategory(long id, User owner) {
         if (!categoryRepository.existsByIdAndOwner(id, owner)) {
             logger.info("Category with id {} of user user {} not found, throwing exception", id, owner.getEmail());

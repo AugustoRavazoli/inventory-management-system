@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,13 +22,13 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final OrderRepository orderRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository,
-                          OrderRepository orderRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, OrderRepository orderRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.orderRepository = orderRepository;
     }
 
+    @Transactional
     public void createProduct(Product product, User owner) {
         if (productRepository.existsByNameAndOwner(product.getName(), owner)) {
             logger.info("Product name {} of user {} already in use, throwing exception", product.getName(), owner.getEmail());
@@ -43,27 +44,32 @@ public class ProductService {
         logger.info("Product {} created for user {}", product.getName(), owner.getEmail());
     }
 
+    @Transactional(readOnly = true)
     public Page<Product> listProducts(int page, User owner) {
         logger.info("Listing products paginated for user {}", owner.getEmail());
         return productRepository.findAllByOwner(owner, PageRequest.of(page - 1, 8, Sort.by("name")));
     }
 
+    @Transactional(readOnly = true)
     public List<Product> listProducts(User owner) {
         logger.info("Listing products for user {}", owner.getEmail());
         return productRepository.findAllByOwner(owner, Sort.by("name"));
     }
 
+    @Transactional(readOnly = true)
     public List<Product> findProducts(String name, User owner) {
         logger.info("Finding products containing name {} for user {}", name, owner.getEmail());
         return productRepository.findAllByNameContainingIgnoreCaseAndOwner(name, owner);
     }
 
+    @Transactional(readOnly = true)
     public Product findProduct(long id, User owner) {
         logger.info("Finding product with id {} for user {}", id, owner.getEmail());
         return productRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(ProductNotFoundException::new);
     }
 
+    @Transactional
     public void updateProduct(long id, Product updatedProduct, User owner) {
         var product = productRepository.findByIdAndOwner(id, owner)
                 .orElseThrow(ProductNotFoundException::new);
@@ -85,6 +91,7 @@ public class ProductService {
         logger.info("Product with id {} of user {} updated, new name is {}", product.getId(), owner.getEmail(), updatedProduct.getName());
     }
 
+    @Transactional
     public void deleteProduct(long id, User owner) {
         if (!productRepository.existsByIdAndOwner(id, owner)) {
             logger.info("Product with id {} of user {} not found, throwing exception", id, owner.getEmail());

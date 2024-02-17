@@ -40,16 +40,19 @@ public class OrderService {
         logger.info("Order created for customer {} of user {}", order.getCustomer().getName(), owner.getEmail());
     }
 
+    @Transactional(readOnly = true)
     public Page<Order> listOrders(OrderStatus status, int page, User owner) {
         logger.info("Listing {} orders paginated for user {}", status, owner.getEmail());
         return orderRepository.findAllByStatusAndOwner(status, owner, PageRequest.of(page - 1, 8, Sort.by("date")));
     }
 
+    @Transactional(readOnly = true)
     public List<Order> findOrders(OrderStatus status, String customerName, User owner) {
         logger.info("Finding {} orders containing customer name {} for user {}", status, customerName, owner.getEmail());
         return orderRepository.findAllByStatusAndCustomerNameContainingIgnoreCaseAndOwner(status, customerName, owner);
     }
 
+    @Transactional(readOnly = true)
     public Order findOrder(long id, User owner) {
         logger.info("Finding order with id {} for user {}", id, owner.getEmail());
         return orderRepository.findByIdAndOwner(id, owner)

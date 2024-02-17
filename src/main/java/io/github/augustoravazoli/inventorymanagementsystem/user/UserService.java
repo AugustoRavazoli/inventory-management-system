@@ -29,6 +29,7 @@ public class UserService {
         this.userEmailSender = userEmailSender;
     }
 
+    @Transactional
     public void registerUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             logger.info("User with email taken, throwing exception");
@@ -40,6 +41,7 @@ public class UserService {
         userEmailSender.sendVerificationEmail(user, generateVerificationToken(user));
     }
 
+    @Transactional
     public void verifyAccount(String token) {
         var verificationToken = verificationTokenRepository.findByTokenAndUserStatus(token, AccountStatus.UNVERIFIED)
                 .orElseThrow(TokenNotFoundException::new);
@@ -53,6 +55,7 @@ public class UserService {
         logger.info("Activating account for user {}", user.getEmail());
     }
 
+    @Transactional(readOnly = true)
     public void resendVerificationEmail(String email) {
         var verificationToken = verificationTokenRepository.findByUserEmailAndUserStatus(email, AccountStatus.UNVERIFIED)
                 .orElseThrow(TokenNotFoundException::new);
@@ -80,6 +83,7 @@ public class UserService {
         userEmailSender.sendPasswordResetEmail(user, generatePasswordResetToken(user));
     }
 
+    @Transactional(readOnly = true)
     public void validatePasswordResetToken(String token) {
         var passwordResetToken = passwordResetTokenRepository.findByToken(token)
                 .orElseThrow(TokenNotFoundException::new);
@@ -104,6 +108,7 @@ public class UserService {
         logger.info("Updating password for user {}", user.getEmail());
     }
 
+    @Transactional
     public void updatePassword(String password, String newPassword, User user) {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             logger.info("Password don't matches existing password, throwing exception");
@@ -114,6 +119,7 @@ public class UserService {
         logger.info("Updating password for user {}", user.getEmail());
     }
 
+    @Transactional
     public void disableUser(User user) {
         user.setStatus(AccountStatus.DELETED);
         userRepository.save(user);
