@@ -113,8 +113,8 @@ public class UserController {
     }
 
     @PostMapping("/delete-account")
-    public String disableUser(@AuthenticationPrincipal User user) {
-        userService.disableUser(user);
+    public String deleteUserAccount(@AuthenticationPrincipal User user) {
+        userService.deleteUserAccount(user);
         return "forward:/logout";
     }
 

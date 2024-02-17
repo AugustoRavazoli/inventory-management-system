@@ -121,7 +121,7 @@ public class UserService {
     }
 
     @Transactional
-    public void disableUser(User user) {
+    public void deleteUserAccount(User user) {
         user.setStatus(AccountStatus.DELETED);
         userRepository.save(user);
         logger.info("Disabling account for user {}", user.getEmail());

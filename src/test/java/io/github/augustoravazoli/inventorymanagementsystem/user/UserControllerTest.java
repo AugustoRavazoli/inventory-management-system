@@ -364,10 +364,10 @@ class UserControllerTest {
     }
 
     @Nested
-    class DisableUserTests {
+    class DeleteUserAccountTests {
 
         @Test
-        void disableUser() throws Exception {
+        void deleteUserAccount() throws Exception {
             // when
             var result = client.perform(post("/delete-account").with(csrf()));
             // then
@@ -375,7 +375,7 @@ class UserControllerTest {
                     status().isOk(),
                     forwardedUrl("/logout")
             );
-            verify(userService, times(1)).disableUser(any(User.class));
+            verify(userService, times(1)).deleteUserAccount(any(User.class));
         }
 
     }

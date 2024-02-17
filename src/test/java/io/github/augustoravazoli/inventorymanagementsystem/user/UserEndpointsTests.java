@@ -245,7 +245,7 @@ class UserEndpointsTests {
     }
 
     @Nested
-    class DisableUserTests {
+    class DeleteUserAccountTests {
 
         @BeforeEach
         void setup() {
@@ -254,7 +254,7 @@ class UserEndpointsTests {
 
         @Test
         @WithUserDetails(value = "user@email.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-        void disableUser() throws Exception {
+        void deleteUserAccount() throws Exception {
             // when
             var result = client.perform(post("/delete-account").with(csrf()));
             // then

@@ -347,14 +347,14 @@ class UserServiceTest {
     }
 
     @Nested
-    class DisableUserTests {
+    class DeleteUserAccountTests {
 
         @Test
-        void disableUser() {
+        void deleteUserAccount() {
             // given
             var user = new User("user", "user@email.com", "password");
             // when
-            userService.disableUser(user);
+            userService.deleteUserAccount(user);
             // then
             assertThat(user.getStatus()).isEqualTo(AccountStatus.DELETED);
             assertThat(user.isEnabled()).isFalse();
