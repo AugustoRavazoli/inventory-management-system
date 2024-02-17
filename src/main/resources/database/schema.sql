@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS "order";
 DROP TABLE IF EXISTS product;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS password_reset_token;
 DROP TABLE IF EXISTS verification_token;
 DROP TABLE IF EXISTS "user";
 
@@ -18,6 +19,12 @@ CREATE TABLE "user" (
 
 CREATE TABLE verification_token (
     user_id BIGINT PRIMARY KEY REFERENCES "user"(id) ON DELETE CASCADE,
+    token CHAR(36) NOT NULL UNIQUE,
+    expiration_time TIMESTAMP NOT NULL
+);
+
+CREATE TABLE password_reset_token (
+    user_id BIGINT PRIMARY KEY REFERENCES "user"(id),
     token CHAR(36) NOT NULL UNIQUE,
     expiration_time TIMESTAMP NOT NULL
 );

@@ -12,8 +12,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +28,9 @@ class UserServiceTest {
 
     @Mock
     private VerificationTokenRepository verificationTokenRepository;
+
+    @Mock
+    private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -153,6 +155,160 @@ class UserServiceTest {
             // then
             exception.isInstanceOf(TokenNotFoundException.class);
             verify(userEmailSender, never()).sendVerificationEmail(any(User.class), anyString());
+        }
+
+    }
+
+    @Nested
+    class SendPasswordResetEmailTests {
+
+        @Test
+        void sendPasswordResetEmailWithExistentToken() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            var passwordResetToken = new PasswordResetToken(TOKEN, Instant.now().plus(15, ChronoUnit.MINUTES), user);
+            when(passwordResetTokenRepository.findByUserEmailAndUserStatus("user@email.com", AccountStatus.ACTIVE))
+                    .thenReturn(Optional.of(passwordResetToken));
+            // when
+            userService.sendPasswordResetEmail("user@email.com");
+            // then
+            verify(passwordResetTokenRepository, never()).delete(any(PasswordResetToken.class));
+            verify(passwordResetTokenRepository, never()).save(any(PasswordResetToken.class));
+            verify(userEmailSender, times(1)).sendPasswordResetEmail(user, TOKEN);
+        }
+
+        @Test
+        void sendPasswordResetEmailWithNewTokenForNonexistentToken() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            var passwordResetToken = new PasswordResetToken(TOKEN.toUpperCase(), Instant.now().plus(15, ChronoUnit.MINUTES), user);
+            when(passwordResetTokenRepository.findByUserEmailAndUserStatus("user@email.com", AccountStatus.ACTIVE))
+                    .thenReturn(Optional.empty());
+            when(userRepository.findByEmailAndStatus("user@email.com", AccountStatus.ACTIVE))
+                    .thenReturn(Optional.of(user));
+            when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(passwordResetToken);
+            // when
+            userService.sendPasswordResetEmail("user@email.com");
+            // then
+            verify(passwordResetTokenRepository, never()).delete(any(PasswordResetToken.class));
+            verify(passwordResetTokenRepository, times(1)).save(any(PasswordResetToken.class));
+            verify(userEmailSender, times(1)).sendPasswordResetEmail(user, TOKEN.toUpperCase());
+        }
+
+        @Test
+        void sendPasswordResetEmailWithNewTokenForExistentExpiredToken() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            var passwordResetToken = new PasswordResetToken(TOKEN, Instant.now().minus(15, ChronoUnit.MINUTES), user);
+            var newPasswordResetToken = new PasswordResetToken(TOKEN.toUpperCase(), Instant.now().plus(15, ChronoUnit.MINUTES), user);
+            when(passwordResetTokenRepository.findByUserEmailAndUserStatus("user@email.com", AccountStatus.ACTIVE))
+                    .thenReturn(Optional.of(passwordResetToken));
+            when(userRepository.findByEmailAndStatus("user@email.com", AccountStatus.ACTIVE))
+                    .thenReturn(Optional.of(user));
+            when(passwordResetTokenRepository.save(any(PasswordResetToken.class))).thenReturn(newPasswordResetToken);
+            // when
+            userService.sendPasswordResetEmail("user@email.com");
+            // then
+            verify(passwordResetTokenRepository, times(1)).delete(passwordResetToken);
+            verify(passwordResetTokenRepository, times(1)).save(any(PasswordResetToken.class));
+            verify(userEmailSender, times(1)).sendPasswordResetEmail(user, TOKEN.toUpperCase());
+        }
+
+        @Test
+        void doNotSendPasswordResetEmailForNonexistentUser() {
+            // given
+            when(passwordResetTokenRepository.findByUserEmailAndUserStatus("user@email.com", AccountStatus.ACTIVE))
+                    .thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> userService.sendPasswordResetEmail("user@email.com"));
+            // then
+            exception.isInstanceOf(NonexistentUserException.class);
+            verify(passwordResetTokenRepository, never()).save(any(PasswordResetToken.class));
+            verify(userEmailSender, never()).sendPasswordResetEmail(any(User.class), anyString());
+        }
+
+    }
+
+    @Nested
+    class ValidatePasswordResetTokenTests {
+
+        @Test
+        void validatePasswordResetToken() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            var passwordResetToken = new PasswordResetToken(TOKEN, Instant.now().plus(15, ChronoUnit.MINUTES), user);
+            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.of(passwordResetToken));
+            // then
+            assertThatCode(() -> userService.validatePasswordResetToken(TOKEN))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        void validatePasswordResetTokenWithExpiredToken() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            var passwordResetToken = new PasswordResetToken(TOKEN, Instant.now().minus(15, ChronoUnit.MINUTES), user);
+            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.of(passwordResetToken));
+            // when
+            var exception = assertThatThrownBy(() -> userService.validatePasswordResetToken(TOKEN));
+            // then
+            exception.isInstanceOf(TokenExpiredException.class);
+        }
+
+        @Test
+        void validatePasswordResetTokenWithNonExistentToken() {
+            // given
+            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> userService.validatePasswordResetToken(TOKEN));
+            // then
+            exception.isInstanceOf(TokenNotFoundException.class);
+        }
+
+    }
+
+    @Nested
+    class ResetPasswordTests {
+
+        @Test
+        void resetPassword() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            var passwordResetToken = new PasswordResetToken(TOKEN, Instant.now().plus(15, ChronoUnit.MINUTES), user);
+            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.of(passwordResetToken));
+            when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedPassword");
+            // when
+            userService.resetPassword("newPassword", TOKEN);
+            // then
+            assertThat(user.getPassword()).isEqualTo("newEncodedPassword");
+            verify(userRepository, times(1)).save(user);
+            verify(passwordResetTokenRepository, times(1)).delete(passwordResetToken);
+        }
+
+        @Test
+        void doNotResetPasswordWithExpiredToken() {
+            // given
+            var user = new User("user", "user@email.com", "password");
+            var passwordResetToken = new PasswordResetToken(TOKEN, Instant.now().minus(15, ChronoUnit.MINUTES), user);
+            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.of(passwordResetToken));
+            // when
+            var exception = assertThatThrownBy(() -> userService.resetPassword("newPassword", TOKEN));
+            // then
+            exception.isInstanceOf(TokenExpiredException.class);
+            verify(userRepository, never()).save(any(User.class));
+            verify(passwordResetTokenRepository, never()).delete(any(PasswordResetToken.class));
+        }
+
+        @Test
+        void doNotResetPasswordWithNonexistentToken() {
+            // given
+            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.empty());
+            // when
+            var exception = assertThatThrownBy(() -> userService.resetPassword("newPassword", TOKEN));
+            // then
+            exception.isInstanceOf(TokenNotFoundException.class);
+            verify(userRepository, never()).save(any(User.class));
+            verify(passwordResetTokenRepository, never()).delete(any(PasswordResetToken.class));
         }
 
     }

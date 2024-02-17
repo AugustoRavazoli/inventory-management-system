@@ -23,7 +23,9 @@ public class SecurityConfiguration {
             "/register",
             "/login",
             "/verify-account",
-            "/resend-verification-email"
+            "/resend-verification-email",
+            "/request-password-reset",
+            "/reset-password"
     };
 
     @Bean

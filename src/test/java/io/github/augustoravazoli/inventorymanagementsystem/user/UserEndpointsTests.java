@@ -50,10 +50,14 @@ class UserEndpointsTests {
     @Autowired
     private VerificationTokenRepository verificationTokenRepository;
 
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
 
     @AfterEach
     void tearDown() {
         verificationTokenRepository.deleteAll();
+        passwordResetTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -145,6 +149,68 @@ class UserEndpointsTests {
             assertThat(message.getAllRecipients()[0].toString()).isEqualTo("user@email.com");
             assertThat(message.getSubject()).isEqualTo("Verify your account on Inventory Management System");
             assertThat((String) message.getContent()).containsSequence("http://localhost/verify-account?token");
+        }
+
+    }
+
+    @Nested
+    class SendPasswordResetEmailTests {
+
+        @BeforeEach
+        void setup() {
+            var user = new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO");
+            user.setStatus(AccountStatus.ACTIVE);
+            userRepository.save(user);
+        }
+
+        @Test
+        void requestPasswordReset() throws Exception {
+            // when
+            var result = client.perform(post("/request-password-reset")
+                    .param("email", "user@email.com")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/request-password-reset-success")
+            );
+            greenMail.waitForIncomingEmail(1);
+            var message = greenMail.getReceivedMessages()[0];
+            assertThat(message.getAllRecipients()[0].toString()).isEqualTo("user@email.com");
+            assertThat(message.getSubject()).isEqualTo("Reset your password on Inventory Management System");
+            assertThat((String) message.getContent()).containsSequence("http://localhost/reset-password?token");
+        }
+
+    }
+
+    @Nested
+    class ResetPasswordTests {
+
+        @BeforeEach
+        void setup() {
+            var user = new User("user", "user@email.com", "$2a$10$gYCEDfFbidA3IInCfzcXdugclrYR/6FbQuogN7Ixc3ohWi90MEXiO");
+            user.setStatus(AccountStatus.ACTIVE);
+            passwordResetTokenRepository.save(new PasswordResetToken("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", Instant.now().plus(15, ChronoUnit.MINUTES), user));
+        }
+
+        @Test
+        void resetPassword() throws Exception {
+            // when
+            var result = client.perform(post("/reset-password")
+                    .param("new-password", "newPassword")
+                    .param("token", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/password-updated")
+            );
+            var optionalUser = userRepository.findByEmail("user@email.com");
+            assertThat(optionalUser).get()
+                    .matches(user -> passwordEncoder.matches("newPassword", user.getPassword()));
+            assertThat(passwordResetTokenRepository.count()).isZero();
         }
 
     }

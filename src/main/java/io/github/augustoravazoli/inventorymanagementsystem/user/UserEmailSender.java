@@ -30,9 +30,27 @@ public class UserEmailSender {
         emailSender.sendHtmlEmail(to, subject, template, variables, locale);
     }
 
+    public void sendPasswordResetEmail(User user, String token) {
+        var to = user.getEmail();
+        var subject = "password-reset-email.subject";
+        var template = "user/password-reset-email";
+        var variables = Map.<String, Object>of("passwordResetLink", buildPasswordResetLink(token));
+        var locale = LocaleContextHolder.getLocale();
+        logger.info("Sending password reset email to user {}", user.getEmail());
+        emailSender.sendHtmlEmail(to, subject, template, variables, locale);
+    }
+
     private String buildVerificationLink(String token) {
         return ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("verify-account")
+                .queryParam("token", token)
+                .build()
+                .toUriString();
+    }
+
+    private String buildPasswordResetLink(String token) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("reset-password")
                 .queryParam("token", token)
                 .build()
                 .toUriString();

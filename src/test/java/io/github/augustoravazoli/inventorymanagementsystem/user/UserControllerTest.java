@@ -170,6 +170,149 @@ class UserControllerTest {
     }
 
     @Nested
+    class SendPasswordResetEmailTests {
+
+        @Test
+        void retrieveRequestPasswordResetPage() throws Exception {
+            // when
+            var result = client.perform(get("/request-password-reset"));
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("email", nullValue()),
+                    view().name("user/request-password-reset-form")
+            );
+        }
+
+        @Test
+        void requestPasswordReset() throws Exception {
+            // when
+            var result = client.perform(post("/request-password-reset")
+                    .param("email", "user@email.com")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/request-password-reset-success")
+            );
+            verify(userService, times(1)).sendPasswordResetEmail(anyString());
+        }
+
+        @Test
+        void doNotRequestPasswordResetWithNonexistentUser() throws Exception {
+            // given
+            doThrow(NonexistentUserException.class).when(userService).sendPasswordResetEmail(anyString());
+            // when
+            var result = client.perform(post("/request-password-reset")
+                    .param("email", "user@email.com")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("userNotFound", is(true)),
+                    model().attribute("email", is("user@email.com")),
+                    view().name("user/request-password-reset-form")
+            );
+            verify(userService, times(1)).sendPasswordResetEmail(anyString());
+        }
+
+        @Test
+        void doNotRequestPasswordResetWithBlankEmail() throws Exception {
+            // when
+            var result = client.perform(post("/request-password-reset")
+                    .param("email", "")
+                    .with(csrf())
+            );
+            // then
+            result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
+    class ResetPasswordTests {
+
+        @Test
+        void retrieveResetPasswordPage() throws Exception {
+            // when
+            var result = client.perform(get("/reset-password")
+                    .param("token", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+            );            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    model().attribute("token", is("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")),
+                    view().name("user/reset-password-form")
+            );
+            verify(userService, times(1)).validatePasswordResetToken(anyString());
+        }
+
+        @Test
+        void doNotRetrieveResetPasswordPageWithExpiredToken() throws Exception {
+            // given
+            doThrow(TokenExpiredException.class).when(userService).validatePasswordResetToken(anyString());
+            // when
+            var result = client.perform(get("/reset-password")
+                    .param("token", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/expired-password-reset-request")
+            );
+            verify(userService, times(1)).validatePasswordResetToken(anyString());
+        }
+
+        @Test
+        void resetPassword() throws Exception {
+            // when
+            var result = client.perform(post("/reset-password")
+                    .param("new-password", "newPassword")
+                    .param("token", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/password-updated")
+            );
+            verify(userService, times(1)).resetPassword(anyString(), anyString());
+        }
+
+        @Test
+        void doNotResetPasswordWithExpiredToken() throws Exception {
+            // given
+            doThrow(TokenExpiredException.class).when(userService).resetPassword(anyString(), anyString());
+            // when
+            var result = client.perform(post("/reset-password")
+                    .param("new-password", "newPassword")
+                    .param("token", "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isOk(),
+                    view().name("user/expired-password-reset-request")
+            );
+            verify(userService, times(1)).resetPassword(anyString(), anyString());
+        }
+
+        @Test
+        void doNotResetPasswordWithBlankFields() throws Exception {
+            // when
+            var result = client.perform(post("/reset-password")
+                    .param("new-password", "")
+                    .param("token", "")
+                    .with(csrf())
+            );
+            // then
+            result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
     class UpdatePasswordTests {
 
         @Test

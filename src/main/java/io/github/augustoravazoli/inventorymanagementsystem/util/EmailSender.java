@@ -16,6 +16,8 @@ import org.thymeleaf.context.Context;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.util.Collections.emptyMap;
+
 @Component
 public class EmailSender {
 
@@ -29,6 +31,12 @@ public class EmailSender {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
         this.messageSource = messageSource;
+    }
+
+    @Async
+    @Retryable(retryFor = MailException.class)
+    public void sendHtmlEmail(String to, String subject, String template, Locale locale) {
+        sendHtmlEmail(to, subject, template, emptyMap(), locale);
     }
 
     @Async

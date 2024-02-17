@@ -56,6 +56,48 @@ public class UserController {
         return "user/verify-account";
     }
 
+    @GetMapping("/request-password-reset")
+    public String retrieveRequestPasswordResetPage(Model model) {
+        model.addAttribute("email", null);
+        return "user/request-password-reset-form";
+    }
+
+    @PostMapping("/request-password-reset")
+    public String requestPasswordReset(@Valid @ModelAttribute(name = "email") @Email @NotBlank String email, Model model) {
+        try {
+            userService.sendPasswordResetEmail(email);
+        } catch (NonexistentUserException e) {
+            model.addAttribute("userNotFound", true);
+            model.addAttribute("email", email);
+            return "user/request-password-reset-form";
+        }
+        return "user/request-password-reset-success";
+    }
+
+    @GetMapping("/reset-password")
+    public String retrieveResetPasswordPage(@Valid @RequestParam(name = "token") @NotBlank String token, Model model) {
+        try {
+            userService.validatePasswordResetToken(token);
+            model.addAttribute("token", token);
+        } catch (TokenExpiredException e) {
+            return "user/expired-password-reset-request";
+        }
+        return "user/reset-password-form";
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(
+            @Valid @RequestParam(name = "new-password") @NotBlank String newPassword,
+            @Valid @RequestParam(name = "token") @NotBlank String token
+    ) {
+        try {
+            userService.resetPassword(newPassword, token);
+        } catch (TokenExpiredException e) {
+            return "user/expired-password-reset-request";
+        }
+        return "user/password-updated";
+    }
+
     @PostMapping("/update-password")
     public String updateUserPassword(
             @Valid @RequestParam(name = "password") @NotBlank String password,
