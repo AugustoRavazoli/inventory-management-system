@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,10 +20,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -76,6 +77,34 @@ class CustomerEndpointsTests {
             assertThat(customerOptional).get()
                     .extracting("name", "address", "phone", "owner.email")
                     .containsExactly("A", "A", "A", "user@email.com");
+        }
+
+    }
+
+    @Nested
+    class CreateAllCustomersTests {
+
+        @Test
+        void createAllCustomers() throws Exception {
+            // given
+            var csv = "name;address;phone;\nA;A;A\nB;B;B\nC;C;C";
+            var file = new MockMultipartFile("customers", "customers.csv", "text/csv", csv.getBytes());
+            // when
+            var result = client.perform(multipart("/customers/create-all")
+                    .file(file)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/customers/list")
+            );
+            var customers = customerRepository.findAll();
+            assertThat(customers).extracting("name", "address", "phone", "owner.email").containsExactly(
+                    tuple("A", "A", "A", "user@email.com"),
+                    tuple("B", "B", "B", "user@email.com"),
+                    tuple("C", "C", "C", "user@email.com")
+            );
         }
 
     }

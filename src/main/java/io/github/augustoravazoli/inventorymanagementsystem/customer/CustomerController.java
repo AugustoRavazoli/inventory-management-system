@@ -1,11 +1,14 @@
 package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.util.CsvConverter;
+import io.github.augustoravazoli.inventorymanagementsystem.util.CsvConversionException;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -13,9 +16,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CsvConverter csvConverter;
 
-    public CustomerController(CustomerService customerService) {
+    public CustomerController(CustomerService customerService, CsvConverter csvConverter) {
         this.customerService = customerService;
+        this.csvConverter = csvConverter;
     }
 
     @GetMapping("/create")
@@ -34,6 +39,21 @@ public class CustomerController {
             model.addAttribute("customer", customer);
             model.addAttribute("mode", "create");
             return "customer/customer-form";
+        }
+        return "redirect:/customers/list";
+    }
+
+    @PostMapping("/create-all")
+    public String createAllProducts(
+            @AuthenticationPrincipal User user,
+            @RequestParam(name = "customers") MultipartFile customersFile,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            var customers = csvConverter.convert(customersFile, CustomerForm.class);
+            customerService.createAllCustomers(customers.stream().map(CustomerForm::toEntity).toList(), user);
+        } catch (CsvConversionException e) {
+            redirectAttributes.addFlashAttribute("mappingError", true);
         }
         return "redirect:/customers/list";
     }

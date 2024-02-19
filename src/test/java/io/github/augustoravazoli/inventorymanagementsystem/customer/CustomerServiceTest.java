@@ -63,6 +63,37 @@ class CustomerServiceTest {
     }
 
     @Nested
+    class CreateAllCustomersTests {
+
+        private final List<Customer> customers = List.of(
+                new Customer("A", "A", "A"),
+                new Customer("B", "B", "B"),
+                new Customer("C", "C", "C")
+        );
+
+        @Test
+        void createAllCustomers() {
+            // when
+            customerService.createAllCustomers(customers, user);
+            // then
+            assertThat(customers).extracting("owner").containsExactly(user, user, user);
+            verify(customerRepository, times(1)).saveAll(customers);
+        }
+
+        @Test
+        void createAllCustomersIgnoringDuplicates() {
+            // given
+            when(customerRepository.existsByNameAndOwner("A", user)).thenReturn(true);
+            // when
+            customerService.createAllCustomers(customers, user);
+            // then
+            assertThat(customers).extracting("owner").containsExactly(null, user, user);
+            verify(customerRepository, times(1)).saveAll(customers.subList(1, 3));
+        }
+
+    }
+
+    @Nested
     class ListCustomersTests {
 
         private final List<Customer> customers = List.of(

@@ -36,6 +36,17 @@ public class CustomerService {
         logger.info("Customer {} created for user {}", customer.getName(), owner.getEmail());
     }
 
+    @Transactional
+    public void createAllCustomers(List<Customer> customers, User owner) {
+        logger.info("Creating multiples customers, duplicates will be ignored");
+        var newCustomers = customers.stream()
+                .filter(customer -> !customerRepository.existsByNameAndOwner(customer.getName(), owner))
+                .peek(customer -> customer.setOwner(owner))
+                .toList();
+        customerRepository.saveAll(newCustomers);
+        newCustomers.forEach(customer -> logger.info("Customer {} created for user {}", customer.getName(), owner.getEmail()));
+    }
+
     @Transactional(readOnly = true)
     public Page<Customer> listCustomers(int page, User owner) {
         logger.info("Listing customers paginated for user {}", owner.getEmail());

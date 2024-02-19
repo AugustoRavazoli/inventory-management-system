@@ -2,6 +2,8 @@ package io.github.augustoravazoli.inventorymanagementsystem.customer;
 
 import io.github.augustoravazoli.inventorymanagementsystem.MockUserDetailsService;
 import io.github.augustoravazoli.inventorymanagementsystem.user.User;
+import io.github.augustoravazoli.inventorymanagementsystem.util.CsvConversionException;
+import io.github.augustoravazoli.inventorymanagementsystem.util.CsvConverter;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +13,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,8 +25,7 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CustomerController.class)
@@ -32,6 +35,9 @@ class CustomerControllerTest {
 
     @MockBean
     private CustomerService customerService;
+
+    @MockBean
+    private CsvConverter csvMapper;
 
     @Autowired
     private MockMvc client;
@@ -102,6 +108,47 @@ class CustomerControllerTest {
             );
             // then
             result.andExpect(status().isBadRequest());
+        }
+
+    }
+
+    @Nested
+    class CreateAllCustomersTests {
+
+        @Test
+        void createAllCustomers() throws Exception {
+            // given
+            var file = new MockMultipartFile("customers", "customers.csv", "text/csv", "".getBytes());
+            // when
+            var result = client.perform(multipart("/customers/create-all")
+                    .file(file)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    redirectedUrl("/customers/list")
+            );
+            verify(csvMapper, times(1)).convert(any(MultipartFile.class), any());
+        }
+
+        @Test
+        void doNotCreateAllCustomersWithInvalidCustomersFile() throws Exception {
+            // given
+            doThrow(CsvConversionException.class).when(csvMapper).convert(any(MultipartFile.class), any());
+            var file = new MockMultipartFile("customers", "customers.csv", "text/csv", "".getBytes());
+            // when
+            var result = client.perform(multipart("/customers/create-all")
+                    .file(file)
+                    .with(csrf())
+            );
+            // then
+            result.andExpectAll(
+                    status().isFound(),
+                    flash().attribute("mappingError", true),
+                    redirectedUrl("/customers/list")
+            );
+            verify(csvMapper, times(1)).convert(any(MultipartFile.class), any());
         }
 
     }

@@ -9,6 +9,11 @@
       new bootstrap.Modal(document.getElementById('alert')).show();
     });
   </script>
+  <script th:if="${mappingError}" th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      new bootstrap.Modal(document.getElementById('alert-file')).show();
+    });
+  </script>
 </head>
 
 <body>
@@ -19,6 +24,11 @@
       <div class="container-fluid px-0">
         <h2 th:text="#{customer-table.title}" class="h4 mb-0 d-none d-sm-block"></h2>
         <div class="d-flex justify-content-between">
+          <button type="button" class="me-4 flex-shrink-0 btn btn-primary rounded-0"
+                  data-bs-toggle="modal" data-bs-target="#fileModal">
+            <span th:text="#{customer-table.import-csv}"></span>
+            <i class="bi bi-upload"></i>
+          </button>
           <div th:replace="~{fragment/search(
             searchParam='name',
             searchUrl='/customers/find',
@@ -67,6 +77,26 @@
       description=#{customer-alert-dialog.description},
       dismiss=#{customer-alert-dialog.ok}
     )}"></div>
+
+    <div th:if="${mappingError}" th:replace="~{fragment/alert-dialog(
+      id='alert-file',
+      title=#{customer-csv-alert-dialog.title},
+      description=#{customer-csv-alert-dialog.description},
+      dismiss=#{customer-csv-alert-dialog.ok}
+    )}"></div>
+
+    <div class="modal fade" id="fileModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content rounded-0">
+          <div class="modal-body">
+            <form class="input-group me-4" th:action="@{/customers/create-all}" method="post" enctype="multipart/form-data">
+              <input id="files" class="form-control" type="file" accept=".csv" name="customers">
+              <button class="btn btn-primary rounded-0"><i class="bi bi-upload"></i></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </main>
 
