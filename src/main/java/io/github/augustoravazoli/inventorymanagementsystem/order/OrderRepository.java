@@ -11,8 +11,6 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    long countByStatusAndOwner(OrderStatus status, User owner);
-
     boolean existsByCustomerIdAndOwner(long customerId, User owner);
 
     boolean existsByItemsProductIdAndOwner(long productId, User owner);

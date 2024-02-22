@@ -11,8 +11,6 @@ import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
-    long countByOwner(User owner);
-
     boolean existsByIdAndOwner(long id, User owner);
 
     boolean existsByNameAndOwner(String name, User owner);
