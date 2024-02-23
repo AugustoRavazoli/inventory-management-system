@@ -65,6 +65,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Document printOrder(long id, User owner) {
         var order = orderRepository.findByIdAndOwner(id, owner).orElseThrow(OrderNotFoundException::new);
+        logger.info("Printing order with id {} for user {}", id, owner.getEmail());
         return orderDocumentGenerator.generateOrderDocument(order);
     }
 
