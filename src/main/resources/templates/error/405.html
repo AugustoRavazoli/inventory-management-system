@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragment/head}"></head>
+
+<body style="background-color: #f7f7f7;">
+<div class="container-fluid">
+  <main class="d-flex flex-column align-items-center justify-content-center vh-100 text-center">
+    <h1 class="display-1 fw-bold">405</h1>
+    <p class="fs-3">Method Not Allowed</p>
+    <p th:text="#{error-405-message}"></p>
+    <a th:href="@{/dashboard}" th:text="#{error-back-to-dashboard-message}"></a>
+  </main>
+</div>
+</body>
+
+</html>
