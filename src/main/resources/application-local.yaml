@@ -11,8 +11,6 @@ spring:
     port: 1025
   thymeleaf:
     cache: false
-    mode: HTML
-    encoding: UTF-8
     prefix: file:src/main/resources/templates/
   web:
     resources:
