@@ -72,6 +72,10 @@ Use the following command to run tests.
   ./gradlew test
 ```
 
+## Contributing
+
+Open an issue to request a feature or report a bug.
+
 ## License
 
 This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
