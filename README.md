@@ -64,6 +64,11 @@ Start the application
 The application will start at `http://localhost:8080/`
 with a default user with email `user@email.com` and password `password` with prefilled data.
 
+The email client will start at `http://localhost:8025/`, use it to verify a new created account 
+or reset an account password.
+
+The database admin panel will start at `http://localhost:5050/`, use it to manage the database.
+
 ### Tests
 
 Use the following command to run tests.
