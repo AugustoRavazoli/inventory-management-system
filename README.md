@@ -23,6 +23,7 @@ Inventory Management System is a simple prototype application for inventory mana
 - User can manage orders.
 - User can manage sales.
 - User can manage their account.
+- User can switch language between english or portuguese.
 
 ## Technologies
 
