@@ -26,17 +26,17 @@ Inventory Management System is a simple prototype application for inventory mana
 
 ## Features
 
-- User can register their account.
-- User can authenticate through the system.
-- User can log out from the system.
-- User can view information on dashboard.
-- User can manage products.
-- User can manage categories.
-- User can manage customers.
-- User can manage orders.
-- User can manage sales.
-- User can manage their account.
-- User can switch language between english or portuguese.
+- Users can register their accounts.
+- Users can authenticate through the system.
+- Users can log out from the system.
+- Users can view information on the dashboard.
+- Users can manage products.
+- Users can manage categories.
+- Users can manage customers.
+- Users can manage orders.
+- Users can manage sales.
+- Users can manage their accounts.
+- Users can switch the language between English or Portuguese.
 
 ## Technologies
 
