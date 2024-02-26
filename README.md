@@ -41,6 +41,7 @@ Inventory Management System is a simple prototype application for inventory mana
 ### Prerequisites
 
 * Docker
+* Docker Compose
 
 ### Installing
 
