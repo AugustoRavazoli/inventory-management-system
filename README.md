@@ -86,7 +86,7 @@ The database admin panel will start at `http://localhost:5050/`, use it to manag
 
 ### Tests
 
-Use the following command to run tests.
+This project contains a lot of unit and integration tests, use the following command to run them.
 
 ```bash
   ./gradlew test
