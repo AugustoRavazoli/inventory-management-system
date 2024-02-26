@@ -1,5 +1,18 @@
 # Inventory Management System
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Demonstration](#demonstration)
+- [Features](#features)
+- [Technologies](#technologies)
+- [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installing](#installing)
+    - [Tests](#tests)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Overview
 
 Inventory Management System is a simple prototype application for inventory management and control.
