@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html th:lang="${#locale.language}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <th:block th:replace="~{fragment/head}"></th:block>
+</head>
+
+<body style="background-color: #f7f7f7;">
+
+  <header class="navbar navbar-expand-lg bg-white py-3">
+    <div class="container-fluid">
+      <a class="navbar-brand ms-3 fs-5 fw-bold text-center text-uppercase text-success" href="#">Inventory</a>
+      <div class="d-flex gap-3 me-3">
+        <a th:href="@{/login}" th:text="#{home.login-link}" class="btn btn-success rounded-0"></a>
+        <a th:href="@{/register}" th:text="#{home.register-link}" class="btn btn-danger rounded-0"></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container-fluid pb-4">
+    <main class="d-flex flex-column flex-md-row align-items-center align-items-md-start justify-content-md-evenly pt-sm-5">
+
+      <div class="p-3 p-md-5 mt-5 rounded-0 bg-white" style="max-width: 420px;">
+        <h2 class="h2 mb-0" th:text="#{home.card-title}"></h2>
+        <h2 class="h2 text-success" th:text="#{home.card-subtitle}"></h2>
+        <p class="py-2 text-wrap" th:text="#{home.card-description}"></p>
+        <a th:href="@{/register}" class="btn btn-success px-4 rounded-0" th:text="#{home.try-it-link}"></a>
+      </div>
+
+      <div class="col-5 mt-5 p-3 p-sm-0 ps-md-4" style="max-width: 500px; min-width: 375px">
+        <img class="img-fluid" style="transform: scaleX(-1);" th:src="@{/img/illustration.svg}" alt="">
+      </div>
+
+    </main>
+  </div>
+
+  <div class="ms-3 mt-2 d-flex flex-column gap-2 align-items-start">
+    <button class="btn btn-sm btn-outline-secondary rounded-0" onclick="window.location.replace('?lang=en_US')">🇺🇸</button>
+    <button class="btn btn-sm btn-outline-secondary rounded-0" onclick="window.location.replace('?lang=pt_BR')">🇧🇷</button>
+  </div>
+
+  <footer class="mt-2 text-center">
+    <p class="fw-semibold">Copyright&copy; 2024, Augusto Ravazoli</p>
+  </footer>
+
+</body>

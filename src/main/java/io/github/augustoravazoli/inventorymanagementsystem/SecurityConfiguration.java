@@ -20,6 +20,7 @@ public class SecurityConfiguration {
             "/webjars/**",
             "/js/**",
             "/img/**",
+            "/",
             "/register",
             "/login",
             "/verify-account",
