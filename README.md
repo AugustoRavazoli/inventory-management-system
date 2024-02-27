@@ -53,6 +53,7 @@ Inventory Management System is a simple prototype application for inventory mana
 
 ### Prerequisites
 
+* Java 21
 * Docker
 * Docker Compose
 
